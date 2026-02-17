@@ -253,7 +253,7 @@ class TFTFinderApp:
         top = tk.Frame(self.root, bg="#2a2b2e", pady=8, padx=12)
         top.pack(fill=tk.X)
 
-        tk.Label(top, text="Taille equipe:", bg="#2a2b2e", fg="white",
+        tk.Label(top, text="Team size:", bg="#2a2b2e", fg="white",
                  font=("Segoe UI", 11)).pack(side=tk.LEFT)
 
         self.team_size_var = tk.IntVar(value=6)
@@ -280,7 +280,7 @@ class TFTFinderApp:
 
         cfg_title = tk.Frame(self.config_frame, bg="#333")
         cfg_title.pack(fill=tk.X, pady=(0, 6))
-        tk.Label(cfg_title, text="Poids du scoring", bg="#333", fg="white",
+        tk.Label(cfg_title, text="Scoring weights", bg="#333", fg="white",
                  font=("Segoe UI", 10, "bold")).pack(side=tk.LEFT)
         tk.Button(cfg_title, text="Reset config", bg="#555", fg="white",
                   font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=1,
@@ -290,10 +290,10 @@ class TFTFinderApp:
         sliders_frame.pack(fill=tk.X)
 
         slider_defs = [
-            ("Tier", self.w_tier, "Puissance brute (S > A > B...)"),
-            ("Synergies", self.w_traits, "Bonus des traits actives"),
-            ("Odds", self.w_odds, "Probabilite de trouver l'unite"),
-            ("Multi-synergie", self.w_multi, "Bonus si 2+ traits matchent"),
+            ("Tier", self.w_tier, "Raw power (S > A > B...)"),
+            ("Synergies", self.w_traits, "Active trait bonuses"),
+            ("Odds", self.w_odds, "Probability to find the unit"),
+            ("Multi-synergy", self.w_multi, "Bonus if 2+ traits match"),
         ]
         for label, var, desc in slider_defs:
             sf = tk.Frame(sliders_frame, bg="#333")
@@ -314,10 +314,10 @@ class TFTFinderApp:
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
 
         presets = [
-            ("Equilibre", {"tier": 1.0, "traits": 1.0, "odds": 1.0, "multi_synergy": 1.0}),
-            ("Synergie max", {"tier": 0.3, "traits": 2.0, "odds": 0.5, "multi_synergy": 2.0}),
+            ("Balanced", {"tier": 1.0, "traits": 1.0, "odds": 1.0, "multi_synergy": 1.0}),
+            ("Max synergy", {"tier": 0.3, "traits": 2.0, "odds": 0.5, "multi_synergy": 2.0}),
             ("Brute force", {"tier": 2.0, "traits": 0.5, "odds": 1.0, "multi_synergy": 0.3}),
-            ("Ignorer les odds", {"tier": 1.0, "traits": 1.0, "odds": 0.0, "multi_synergy": 1.0}),
+            ("Ignore odds", {"tier": 1.0, "traits": 1.0, "odds": 0.0, "multi_synergy": 1.0}),
         ]
         for name, values in presets:
             tk.Button(presets_frame, text=name, bg="#555", fg="white",
@@ -329,7 +329,7 @@ class TFTFinderApp:
         search_bar = tk.Frame(self.root, bg="#2a2b2e", pady=6, padx=12)
         search_bar.pack(fill=tk.X)
 
-        tk.Label(search_bar, text="Recherche:", bg="#2a2b2e", fg="white",
+        tk.Label(search_bar, text="Search:", bg="#2a2b2e", fg="white",
                  font=("Segoe UI", 10)).pack(side=tk.LEFT)
 
         self.search_var = tk.StringVar()
@@ -339,18 +339,18 @@ class TFTFinderApp:
                                 relief=tk.FLAT)
         search_entry.pack(side=tk.LEFT, padx=(8, 12))
 
-        tk.Label(search_bar, text="nom, cout (ex: 3) ou trait", bg="#2a2b2e", fg="#888",
+        tk.Label(search_bar, text="name, cost (ex: 3) or trait", bg="#2a2b2e", fg="#888",
                  font=("Segoe UI", 9, "italic")).pack(side=tk.LEFT)
 
         # Sort buttons
         sort_frame = tk.Frame(search_bar, bg="#2a2b2e")
         sort_frame.pack(side=tk.RIGHT)
 
-        tk.Label(sort_frame, text="Tri:", bg="#2a2b2e", fg="#aaa",
+        tk.Label(sort_frame, text="Sort:", bg="#2a2b2e", fg="#aaa",
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 4))
 
         self.sort_buttons = {}
-        for mode, label in [("default", "Defaut"), ("cost", "Cout"), ("tier", "Tier")]:
+        for mode, label in [("default", "Default"), ("cost", "Cost"), ("tier", "Tier")]:
             btn = tk.Button(sort_frame, text=label, bg="#444", fg="white",
                             font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=1,
                             command=lambda m=mode: self._set_sort(m))
@@ -402,16 +402,16 @@ class TFTFinderApp:
         locked_header = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
         locked_header.pack(fill=tk.X, padx=8)
 
-        tk.Label(locked_header, text="Champions verrouilles", bg="#1d1e20", fg="#e8a33c",
+        tk.Label(locked_header, text="Locked champions", bg="#1d1e20", fg="#e8a33c",
                  font=("Segoe UI", 12, "bold"), pady=4).pack(side=tk.LEFT)
 
         btn_frame = tk.Frame(locked_header, bg="#1d1e20")
         btn_frame.pack(side=tk.RIGHT)
 
-        tk.Button(btn_frame, text="Tout debloquer", bg="#444", fg="white",
+        tk.Button(btn_frame, text="Unlock all", bg="#444", fg="white",
                   font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
                   command=self._unlock_all).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Tout verrouiller", bg="#444", fg="white",
+        tk.Button(btn_frame, text="Lock all", bg="#444", fg="white",
                   font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
                   command=self._lock_all).pack(side=tk.LEFT, padx=2)
 
@@ -425,7 +425,7 @@ class TFTFinderApp:
         main.add(right_panel, stretch="never")
 
         # -- Mon equipe --
-        team_section = tk.LabelFrame(right_panel, text="Mon equipe", bg="#1d1e20", fg="white",
+        team_section = tk.LabelFrame(right_panel, text="My team", bg="#1d1e20", fg="white",
                                       font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
                                       labelanchor="n", padx=4, pady=4)
         team_section.pack(fill=tk.X, padx=4, pady=(4, 2))
@@ -434,7 +434,7 @@ class TFTFinderApp:
         self.team_frame.pack(fill=tk.X)
 
         # -- Traits actifs --
-        traits_section = tk.LabelFrame(right_panel, text="Traits actifs", bg="#1d1e20", fg="white",
+        traits_section = tk.LabelFrame(right_panel, text="Active traits", bg="#1d1e20", fg="white",
                                         font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
                                         labelanchor="n", padx=4, pady=4)
         traits_section.pack(fill=tk.X, padx=4, pady=2)
@@ -443,7 +443,7 @@ class TFTFinderApp:
         self.traits_frame.pack(fill=tk.X)
 
         # -- Recommandations --
-        rec_section = tk.LabelFrame(right_panel, text="Recommandations", bg="#1d1e20", fg="white",
+        rec_section = tk.LabelFrame(right_panel, text="Recommendations", bg="#1d1e20", fg="white",
                                      font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
                                      labelanchor="n", padx=4, pady=4)
         rec_section.pack(fill=tk.BOTH, expand=True, padx=4, pady=(2, 4))
@@ -665,7 +665,7 @@ class TFTFinderApp:
         team_size = self.team_size_var.get()
 
         if not self.selected:
-            tk.Label(self.team_frame, text="Cliquez sur un champion pour l'ajouter",
+            tk.Label(self.team_frame, text="Click a champion to add it",
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 9)).pack(pady=8)
             return
 
@@ -704,7 +704,7 @@ class TFTFinderApp:
 
         active = self._get_active_traits()
         if not active:
-            tk.Label(self.traits_frame, text="Aucun trait actif",
+            tk.Label(self.traits_frame, text="No active traits",
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 9)).pack(pady=6)
             return
 
@@ -743,7 +743,7 @@ class TFTFinderApp:
             self.selected.pop()
 
         self.selection_count_label.config(
-            text=f"{len(self.selected)} / {team_size} selectionnes")
+            text=f"{len(self.selected)} / {team_size} selected")
 
         # Compute recommendations first (needed for grid highlight)
         recs = compute_recommendations(
@@ -798,8 +798,8 @@ class TFTFinderApp:
             w.destroy()
 
         if not recs:
-            msg = "Equipe complete !" if len(self.selected) >= team_size else \
-                  "Selectionnez des champions\net ajustez la taille"
+            msg = "Team full!" if len(self.selected) >= team_size else \
+                  "Select champions\nand adjust team size"
             tk.Label(self.rec_frame, text=msg,
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 10)).pack(pady=20)
             return

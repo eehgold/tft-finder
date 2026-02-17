@@ -1,62 +1,62 @@
 # TFT Finder
 
-Un outil pour optimiser ta composition d'équipe dans **Teamfight Tactics** (Saison 16).
-Tu sélectionnes tes champions, et l'outil te recommande le meilleur prochain personnage à acheter en fonction des synergies de traits, du tier des unités et des probabilités de drop.
+A tool to optimize your team composition in **Teamfight Tactics** (Season 16).
+Select your champions, and the tool recommends the best next unit to buy based on trait synergies, unit tier, and drop probabilities.
 
 ![Screenshot](data/images/screenshot/app1.png)
 
 ---
 
-## Prérequis
+## Requirements
 
-- **Python 3** installé sur ton PC ([télécharger ici](https://www.python.org/downloads/))
-  - Pendant l'installation, **coche bien la case "Add Python to PATH"**
-- **Pillow** (une librairie pour afficher les images)
+- **Python 3** installed on your PC ([download here](https://www.python.org/downloads/))
+  - During installation, **make sure to check "Add Python to PATH"**
+- **Pillow** (an image display library)
 
 ## Installation
 
-1. **Télécharge le projet** (bouton vert "Code" > "Download ZIP" sur GitHub, puis dézippe)
+1. **Download the project** (green "Code" button > "Download ZIP" on GitHub, then unzip)
 
-2. **Ouvre un terminal** dans le dossier du projet
-   - Sur Windows : clic droit dans le dossier > "Ouvrir dans le terminal"
+2. **Open a terminal** in the project folder
+   - On Windows: right-click in the folder > "Open in Terminal"
 
-3. **Installe les dépendances** :
+3. **Install dependencies**:
    ```
    pip install -r requirements.txt
    ```
-   > **pip non reconnu ?** pip est installé automatiquement avec Python. Si la commande ne marche pas :
-   > - Vérifie que tu as bien coché **"Add Python to PATH"** lors de l'installation de Python (sinon, relance l'installeur Python > "Modify" > coche la case)
-   > - Essaie avec `python -m pip install -r requirements.txt` à la place
+   > **pip not recognized?** pip is installed automatically with Python. If the command doesn't work:
+   > - Make sure you checked **"Add Python to PATH"** during Python installation (otherwise, relaunch the Python installer > "Modify" > check the box)
+   > - Try `python -m pip install -r requirements.txt` instead
 
-## Lancement
+## Running
 
-Dans le terminal, tape :
+In the terminal, type:
 
 ```
 python app.py
 ```
 
-L'application s'ouvre, c'est prêt !
+The application opens — you're ready!
 
-## Comment ça marche
+## How it works
 
-1. **Clique sur les champions** pour les ajouter à ton équipe
-2. Utilise la **barre de recherche** pour filtrer par nom, coût ou trait
-3. **Trie la grille** par défaut, coût ou tier avec les boutons de tri
-4. Regarde les **traits activés** à droite (colorés bronze/blanc/or/prismatique selon le palier)
-5. L'outil te propose les **meilleurs champions** pour compléter ton équipe
-   - Les traits en **vert** sont ceux déjà dans ton équipe (synergie directe)
-   - Le détail du score (tier + traits) est affiché sous chaque recommandation
-   - Les champions recommandés sont **surlignés en orange** dans la grille
-6. Clique sur une **recommandation** pour l'ajouter directement
-7. Ajuste la **taille d'équipe** pour voir les probabilités de drop
-8. **Config** : ouvre le panneau de configuration pour ajuster les poids du scoring (tier, synergies, odds, multi-synergie) ou utilise un **preset** (Equilibre, Synergie max, Brute force, Ignorer les odds)
+1. **Click on champions** to add them to your team
+2. Use the **search bar** to filter by name, cost, or trait
+3. **Sort the grid** by default, cost, or tier using the sort buttons
+4. Check the **active traits** on the right (colored bronze/white/gold/prismatic based on the tier reached)
+5. The tool suggests the **best champions** to complete your team
+   - Traits in **green** are already in your team (direct synergy)
+   - The score breakdown (tier + traits) is shown under each recommendation
+   - Recommended champions are **highlighted in orange** in the grid
+6. Click a **recommendation** to add it directly
+7. Adjust the **team size** to see drop probabilities
+8. **Config**: open the config panel to adjust scoring weights (tier, synergies, odds, multi-synergy) or use a **preset** (Balanced, Max synergy, Brute force, Ignore odds)
 
-### Raccourcis clavier
+### Keyboard shortcuts
 
-- **Ctrl+Z** : annuler la dernière action
-- **Echap** : tout désélectionner
+- **Ctrl+Z**: undo last action
+- **Escape**: deselect all
 
-## Licence
+## License
 
-Ce projet est sous licence **MIT** — tu es libre de l'utiliser, le modifier et le redistribuer comme tu veux. Voir le fichier [LICENSE](LICENSE) pour les détails.
+This project is licensed under the **MIT License** — you are free to use, modify, and redistribute it as you wish. See the [LICENSE](LICENSE) file for details.
