@@ -3,7 +3,6 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import json
 import os
-
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 IMG_SIZE = 48
 TEAM_IMG_SIZE = 56
@@ -12,6 +11,13 @@ GRID_COLS = 10
 LOCKED_GRID_COLS = 8
 TIER_SCORES = {"S": 10, "A": 7, "B": 5, "C": 3, "D": 1}
 TIER_COLORS = {"S": "#ff7f7f", "A": "#ffbf7f", "B": "#ffdf7f", "C": "#7fbfff", "D": "#aaaaaa"}
+# Trait threshold tier colors: bronze, silver, gold, prismatic
+TRAIT_TIER_COLORS = ["#cd7f32", "#ffffff", "#ffd700", "#e45fff"]
+# Cost border colors (like in-game): 1g gray, 2g green, 3g blue, 4g purple, 5g+ gold
+COST_COLORS = {1: "#888888", 2: "#11b288", 3: "#207ac7", 4: "#c440da", 5: "#ffb93b",
+               6: "#ffb93b", 7: "#ffb93b"}
+# Recommended champion highlight color
+REC_HIGHLIGHT = "#e8a33c"
 
 # Level -> probability (0-1) per unit cost (1-5). Cost 6/7 use cost 5 odds.
 ROLL_ODDS = {
@@ -44,53 +50,97 @@ def load_data():
     return units, trait_thresholds, trait_icons
 
 
-def compute_trait_score(candidate, selected_units, all_units_map, trait_thresholds):
-    """Score based on trait synergy. Higher thresholds give bigger bonuses."""
+def _count_available_for_trait(trait_name, selected_names, unlocked_names, units):
+    """Count how many more units with this trait are available to pick."""
+    count = 0
+    for u in units:
+        if u["name"] in selected_names:
+            continue
+        if u["locked"] and u["name"] not in unlocked_names:
+            continue
+        if trait_name in u["traits"]:
+            count += 1
+    return count
+
+
+def compute_trait_score(candidate, selected_units, all_units_map, trait_thresholds,
+                        unlocked_names=None, all_units=None):
+    """Score based on trait synergy. Returns (total_trait_score, matching_traits set)."""
     selected_traits = {}
     for name in selected_units:
         for t in all_units_map[name]["traits"]:
             selected_traits[t] = selected_traits.get(t, 0) + 1
 
     score = 0
+    matching = set()
     for t in candidate["traits"]:
         current = selected_traits.get(t, 0)
         new = current + 1
         thresholds = trait_thresholds.get(t, [])
+
+        if current > 0:
+            matching.add(t)
+
+        # Bonus for crossing a threshold (activating a new tier)
         for i, th in enumerate(thresholds):
             tier_bonus = (i + 1) * 3
             if new >= th > current:
                 score += tier_bonus
             elif new >= th:
                 score += 1
+
+        # Proximity bonus: reward getting closer to the next threshold
+        # Scaled by which tier that threshold is (higher tier = bigger reward)
         if current > 0:
             next_th = None
-            for th in thresholds:
+            next_tier = 0
+            for i, th in enumerate(thresholds):
                 if th > current:
                     next_th = th
+                    next_tier = i + 1
                     break
             if next_th:
-                progress = new / next_th
-                score += progress * 3
+                missing = next_th - new
+                if missing == 0:
+                    pass  # Already handled by threshold crossing above
+                else:
+                    # Penalize if not enough available units to reach this threshold
+                    if all_units is not None and unlocked_names is not None:
+                        available = _count_available_for_trait(
+                            t, selected_units, unlocked_names, all_units)
+                        units_still_needed = next_th - new
+                        if available < units_still_needed:
+                            # Unreachable threshold: heavily reduce proximity bonus
+                            proximity = new / next_th
+                            score += proximity * next_tier * 0.5
+                            continue
+                    proximity = new / next_th
+                    score += proximity * next_tier * 3
             else:
                 score += 1
-    return score
+
+    # Multi-synergy bonus: champion contributes to multiple existing traits at once
+    if len(matching) >= 2:
+        score += len(matching) * 2
+
+    return score, matching
 
 
 def get_roll_odds(level, cost):
     """Get the probability of rolling a unit of given cost at given level."""
     odds = ROLL_ODDS.get(level, ROLL_ODDS[11])
-    # Cost 6/7 units use cost 5 odds
     lookup_cost = min(cost, 5)
     return odds.get(lookup_cost, 0.0)
 
 
 def compute_recommendations(selected_names, team_size, unlocked_names, units, trait_thresholds):
     all_units_map = {u["name"]: u for u in units}
-    level = team_size  # team size = player level
+    level = team_size
     slots = team_size - len(selected_names)
     if slots <= 0:
         return []
 
+    # Score each candidate individually
     candidates = []
     for u in units:
         if u["name"] in selected_names:
@@ -99,15 +149,44 @@ def compute_recommendations(selected_names, team_size, unlocked_names, units, tr
             continue
         odds = get_roll_odds(level, u["cost"])
         if odds <= 0:
-            continue  # impossible to find at this level
+            continue
         tier_score = TIER_SCORES.get(u["tier"], 0)
-        trait_score = compute_trait_score(u, selected_names, all_units_map, trait_thresholds)
+        trait_score, matching = compute_trait_score(
+            u, selected_names, all_units_map, trait_thresholds, unlocked_names, units)
         raw_score = tier_score + trait_score
         total = raw_score * odds
-        candidates.append((total, raw_score, odds, u))
+        candidates.append((total, tier_score, trait_score, odds, matching, u))
 
-    candidates.sort(key=lambda x: -x[0])
-    return candidates[:slots]
+    if slots <= 1 or not candidates:
+        candidates.sort(key=lambda x: -x[0])
+        return candidates[:slots]
+
+    # Combo optimization: greedy approach with re-scoring after each pick
+    combo = []
+    used = set(selected_names)
+    for _ in range(slots):
+        best = None
+        for c in candidates:
+            u = c[5]
+            if u["name"] in used:
+                continue
+            odds = get_roll_odds(level, u["cost"])
+            if odds <= 0:
+                continue
+            tier_score = TIER_SCORES.get(u["tier"], 0)
+            trait_score, matching = compute_trait_score(
+                u, used, all_units_map, trait_thresholds, unlocked_names, units)
+            raw_score = tier_score + trait_score
+            total = raw_score * odds
+            entry = (total, tier_score, trait_score, odds, matching, u)
+            if best is None or total > best[0]:
+                best = entry
+        if best is None:
+            break
+        combo.append(best)
+        used.add(best[5]["name"])
+
+    return combo
 
 
 class TFTFinderApp:
@@ -121,16 +200,23 @@ class TFTFinderApp:
         self.normal_units = [u for u in self.units if not u["locked"]]
         self.locked_units = [u for u in self.units if u["locked"]]
         self.selected = set()
-        self.unlocked = set()  # locked champions the user has unlocked
-        self.unlock_vars = {}  # BooleanVar per locked champion
+        self.unlocked = set()
+        self.unlock_vars = {}
         self.unit_images = {}
         self.team_images = {}
         self.trait_images = {}
         self.unit_widgets = {}
+        self.recommended_names = set()
+        self.history = []  # undo history: list of previous selected sets
+        self.sort_mode = "default"  # default, cost, tier
 
         self._load_images()
         self._build_ui()
         self._refresh()
+
+        # Keyboard shortcuts
+        self.root.bind("<Control-z>", lambda _: self._undo())
+        self.root.bind("<Escape>", lambda _: self._reset_selection())
 
     def _load_images(self):
         for u in self.units:
@@ -167,7 +253,11 @@ class TFTFinderApp:
                                               font=("Segoe UI", 10))
         self.selection_count_label.pack(side=tk.RIGHT)
 
-        # Search bar
+        tk.Button(top, text="Reset", bg="#ff5555", fg="white",
+                  font=("Segoe UI", 9, "bold"), relief=tk.FLAT, padx=10, pady=2,
+                  command=self._reset_selection).pack(side=tk.RIGHT, padx=(0, 12))
+
+        # Search bar + sort buttons
         search_bar = tk.Frame(self.root, bg="#2a2b2e", pady=6, padx=12)
         search_bar.pack(fill=tk.X)
 
@@ -183,6 +273,22 @@ class TFTFinderApp:
 
         tk.Label(search_bar, text="nom, cout (ex: 3) ou trait", bg="#2a2b2e", fg="#888",
                  font=("Segoe UI", 9, "italic")).pack(side=tk.LEFT)
+
+        # Sort buttons
+        sort_frame = tk.Frame(search_bar, bg="#2a2b2e")
+        sort_frame.pack(side=tk.RIGHT)
+
+        tk.Label(sort_frame, text="Tri:", bg="#2a2b2e", fg="#aaa",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 4))
+
+        self.sort_buttons = {}
+        for mode, label in [("default", "Defaut"), ("cost", "Cout"), ("tier", "Tier")]:
+            btn = tk.Button(sort_frame, text=label, bg="#444", fg="white",
+                            font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=1,
+                            command=lambda m=mode: self._set_sort(m))
+            btn.pack(side=tk.LEFT, padx=1)
+            self.sort_buttons[mode] = btn
+        self._update_sort_buttons()
 
         # Main area
         main = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, bg="#1d1e20",
@@ -292,16 +398,18 @@ class TFTFinderApp:
     def _build_champion_grid(self, unit_list, parent, cols):
         for i, u in enumerate(unit_list):
             row, col = divmod(i, cols)
-            frame = tk.Frame(parent, bg="#1d1e20", padx=2, pady=2, cursor="hand2")
+            cost_color = COST_COLORS.get(u["cost"], "#888")
+            frame = tk.Frame(parent, bg=cost_color, padx=2, pady=2, cursor="hand2",
+                             bd=2, relief=tk.FLAT)
             frame.grid(row=row, column=col, padx=2, pady=2)
 
             img = self.unit_images.get(u["name"])
-            lbl_img = tk.Label(frame, image=img, bg="#333", bd=2, relief=tk.FLAT)
+            lbl_img = tk.Label(frame, image=img, bg="#333", bd=0)
             lbl_img.pack()
 
             lbl_name = tk.Label(frame, text=u["name"], bg="#1d1e20", fg="white",
                                 font=("Segoe UI", 7), wraplength=IMG_SIZE + 10)
-            lbl_name.pack()
+            lbl_name.pack(fill=tk.X)
 
             self.unit_widgets[u["name"]] = (frame, lbl_img, lbl_name)
 
@@ -311,19 +419,20 @@ class TFTFinderApp:
     def _build_locked_grid(self):
         for i, u in enumerate(self.locked_units):
             row, col = divmod(i, LOCKED_GRID_COLS)
-            frame = tk.Frame(self.locked_grid_frame, bg="#1d1e20", padx=2, pady=2)
+            cost_color = COST_COLORS.get(u["cost"], "#888")
+            frame = tk.Frame(self.locked_grid_frame, bg=cost_color, padx=2, pady=2,
+                             bd=2, relief=tk.FLAT)
             frame.grid(row=row, column=col, padx=2, pady=2)
 
-            # Checkbox to unlock
             var = tk.BooleanVar(value=False)
             self.unlock_vars[u["name"]] = var
 
             img = self.unit_images.get(u["name"])
-            lbl_img = tk.Label(frame, image=img, bg="#555", bd=2, relief=tk.FLAT, cursor="hand2")
+            lbl_img = tk.Label(frame, image=img, bg="#555", bd=0, cursor="hand2")
             lbl_img.pack()
 
             cb_frame = tk.Frame(frame, bg="#1d1e20")
-            cb_frame.pack()
+            cb_frame.pack(fill=tk.X)
 
             cb = tk.Checkbutton(cb_frame, variable=var, bg="#1d1e20", selectcolor="#444",
                                 activebackground="#1d1e20", highlightthickness=0,
@@ -336,9 +445,36 @@ class TFTFinderApp:
 
             self.unit_widgets[u["name"]] = (frame, lbl_img, lbl_name)
 
-            # Click image or name to toggle selection (only if unlocked)
             for widget in (lbl_img, lbl_name):
                 widget.bind("<Button-1>", lambda e, name=u["name"]: self._toggle_locked(name))
+
+    def _set_sort(self, mode):
+        self.sort_mode = mode
+        self._update_sort_buttons()
+        self._resort_grid()
+
+    def _update_sort_buttons(self):
+        for m, btn in self.sort_buttons.items():
+            if m == self.sort_mode:
+                btn.config(bg="#666", relief=tk.SUNKEN)
+            else:
+                btn.config(bg="#444", relief=tk.FLAT)
+
+    def _resort_grid(self):
+        if self.sort_mode == "cost":
+            sorted_units = sorted(self.normal_units, key=lambda u: (u["cost"], u["name"]))
+        elif self.sort_mode == "tier":
+            tier_order = {"S": 0, "A": 1, "B": 2, "C": 3, "D": 4}
+            sorted_units = sorted(self.normal_units, key=lambda u: (tier_order.get(u["tier"], 9), u["name"]))
+        else:
+            sorted_units = self.normal_units
+
+        for i, u in enumerate(sorted_units):
+            row, col = divmod(i, GRID_COLS)
+            frame, _, _ = self.unit_widgets[u["name"]]
+            frame.grid(row=row, column=col, padx=2, pady=2)
+
+        self._refresh_grid_filter()
 
     def _on_unlock_toggle(self, name):
         if self.unlock_vars[name].get():
@@ -379,6 +515,17 @@ class TFTFinderApp:
                 return True
         return False
 
+    def _reset_selection(self):
+        if self.selected:
+            self.history.append(set(self.selected))
+        self.selected.clear()
+        self._refresh()
+
+    def _undo(self):
+        if self.history:
+            self.selected = self.history.pop()
+            self._refresh()
+
     def _refresh_grid_filter(self):
         query = self.search_var.get().strip()
         for u in self.units:
@@ -389,6 +536,7 @@ class TFTFinderApp:
                 frame.grid_remove()
 
     def _toggle(self, name):
+        self.history.append(set(self.selected))
         if name in self.selected:
             self.selected.remove(name)
         else:
@@ -406,13 +554,15 @@ class TFTFinderApp:
     def _get_highest_threshold(self, trait_name, count):
         thresholds = self.trait_thresholds.get(trait_name, [])
         reached = 0
+        reached_index = -1
         next_th = None
-        for th in thresholds:
+        for i, th in enumerate(thresholds):
             if count >= th:
                 reached = th
+                reached_index = i
             elif next_th is None:
                 next_th = th
-        return reached, next_th
+        return reached, next_th, reached_index
 
     def _refresh_team(self):
         for w in self.team_frame.winfo_children():
@@ -465,7 +615,13 @@ class TFTFinderApp:
             return
 
         for trait_name, count in active.items():
-            reached, next_th = self._get_highest_threshold(trait_name, count)
+            reached, next_th, reached_index = self._get_highest_threshold(trait_name, count)
+
+            if reached_index < 0:
+                color = "#aaa"
+            else:
+                clamped = min(reached_index, len(TRAIT_TIER_COLORS) - 1)
+                color = TRAIT_TIER_COLORS[clamped]
 
             row = tk.Frame(self.traits_frame, bg="#2a2b2e", pady=2, padx=6)
             row.pack(fill=tk.X, pady=1)
@@ -474,7 +630,6 @@ class TFTFinderApp:
             if icon:
                 tk.Label(row, image=icon, bg="#2a2b2e").pack(side=tk.LEFT, padx=(0, 6))
 
-            color = "#4caf50" if reached > 0 else "#aaa"
             tk.Label(row, text=trait_name, bg="#2a2b2e", fg=color,
                      font=("Segoe UI", 9, "bold"), anchor="w").pack(side=tk.LEFT)
 
@@ -484,7 +639,7 @@ class TFTFinderApp:
                 progress = f"{count} (max)"
             else:
                 progress = str(count)
-            tk.Label(row, text=progress, bg="#2a2b2e", fg="#aaa",
+            tk.Label(row, text=progress, bg="#2a2b2e", fg=color,
                      font=("Segoe UI", 8)).pack(side=tk.RIGHT)
 
     def _refresh(self):
@@ -496,37 +651,54 @@ class TFTFinderApp:
         self.selection_count_label.config(
             text=f"{len(self.selected)} / {team_size} selectionnes")
 
-        # Update normal grid visuals
-        for u in self.normal_units:
-            frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
-            if u["name"] in self.selected:
-                lbl_img.config(bg="#555", relief=tk.SUNKEN, bd=2)
-                lbl_name.config(fg="#666")
-            else:
-                lbl_img.config(bg="#333", relief=tk.FLAT, bd=2)
-                lbl_name.config(fg="white")
-
-        # Update locked grid visuals
-        for u in self.locked_units:
-            frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
-            is_unlocked = u["name"] in self.unlocked
-            if u["name"] in self.selected:
-                lbl_img.config(bg="#555", relief=tk.SUNKEN, bd=2)
-                lbl_name.config(fg="#666")
-            elif is_unlocked:
-                lbl_img.config(bg="#333", relief=tk.FLAT, bd=2)
-                lbl_name.config(fg="white")
-            else:
-                lbl_img.config(bg="#555", relief=tk.FLAT, bd=2)
-                lbl_name.config(fg="#444")
-
-        self._refresh_team()
-        self._refresh_traits()
-
+        # Compute recommendations first (needed for grid highlight)
         recs = compute_recommendations(
             self.selected, team_size, self.unlocked,
             self.units, self.trait_thresholds
         )
+        self.recommended_names = {r[5]["name"] for r in recs}
+
+        # Update normal grid visuals
+        for u in self.normal_units:
+            frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
+            cost_color = COST_COLORS.get(u["cost"], "#888")
+            if u["name"] in self.selected:
+                lbl_img.config(bg="#555", relief=tk.SUNKEN, bd=0)
+                lbl_name.config(fg="#666")
+                frame.config(bg="#555", bd=2, relief=tk.SUNKEN)
+            elif u["name"] in self.recommended_names:
+                lbl_img.config(bg="#333", relief=tk.FLAT, bd=0)
+                lbl_name.config(fg="white")
+                frame.config(bg=REC_HIGHLIGHT, bd=2, relief=tk.RIDGE)
+            else:
+                lbl_img.config(bg="#333", relief=tk.FLAT, bd=0)
+                lbl_name.config(fg="white")
+                frame.config(bg=cost_color, bd=2, relief=tk.FLAT)
+
+        # Update locked grid visuals
+        for u in self.locked_units:
+            frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
+            cost_color = COST_COLORS.get(u["cost"], "#888")
+            is_unlocked = u["name"] in self.unlocked
+            if u["name"] in self.selected:
+                lbl_img.config(bg="#555", relief=tk.SUNKEN, bd=0)
+                lbl_name.config(fg="#666")
+                frame.config(bg="#555", bd=2, relief=tk.SUNKEN)
+            elif is_unlocked and u["name"] in self.recommended_names:
+                lbl_img.config(bg="#333", relief=tk.FLAT, bd=0)
+                lbl_name.config(fg="white")
+                frame.config(bg=REC_HIGHLIGHT, bd=2, relief=tk.RIDGE)
+            elif is_unlocked:
+                lbl_img.config(bg="#333", relief=tk.FLAT, bd=0)
+                lbl_name.config(fg="white")
+                frame.config(bg=cost_color, bd=2, relief=tk.FLAT)
+            else:
+                lbl_img.config(bg="#555", relief=tk.FLAT, bd=0)
+                lbl_name.config(fg="#444")
+                frame.config(bg=cost_color, bd=2, relief=tk.FLAT)
+
+        self._refresh_team()
+        self._refresh_traits()
 
         for w in self.rec_frame.winfo_children():
             w.destroy()
@@ -538,8 +710,8 @@ class TFTFinderApp:
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 10)).pack(pady=20)
             return
 
-        for total, raw_score, odds, u in recs:
-            row = tk.Frame(self.rec_frame, bg="#2a2b2e", pady=4, padx=6)
+        for total, tier_score, trait_score, odds, matching, u in recs:
+            row = tk.Frame(self.rec_frame, bg="#2a2b2e", pady=4, padx=6, cursor="hand2")
             row.pack(fill=tk.X, pady=2)
 
             img = self.unit_images.get(u["name"])
@@ -567,9 +739,26 @@ class TFTFinderApp:
                      fg="#4caf50" if odds >= 0.20 else "#e8a33c" if odds >= 0.05 else "#ff5555",
                      font=("Segoe UI", 8)).pack(side=tk.LEFT)
 
-            traits_text = ", ".join(u["traits"])
-            tk.Label(info, text=traits_text, bg="#2a2b2e", fg="#7fbfff",
-                     font=("Segoe UI", 8), anchor="w").pack(fill=tk.X)
+            # Score detail line
+            detail = f"tier:{tier_score} + traits:{trait_score:.1f}"
+            tk.Label(info, text=detail, bg="#2a2b2e", fg="#666",
+                     font=("Segoe UI", 7), anchor="w").pack(fill=tk.X)
+
+            # Traits with matching ones highlighted in green
+            traits_frame = tk.Frame(info, bg="#2a2b2e")
+            traits_frame.pack(fill=tk.X)
+            for i, t in enumerate(u["traits"]):
+                color = "#4caf50" if t in matching else "#7fbfff"
+                text = t if i == 0 else f", {t}"
+                tk.Label(traits_frame, text=text, bg="#2a2b2e", fg=color,
+                         font=("Segoe UI", 8)).pack(side=tk.LEFT)
+
+            # Click anywhere on the recommendation row to add to team
+            def _bind_click(widget, name):
+                widget.bind("<Button-1>", lambda _: self._toggle(name))
+                for child in widget.winfo_children():
+                    _bind_click(child, name)
+            _bind_click(row, u["name"])
 
 
 if __name__ == "__main__":
