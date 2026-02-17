@@ -3,6 +3,8 @@
 Un outil pour optimiser ta composition d'équipe dans **Teamfight Tactics** (Saison 16).
 Tu sélectionnes tes champions, et l'outil te recommande le meilleur prochain personnage à acheter en fonction des synergies de traits, du tier des unités et des probabilités de drop.
 
+![Screenshot](data/images/screenshot/app1.png)
+
 ---
 
 ## Prérequis
@@ -38,15 +40,22 @@ L'application s'ouvre, c'est prêt !
 
 ## Comment ça marche
 
-1. Clique sur les champions pour les ajouter à ton équipe
-2. Utilise la barre de recherche pour filtrer par nom, coût ou trait
-3. Regarde les **traits activés** et leur progression à droite
-4. L'outil te propose automatiquement les **meilleurs champions** pour compléter ton équipe
+1. **Clique sur les champions** pour les ajouter à ton équipe
+2. Utilise la **barre de recherche** pour filtrer par nom, coût ou trait
+3. **Trie la grille** par défaut, coût ou tier avec les boutons de tri
+4. Regarde les **traits activés** à droite (colorés bronze/blanc/or/prismatique selon le palier)
+5. L'outil te propose les **meilleurs champions** pour compléter ton équipe
    - Les traits en **vert** sont ceux déjà dans ton équipe (synergie directe)
    - Le détail du score (tier + traits) est affiché sous chaque recommandation
-5. Ajuste ton **niveau joueur** pour voir les probabilités de drop
-6. Clique sur une **recommandation** pour l'ajouter directement à l'équipe
-7. Bouton **Reset** en haut pour tout désélectionner
+   - Les champions recommandés sont **surlignés en orange** dans la grille
+6. Clique sur une **recommandation** pour l'ajouter directement
+7. Ajuste la **taille d'équipe** pour voir les probabilités de drop
+8. **Config** : ouvre le panneau de configuration pour ajuster les poids du scoring (tier, synergies, odds, multi-synergie) ou utilise un **preset** (Equilibre, Synergie max, Brute force, Ignorer les odds)
+
+### Raccourcis clavier
+
+- **Ctrl+Z** : annuler la dernière action
+- **Echap** : tout désélectionner
 
 ## Licence
 

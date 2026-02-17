@@ -63,9 +63,16 @@ def _count_available_for_trait(trait_name, selected_names, unlocked_names, units
     return count
 
 
+DEFAULT_WEIGHTS = {"tier": 1.0, "traits": 1.0, "odds": 1.0, "multi_synergy": 1.0}
+
+
 def compute_trait_score(candidate, selected_units, all_units_map, trait_thresholds,
-                        unlocked_names=None, all_units=None):
+                        unlocked_names=None, all_units=None, weights=None):
     """Score based on trait synergy. Returns (total_trait_score, matching_traits set)."""
+    w = weights or DEFAULT_WEIGHTS
+    trait_w = w.get("traits", 1.0)
+    multi_w = w.get("multi_synergy", 1.0)
+
     selected_traits = {}
     for name in selected_units:
         for t in all_units_map[name]["traits"]:
@@ -85,12 +92,11 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
         for i, th in enumerate(thresholds):
             tier_bonus = (i + 1) * 3
             if new >= th > current:
-                score += tier_bonus
+                score += tier_bonus * trait_w
             elif new >= th:
-                score += 1
+                score += 1 * trait_w
 
         # Proximity bonus: reward getting closer to the next threshold
-        # Scaled by which tier that threshold is (higher tier = bigger reward)
         if current > 0:
             next_th = None
             next_tier = 0
@@ -104,24 +110,22 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
                 if missing == 0:
                     pass  # Already handled by threshold crossing above
                 else:
-                    # Penalize if not enough available units to reach this threshold
                     if all_units is not None and unlocked_names is not None:
                         available = _count_available_for_trait(
                             t, selected_units, unlocked_names, all_units)
                         units_still_needed = next_th - new
                         if available < units_still_needed:
-                            # Unreachable threshold: heavily reduce proximity bonus
                             proximity = new / next_th
-                            score += proximity * next_tier * 0.5
+                            score += proximity * next_tier * 0.5 * trait_w
                             continue
                     proximity = new / next_th
-                    score += proximity * next_tier * 3
+                    score += proximity * next_tier * 3 * trait_w
             else:
-                score += 1
+                score += 1 * trait_w
 
-    # Multi-synergy bonus: champion contributes to multiple existing traits at once
+    # Multi-synergy bonus
     if len(matching) >= 2:
-        score += len(matching) * 2
+        score += len(matching) * 2 * multi_w
 
     return score, matching
 
@@ -133,12 +137,29 @@ def get_roll_odds(level, cost):
     return odds.get(lookup_cost, 0.0)
 
 
-def compute_recommendations(selected_names, team_size, unlocked_names, units, trait_thresholds):
+def compute_recommendations(selected_names, team_size, unlocked_names, units,
+                            trait_thresholds, weights=None):
+    w = weights or DEFAULT_WEIGHTS
     all_units_map = {u["name"]: u for u in units}
     level = team_size
     slots = team_size - len(selected_names)
     if slots <= 0:
         return []
+
+    tier_w = w.get("tier", 1.0)
+    odds_w = w.get("odds", 1.0)
+
+    def _score_unit(u, team):
+        odds = get_roll_odds(level, u["cost"])
+        if odds <= 0:
+            return None
+        tier_score = TIER_SCORES.get(u["tier"], 0) * tier_w
+        trait_score, matching = compute_trait_score(
+            u, team, all_units_map, trait_thresholds, unlocked_names, units, w)
+        raw_score = tier_score + trait_score
+        # odds_w controls how much drop rate matters: 0=ignore odds, 1=full weight
+        total = raw_score * (odds ** odds_w) if odds_w > 0 else raw_score
+        return (total, tier_score, trait_score, odds, matching, u)
 
     # Score each candidate individually
     candidates = []
@@ -147,15 +168,9 @@ def compute_recommendations(selected_names, team_size, unlocked_names, units, tr
             continue
         if u["locked"] and u["name"] not in unlocked_names:
             continue
-        odds = get_roll_odds(level, u["cost"])
-        if odds <= 0:
-            continue
-        tier_score = TIER_SCORES.get(u["tier"], 0)
-        trait_score, matching = compute_trait_score(
-            u, selected_names, all_units_map, trait_thresholds, unlocked_names, units)
-        raw_score = tier_score + trait_score
-        total = raw_score * odds
-        candidates.append((total, tier_score, trait_score, odds, matching, u))
+        entry = _score_unit(u, selected_names)
+        if entry:
+            candidates.append(entry)
 
     if slots <= 1 or not candidates:
         candidates.sort(key=lambda x: -x[0])
@@ -170,16 +185,8 @@ def compute_recommendations(selected_names, team_size, unlocked_names, units, tr
             u = c[5]
             if u["name"] in used:
                 continue
-            odds = get_roll_odds(level, u["cost"])
-            if odds <= 0:
-                continue
-            tier_score = TIER_SCORES.get(u["tier"], 0)
-            trait_score, matching = compute_trait_score(
-                u, used, all_units_map, trait_thresholds, unlocked_names, units)
-            raw_score = tier_score + trait_score
-            total = raw_score * odds
-            entry = (total, tier_score, trait_score, odds, matching, u)
-            if best is None or total > best[0]:
+            entry = _score_unit(u, used)
+            if entry and (best is None or entry[0] > best[0]):
                 best = entry
         if best is None:
             break
@@ -209,6 +216,13 @@ class TFTFinderApp:
         self.recommended_names = set()
         self.history = []  # undo history: list of previous selected sets
         self.sort_mode = "default"  # default, cost, tier
+        self.config_visible = False
+
+        # Scoring weight variables (DoubleVar created after root exists)
+        self.w_tier = tk.DoubleVar(value=1.0)
+        self.w_traits = tk.DoubleVar(value=1.0)
+        self.w_odds = tk.DoubleVar(value=1.0)
+        self.w_multi = tk.DoubleVar(value=1.0)
 
         self._load_images()
         self._build_ui()
@@ -256,6 +270,60 @@ class TFTFinderApp:
         tk.Button(top, text="Reset", bg="#ff5555", fg="white",
                   font=("Segoe UI", 9, "bold"), relief=tk.FLAT, padx=10, pady=2,
                   command=self._reset_selection).pack(side=tk.RIGHT, padx=(0, 12))
+
+        tk.Button(top, text="Config", bg="#444", fg="white",
+                  font=("Segoe UI", 9), relief=tk.FLAT, padx=10, pady=2,
+                  command=self._toggle_config).pack(side=tk.RIGHT, padx=(0, 6))
+
+        # Config panel (hidden by default)
+        self.config_frame = tk.Frame(self.root, bg="#333", pady=8, padx=12)
+
+        cfg_title = tk.Frame(self.config_frame, bg="#333")
+        cfg_title.pack(fill=tk.X, pady=(0, 6))
+        tk.Label(cfg_title, text="Poids du scoring", bg="#333", fg="white",
+                 font=("Segoe UI", 10, "bold")).pack(side=tk.LEFT)
+        tk.Button(cfg_title, text="Reset config", bg="#555", fg="white",
+                  font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=1,
+                  command=self._reset_config).pack(side=tk.RIGHT)
+
+        sliders_frame = tk.Frame(self.config_frame, bg="#333")
+        sliders_frame.pack(fill=tk.X)
+
+        slider_defs = [
+            ("Tier", self.w_tier, "Puissance brute (S > A > B...)"),
+            ("Synergies", self.w_traits, "Bonus des traits actives"),
+            ("Odds", self.w_odds, "Probabilite de trouver l'unite"),
+            ("Multi-synergie", self.w_multi, "Bonus si 2+ traits matchent"),
+        ]
+        for label, var, desc in slider_defs:
+            sf = tk.Frame(sliders_frame, bg="#333")
+            sf.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=8)
+            tk.Label(sf, text=label, bg="#333", fg="#aaa",
+                     font=("Segoe UI", 9, "bold")).pack()
+            tk.Label(sf, text=desc, bg="#333", fg="#666",
+                     font=("Segoe UI", 7)).pack()
+            tk.Scale(sf, from_=0, to=2.0, resolution=0.1, orient=tk.HORIZONTAL,
+                     variable=var, bg="#333", fg="white", highlightthickness=0,
+                     troughcolor="#555", length=120,
+                     command=lambda _: self._refresh()).pack()
+
+        # Preset strategies
+        presets_frame = tk.Frame(self.config_frame, bg="#333")
+        presets_frame.pack(fill=tk.X, pady=(8, 0))
+        tk.Label(presets_frame, text="Presets:", bg="#333", fg="#aaa",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
+
+        presets = [
+            ("Equilibre", {"tier": 1.0, "traits": 1.0, "odds": 1.0, "multi_synergy": 1.0}),
+            ("Synergie max", {"tier": 0.3, "traits": 2.0, "odds": 0.5, "multi_synergy": 2.0}),
+            ("Brute force", {"tier": 2.0, "traits": 0.5, "odds": 1.0, "multi_synergy": 0.3}),
+            ("Ignorer les odds", {"tier": 1.0, "traits": 1.0, "odds": 0.0, "multi_synergy": 1.0}),
+        ]
+        for name, values in presets:
+            tk.Button(presets_frame, text=name, bg="#555", fg="white",
+                      font=("Segoe UI", 8), relief=tk.FLAT, padx=8, pady=2,
+                      command=lambda v=values: self._apply_preset(v)
+                      ).pack(side=tk.LEFT, padx=2)
 
         # Search bar + sort buttons
         search_bar = tk.Frame(self.root, bg="#2a2b2e", pady=6, padx=12)
@@ -447,6 +515,32 @@ class TFTFinderApp:
 
             for widget in (lbl_img, lbl_name):
                 widget.bind("<Button-1>", lambda e, name=u["name"]: self._toggle_locked(name))
+
+    def _toggle_config(self):
+        self.config_visible = not self.config_visible
+        if self.config_visible:
+            # Insert config panel after top bar (index 1)
+            self.config_frame.pack(fill=tk.X, after=self.root.winfo_children()[0])
+        else:
+            self.config_frame.pack_forget()
+
+    def _apply_preset(self, values):
+        self.w_tier.set(values["tier"])
+        self.w_traits.set(values["traits"])
+        self.w_odds.set(values["odds"])
+        self.w_multi.set(values["multi_synergy"])
+        self._refresh()
+
+    def _reset_config(self):
+        self._apply_preset(DEFAULT_WEIGHTS)
+
+    def _get_weights(self):
+        return {
+            "tier": self.w_tier.get(),
+            "traits": self.w_traits.get(),
+            "odds": self.w_odds.get(),
+            "multi_synergy": self.w_multi.get(),
+        }
 
     def _set_sort(self, mode):
         self.sort_mode = mode
@@ -654,7 +748,7 @@ class TFTFinderApp:
         # Compute recommendations first (needed for grid highlight)
         recs = compute_recommendations(
             self.selected, team_size, self.unlocked,
-            self.units, self.trait_thresholds
+            self.units, self.trait_thresholds, self._get_weights()
         )
         self.recommended_names = {r[5]["name"] for r in recs}
 
