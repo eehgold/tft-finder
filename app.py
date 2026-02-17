@@ -13,6 +13,20 @@ LOCKED_GRID_COLS = 8
 TIER_SCORES = {"S": 10, "A": 7, "B": 5, "C": 3, "D": 1}
 TIER_COLORS = {"S": "#ff7f7f", "A": "#ffbf7f", "B": "#ffdf7f", "C": "#7fbfff", "D": "#aaaaaa"}
 
+# Level -> probability (0-1) per unit cost (1-5). Cost 6/7 use cost 5 odds.
+ROLL_ODDS = {
+    2:  {1: 1.00, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00},
+    3:  {1: 0.75, 2: 0.25, 3: 0.00, 4: 0.00, 5: 0.00},
+    4:  {1: 0.55, 2: 0.30, 3: 0.15, 4: 0.00, 5: 0.00},
+    5:  {1: 0.45, 2: 0.33, 3: 0.20, 4: 0.02, 5: 0.00},
+    6:  {1: 0.30, 2: 0.40, 3: 0.25, 4: 0.05, 5: 0.00},
+    7:  {1: 0.16, 2: 0.30, 3: 0.43, 4: 0.10, 5: 0.01},
+    8:  {1: 0.15, 2: 0.20, 3: 0.32, 4: 0.30, 5: 0.03},
+    9:  {1: 0.10, 2: 0.17, 3: 0.25, 4: 0.33, 5: 0.15},
+    10: {1: 0.05, 2: 0.10, 3: 0.20, 4: 0.40, 5: 0.25},
+    11: {1: 0.01, 2: 0.02, 3: 0.12, 4: 0.50, 5: 0.35},
+}
+
 
 def load_data():
     with open(os.path.join(DATA_DIR, "units.json"), encoding="utf-8") as f:
@@ -62,8 +76,17 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
     return score
 
 
+def get_roll_odds(level, cost):
+    """Get the probability of rolling a unit of given cost at given level."""
+    odds = ROLL_ODDS.get(level, ROLL_ODDS[11])
+    # Cost 6/7 units use cost 5 odds
+    lookup_cost = min(cost, 5)
+    return odds.get(lookup_cost, 0.0)
+
+
 def compute_recommendations(selected_names, team_size, unlocked_names, units, trait_thresholds):
     all_units_map = {u["name"]: u for u in units}
+    level = team_size  # team size = player level
     slots = team_size - len(selected_names)
     if slots <= 0:
         return []
@@ -74,10 +97,14 @@ def compute_recommendations(selected_names, team_size, unlocked_names, units, tr
             continue
         if u["locked"] and u["name"] not in unlocked_names:
             continue
+        odds = get_roll_odds(level, u["cost"])
+        if odds <= 0:
+            continue  # impossible to find at this level
         tier_score = TIER_SCORES.get(u["tier"], 0)
         trait_score = compute_trait_score(u, selected_names, all_units_map, trait_thresholds)
-        total = tier_score + trait_score
-        candidates.append((total, u))
+        raw_score = tier_score + trait_score
+        total = raw_score * odds
+        candidates.append((total, raw_score, odds, u))
 
     candidates.sort(key=lambda x: -x[0])
     return candidates[:slots]
@@ -511,7 +538,7 @@ class TFTFinderApp:
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 10)).pack(pady=20)
             return
 
-        for score, u in recs:
+        for total, raw_score, odds, u in recs:
             row = tk.Frame(self.rec_frame, bg="#2a2b2e", pady=4, padx=6)
             row.pack(fill=tk.X, pady=2)
 
@@ -532,8 +559,13 @@ class TFTFinderApp:
             tk.Label(header, text=f" [{u['tier']}]", bg="#2a2b2e", fg=tier_color,
                      font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT)
 
-            tk.Label(header, text=f"  Score: {score:.1f}", bg="#2a2b2e", fg="#aaa",
+            tk.Label(header, text=f"  {total:.1f}pts", bg="#2a2b2e", fg="#aaa",
                      font=("Segoe UI", 9)).pack(side=tk.LEFT)
+
+            odds_pct = int(odds * 100)
+            tk.Label(header, text=f"  {odds_pct}% drop", bg="#2a2b2e",
+                     fg="#4caf50" if odds >= 0.20 else "#e8a33c" if odds >= 0.05 else "#ff5555",
+                     font=("Segoe UI", 8)).pack(side=tk.LEFT)
 
             traits_text = ", ".join(u["traits"])
             tk.Label(info, text=traits_text, bg="#2a2b2e", fg="#7fbfff",

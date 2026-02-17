@@ -371,7 +371,7 @@
     "traits": [
       "Arcanist"
     ],
-    "locked": false
+    "locked": true
   },
   {
     "name": "Lux",
