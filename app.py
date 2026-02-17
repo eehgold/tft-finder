@@ -9,6 +9,7 @@ IMG_SIZE = 48
 TEAM_IMG_SIZE = 56
 TRAIT_ICON_SIZE = 20
 GRID_COLS = 10
+LOCKED_GRID_COLS = 8
 TIER_SCORES = {"S": 10, "A": 7, "B": 5, "C": 3, "D": 1}
 TIER_COLORS = {"S": "#ff7f7f", "A": "#ffbf7f", "B": "#ffdf7f", "C": "#7fbfff", "D": "#aaaaaa"}
 
@@ -61,7 +62,7 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
     return score
 
 
-def compute_recommendations(selected_names, team_size, include_locked, units, trait_thresholds):
+def compute_recommendations(selected_names, team_size, unlocked_names, units, trait_thresholds):
     all_units_map = {u["name"]: u for u in units}
     slots = team_size - len(selected_names)
     if slots <= 0:
@@ -71,7 +72,7 @@ def compute_recommendations(selected_names, team_size, include_locked, units, tr
     for u in units:
         if u["name"] in selected_names:
             continue
-        if u["locked"] and not include_locked:
+        if u["locked"] and u["name"] not in unlocked_names:
             continue
         tier_score = TIER_SCORES.get(u["tier"], 0)
         trait_score = compute_trait_score(u, selected_names, all_units_map, trait_thresholds)
@@ -90,7 +91,11 @@ class TFTFinderApp:
 
         self.units, self.trait_thresholds, self.trait_icon_paths = load_data()
         self.units_map = {u["name"]: u for u in self.units}
+        self.normal_units = [u for u in self.units if not u["locked"]]
+        self.locked_units = [u for u in self.units if u["locked"]]
         self.selected = set()
+        self.unlocked = set()  # locked champions the user has unlocked
+        self.unlock_vars = {}  # BooleanVar per locked champion
         self.unit_images = {}
         self.team_images = {}
         self.trait_images = {}
@@ -131,13 +136,6 @@ class TFTFinderApp:
                                      command=lambda _: self._refresh())
         self.team_slider.pack(side=tk.LEFT, padx=(8, 24))
 
-        self.locked_var = tk.BooleanVar(value=False)
-        tk.Checkbutton(top, text="Inclure champions verrouilles", variable=self.locked_var,
-                       bg="#2a2b2e", fg="white", selectcolor="#444",
-                       activebackground="#2a2b2e", activeforeground="white",
-                       font=("Segoe UI", 10),
-                       command=self._refresh).pack(side=tk.LEFT)
-
         self.selection_count_label = tk.Label(top, text="", bg="#2a2b2e", fg="#aaa",
                                               font=("Segoe UI", 10))
         self.selection_count_label.pack(side=tk.RIGHT)
@@ -159,40 +157,69 @@ class TFTFinderApp:
         tk.Label(search_bar, text="nom, cout (ex: 3) ou trait", bg="#2a2b2e", fg="#888",
                  font=("Segoe UI", 9, "italic")).pack(side=tk.LEFT)
 
-        # Main area: grid left, then right panel (team + traits + recs)
+        # Main area
         main = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, bg="#1d1e20",
                               sashwidth=4, sashrelief=tk.FLAT)
         main.pack(fill=tk.BOTH, expand=True)
 
-        # Left: champion grid
+        # Left: champion grids (normal + locked)
         left_frame = tk.Frame(main, bg="#1d1e20")
         main.add(left_frame, stretch="always")
 
-        tk.Label(left_frame, text="Champions", bg="#1d1e20", fg="white",
-                 font=("Segoe UI", 12, "bold"), pady=4).pack()
+        left_container = tk.Frame(left_frame, bg="#1d1e20")
+        left_container.pack(fill=tk.BOTH, expand=True)
 
-        grid_container = tk.Frame(left_frame, bg="#1d1e20")
-        grid_container.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+        left_canvas = tk.Canvas(left_container, bg="#1d1e20", highlightthickness=0)
+        left_scrollbar = ttk.Scrollbar(left_container, orient=tk.VERTICAL, command=left_canvas.yview)
+        self.left_scroll_frame = tk.Frame(left_canvas, bg="#1d1e20")
 
-        canvas = tk.Canvas(grid_container, bg="#1d1e20", highlightthickness=0)
-        scrollbar = ttk.Scrollbar(grid_container, orient=tk.VERTICAL, command=canvas.yview)
-        self.grid_frame = tk.Frame(canvas, bg="#1d1e20")
+        self.left_scroll_frame.bind("<Configure>",
+                                     lambda e: left_canvas.configure(scrollregion=left_canvas.bbox("all")))
+        left_canvas.create_window((0, 0), window=self.left_scroll_frame, anchor="nw")
+        left_canvas.configure(yscrollcommand=left_scrollbar.set)
 
-        self.grid_frame.bind("<Configure>",
-                             lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=self.grid_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        left_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        left_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+            left_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        left_canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
-        self._build_champion_grid()
+        # --- Normal champions section ---
+        tk.Label(self.left_scroll_frame, text="Champions", bg="#1d1e20", fg="white",
+                 font=("Segoe UI", 12, "bold"), pady=4).pack(anchor="w", padx=8)
 
-        # Right panel: team + traits + recommendations stacked vertically
+        self.grid_frame = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
+        self.grid_frame.pack(fill=tk.X, padx=4, pady=4)
+
+        self._build_champion_grid(self.normal_units, self.grid_frame, GRID_COLS)
+
+        # --- Locked champions section ---
+        sep = tk.Frame(self.left_scroll_frame, bg="#444", height=2)
+        sep.pack(fill=tk.X, padx=8, pady=(8, 4))
+
+        locked_header = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
+        locked_header.pack(fill=tk.X, padx=8)
+
+        tk.Label(locked_header, text="Champions verrouilles", bg="#1d1e20", fg="#e8a33c",
+                 font=("Segoe UI", 12, "bold"), pady=4).pack(side=tk.LEFT)
+
+        btn_frame = tk.Frame(locked_header, bg="#1d1e20")
+        btn_frame.pack(side=tk.RIGHT)
+
+        tk.Button(btn_frame, text="Tout debloquer", bg="#444", fg="white",
+                  font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
+                  command=self._unlock_all).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_frame, text="Tout verrouiller", bg="#444", fg="white",
+                  font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
+                  command=self._lock_all).pack(side=tk.LEFT, padx=2)
+
+        self.locked_grid_frame = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
+        self.locked_grid_frame.pack(fill=tk.X, padx=4, pady=4)
+
+        self._build_locked_grid()
+
+        # Right panel: team + traits + recommendations
         right_panel = tk.Frame(main, bg="#1d1e20", width=380)
         main.add(right_panel, stretch="never")
 
@@ -235,10 +262,10 @@ class TFTFinderApp:
         rec_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         rec_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-    def _build_champion_grid(self):
-        for i, u in enumerate(self.units):
-            row, col = divmod(i, GRID_COLS)
-            frame = tk.Frame(self.grid_frame, bg="#1d1e20", padx=2, pady=2, cursor="hand2")
+    def _build_champion_grid(self, unit_list, parent, cols):
+        for i, u in enumerate(unit_list):
+            row, col = divmod(i, cols)
+            frame = tk.Frame(parent, bg="#1d1e20", padx=2, pady=2, cursor="hand2")
             frame.grid(row=row, column=col, padx=2, pady=2)
 
             img = self.unit_images.get(u["name"])
@@ -253,6 +280,64 @@ class TFTFinderApp:
 
             for widget in (frame, lbl_img, lbl_name):
                 widget.bind("<Button-1>", lambda e, name=u["name"]: self._toggle(name))
+
+    def _build_locked_grid(self):
+        for i, u in enumerate(self.locked_units):
+            row, col = divmod(i, LOCKED_GRID_COLS)
+            frame = tk.Frame(self.locked_grid_frame, bg="#1d1e20", padx=2, pady=2)
+            frame.grid(row=row, column=col, padx=2, pady=2)
+
+            # Checkbox to unlock
+            var = tk.BooleanVar(value=False)
+            self.unlock_vars[u["name"]] = var
+
+            img = self.unit_images.get(u["name"])
+            lbl_img = tk.Label(frame, image=img, bg="#555", bd=2, relief=tk.FLAT, cursor="hand2")
+            lbl_img.pack()
+
+            cb_frame = tk.Frame(frame, bg="#1d1e20")
+            cb_frame.pack()
+
+            cb = tk.Checkbutton(cb_frame, variable=var, bg="#1d1e20", selectcolor="#444",
+                                activebackground="#1d1e20", highlightthickness=0,
+                                command=lambda n=u["name"]: self._on_unlock_toggle(n))
+            cb.pack(side=tk.LEFT)
+
+            lbl_name = tk.Label(cb_frame, text=u["name"], bg="#1d1e20", fg="#666",
+                                font=("Segoe UI", 7), wraplength=IMG_SIZE + 10, cursor="hand2")
+            lbl_name.pack(side=tk.LEFT)
+
+            self.unit_widgets[u["name"]] = (frame, lbl_img, lbl_name)
+
+            # Click image or name to toggle selection (only if unlocked)
+            for widget in (lbl_img, lbl_name):
+                widget.bind("<Button-1>", lambda e, name=u["name"]: self._toggle_locked(name))
+
+    def _on_unlock_toggle(self, name):
+        if self.unlock_vars[name].get():
+            self.unlocked.add(name)
+        else:
+            self.unlocked.discard(name)
+            self.selected.discard(name)
+        self._refresh()
+
+    def _unlock_all(self):
+        for u in self.locked_units:
+            self.unlock_vars[u["name"]].set(True)
+            self.unlocked.add(u["name"])
+        self._refresh()
+
+    def _lock_all(self):
+        for u in self.locked_units:
+            self.unlock_vars[u["name"]].set(False)
+            self.unlocked.discard(u["name"])
+            self.selected.discard(u["name"])
+        self._refresh()
+
+    def _toggle_locked(self, name):
+        if name not in self.unlocked:
+            return
+        self._toggle(name)
 
     def _matches_filter(self, unit, query):
         if not query:
@@ -333,7 +418,6 @@ class TFTFinderApp:
             for w in (slot, lbl_img, lbl_name):
                 w.bind("<Button-1>", lambda e, n=name: self._toggle(n))
 
-        # Empty slots
         empty = team_size - len(self.selected)
         for _ in range(empty):
             slot = tk.Frame(row_frame, bg="#1d1e20", padx=2)
@@ -377,38 +461,43 @@ class TFTFinderApp:
                      font=("Segoe UI", 8)).pack(side=tk.RIGHT)
 
     def _refresh(self):
-        include_locked = self.locked_var.get()
         team_size = self.team_size_var.get()
 
-        # Remove excess selections if team size decreased
         while len(self.selected) > team_size:
             self.selected.pop()
 
         self.selection_count_label.config(
             text=f"{len(self.selected)} / {team_size} selectionnes")
 
-        # Update grid visuals: selected = grayed out, locked = dimmed
-        for u in self.units:
+        # Update normal grid visuals
+        for u in self.normal_units:
             frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
             if u["name"] in self.selected:
                 lbl_img.config(bg="#555", relief=tk.SUNKEN, bd=2)
                 lbl_name.config(fg="#666")
-            elif u["locked"] and not include_locked:
-                lbl_img.config(bg="#555", relief=tk.FLAT, bd=2)
-                lbl_name.config(fg="#444")
             else:
                 lbl_img.config(bg="#333", relief=tk.FLAT, bd=2)
                 lbl_name.config(fg="white")
 
-        # Refresh team panel
-        self._refresh_team()
+        # Update locked grid visuals
+        for u in self.locked_units:
+            frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
+            is_unlocked = u["name"] in self.unlocked
+            if u["name"] in self.selected:
+                lbl_img.config(bg="#555", relief=tk.SUNKEN, bd=2)
+                lbl_name.config(fg="#666")
+            elif is_unlocked:
+                lbl_img.config(bg="#333", relief=tk.FLAT, bd=2)
+                lbl_name.config(fg="white")
+            else:
+                lbl_img.config(bg="#555", relief=tk.FLAT, bd=2)
+                lbl_name.config(fg="#444")
 
-        # Refresh traits
+        self._refresh_team()
         self._refresh_traits()
 
-        # Compute and display recommendations
         recs = compute_recommendations(
-            self.selected, team_size, include_locked,
+            self.selected, team_size, self.unlocked,
             self.units, self.trait_thresholds
         )
 
@@ -453,6 +542,6 @@ class TFTFinderApp:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry("1350x700")
+    root.geometry("1350x750")
     app = TFTFinderApp(root)
     root.mainloop()
