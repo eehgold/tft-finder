@@ -3,17 +3,27 @@
 A tool to optimize your team composition in **Teamfight Tactics** (Season 16).
 Select your champions, and the tool recommends the best next unit to buy based on trait synergies, unit tier, and drop probabilities.
 
-![Screenshot](data/images/screenshot/app1.png)
+![Screenshot](src/data/images/screenshot/app1.png)
 
 ---
 
-## Requirements
+## For End Users
+
+You can run the app directly with:
+
+```
+TFT-Finder.exe
+```
+
+No Python installation is required for this mode.
+
+## Requirements (source mode)
 
 - **Python 3** installed on your PC ([download here](https://www.python.org/downloads/))
   - During installation, **make sure to check "Add Python to PATH"**
 - **Pillow** (an image display library)
 
-## Installation
+## Installation (source mode)
 
 1. **Download the project** (green "Code" button > "Download ZIP" on GitHub, then unzip)
 
@@ -22,21 +32,46 @@ Select your champions, and the tool recommends the best next unit to buy based o
 
 3. **Install dependencies**:
    ```
-   pip install -r requirements.txt
+   pip install -r src/requirements.txt
    ```
    > **pip not recognized?** pip is installed automatically with Python. If the command doesn't work:
    > - Make sure you checked **"Add Python to PATH"** during Python installation (otherwise, relaunch the Python installer > "Modify" > check the box)
-   > - Try `python -m pip install -r requirements.txt` instead
+   > - Try `python -m pip install -r src/requirements.txt` instead
 
-## Running
+## Running (source mode)
 
 In the terminal, type:
 
 ```
-python app.py
+python src/app.py
 ```
 
 The application opens — you're ready!
+
+## Build a Windows `.exe`
+
+You can build a standalone executable so users do not need Python installed.
+
+1. Open a terminal in the project folder
+2. Run:
+   ```
+   src\build_exe.bat
+   ```
+3. After build completes, share:
+   ```
+   TFT-Finder.exe
+   ```
+
+## App icon and favicon files
+
+- Source logo: `src/data/icons/logo_tft-finder.png`
+- Windows app/exe icon: `src/data/icons/app.ico`
+- Favicon files: `src/data/icons/favicon.ico` and `src/data/icons/favicon-32x32.png`
+
+## Project layout
+
+- Root (for non-technical users): `TFT-Finder.exe`, `README`, `LICENSE`
+- Source files: `src/`
 
 ## How it works
 

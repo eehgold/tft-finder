@@ -1,0 +1,1220 @@
+[
+  {
+    "name": "BaronNashor",
+    "cost": 7,
+    "tier": "S",
+    "win_rate": "36.9%",
+    "image": "images/tft16_baronnashor.png",
+    "traits": [
+      "Void",
+      "Riftscourge"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Zaahen",
+    "cost": 7,
+    "tier": "S",
+    "win_rate": "24.8%",
+    "image": "images/tft16_zaahen.png",
+    "traits": [
+      "Darkin",
+      "Immortal"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Renekton",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "26.6%",
+    "image": "images/tft16_renekton.png",
+    "traits": [
+      "Shurima"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Ziggs",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "25.3%",
+    "image": "images/tft16_ziggs.png",
+    "traits": [
+      "Zaun",
+      "Yordle",
+      "Longshot"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Volibear",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "21.6%",
+    "image": "images/tft16_volibear.png",
+    "traits": [
+      "Freljord",
+      "Bruiser"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Aatrox",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "18.8%",
+    "image": "images/tft16_aatrox.png",
+    "traits": [
+      "Darkin",
+      "World Ender",
+      "Slayer"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Sylas",
+    "cost": 7,
+    "tier": "S",
+    "win_rate": "19.6%",
+    "image": "images/tft16_sylas.png",
+    "traits": [
+      "Chainbreaker",
+      "Arcanist",
+      "Defender"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Kindred",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "21.5%",
+    "image": "images/tft16_kindred.png",
+    "traits": [
+      "Eternal",
+      "Quickstriker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Mel",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "18.6%",
+    "image": "images/tft16_mel.png",
+    "traits": [
+      "Noxus",
+      "Disruptor"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Fiddlesticks",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "21.4%",
+    "image": "images/tft16_fiddlesticks.png",
+    "traits": [
+      "Harvester",
+      "Vanquisher"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Shyvana",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "21.9%",
+    "image": "images/tft16_shyvana.png",
+    "traits": [
+      "Dragonborn",
+      "Juggernaut"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Lucian",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "21.9%",
+    "image": "images/tft16_lucian.png",
+    "traits": [
+      "Soulbound",
+      "Gunslinger"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Galio",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "16.7%",
+    "image": "images/tft16_galio.png",
+    "traits": [
+      "Demacia",
+      "Heroic"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Thresh",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "17.4%",
+    "image": "images/tft16_thresh.png",
+    "traits": [
+      "Shadow Isles",
+      "Warden"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Xerath",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "18.5%",
+    "image": "images/tft16_xerath.png",
+    "traits": [
+      "Shurima",
+      "Ascendant"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Ryze",
+    "cost": 7,
+    "tier": "S",
+    "win_rate": "20.2%",
+    "image": "images/tft16_ryze.png",
+    "traits": [
+      "Rune Mage"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Yone",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "16.8%",
+    "image": "images/tft16_yone.png",
+    "traits": [
+      "Ionia",
+      "Slayer"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Zilean",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "18.2%",
+    "image": "images/tft16_zilean.png",
+    "traits": [
+      "Chronokeeper",
+      "Invoker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Brock",
+    "cost": 7,
+    "tier": "S",
+    "win_rate": "24.1%",
+    "image": "images/tft16_brock.png",
+    "traits": [
+      "Ixtal"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Veigar",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "21.4%",
+    "image": "images/tft16_veigar.png",
+    "traits": [
+      "Yordle",
+      "Arcanist"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Sett",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "19.4%",
+    "image": "images/tft16_sett.png",
+    "traits": [
+      "Ionia",
+      "The Boss"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Warwick",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "10.9%",
+    "image": "images/tft16_warwick.png",
+    "traits": [
+      "Zaun",
+      "Quickstriker"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Ornn",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "18.1%",
+    "image": "images/tft16_ornn.png",
+    "traits": [
+      "Blacksmith",
+      "Warden"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Azir",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "15.6%",
+    "image": "images/tft16_azir.png",
+    "traits": [
+      "Shurima",
+      "Emperor",
+      "Disruptor"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Kalista",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "15.4%",
+    "image": "images/tft16_kalista.png",
+    "traits": [
+      "Shadow Isles",
+      "Vanquisher"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Swain",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "16.0%",
+    "image": "images/tft16_swain.png",
+    "traits": [
+      "Noxus",
+      "Arcanist",
+      "Juggernaut"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Kobuko",
+    "cost": 3,
+    "tier": "S",
+    "win_rate": "17.0%",
+    "image": "images/tft16_kobuko.png",
+    "traits": [
+      "Yordle",
+      "Bruiser",
+      "Invoker"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Singed",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "9.8%",
+    "image": "images/tft16_singed.png",
+    "traits": [
+      "Zaun",
+      "Juggernaut"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Annie",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "14.6%",
+    "image": "images/tft16_annie.png",
+    "traits": [
+      "Dark Child",
+      "Arcanist"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Gwen",
+    "cost": 3,
+    "tier": "S",
+    "win_rate": "15.1%",
+    "image": "images/tft16_gwen.png",
+    "traits": [
+      "Shadow Isles",
+      "Disruptor"
+    ],
+    "locked": true
+  },
+  {
+    "name": "AnnieTibbers",
+    "cost": 1,
+    "tier": "S",
+    "win_rate": "15.0%",
+    "image": "images/tft16_annietibbers.png",
+    "traits": [
+      "Arcanist"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Lux",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "13.5%",
+    "image": "images/tft16_lux.png",
+    "traits": [
+      "Demacia",
+      "Arcanist"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Braum",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "13.9%",
+    "image": "images/tft16_braum.png",
+    "traits": [
+      "Freljord",
+      "Warden"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Wukong",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "14.8%",
+    "image": "images/tft16_wukong.png",
+    "traits": [
+      "Ionia",
+      "Bruiser"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Yorick",
+    "cost": 2,
+    "tier": "S",
+    "win_rate": "14.8%",
+    "image": "images/tft16_yorick.png",
+    "traits": [
+      "Shadow Isles",
+      "Warden"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Ambessa",
+    "cost": 4,
+    "tier": "S",
+    "win_rate": "14.0%",
+    "image": "images/tft16_ambessa.png",
+    "traits": [
+      "Noxus",
+      "Vanquisher"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Seraphine",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "13.4%",
+    "image": "images/tft16_seraphine.png",
+    "traits": [
+      "Piltover",
+      "Disruptor"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Garen",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "12.9%",
+    "image": "images/tft16_garen.png",
+    "traits": [
+      "Demacia",
+      "Defender"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Kaisa",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "12.8%",
+    "image": "images/tft16_kaisa.png",
+    "traits": [
+      "Assimilator",
+      "Void",
+      "Longshot"
+    ],
+    "locked": true
+  },
+  {
+    "name": "TahmKench",
+    "cost": 5,
+    "tier": "A",
+    "win_rate": "16.3%",
+    "image": "images/tft16_tahmkench.png",
+    "traits": [
+      "Bilgewater",
+      "Glutton",
+      "Bruiser"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Jinx",
+    "cost": 3,
+    "tier": "A",
+    "win_rate": "9.5%",
+    "image": "images/tft16_jinx.png",
+    "traits": [
+      "Zaun",
+      "Gunslinger"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Ekko",
+    "cost": 2,
+    "tier": "A",
+    "win_rate": "9.0%",
+    "image": "images/tft16_ekko.png",
+    "traits": [
+      "Zaun",
+      "Disruptor"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Darius",
+    "cost": 3,
+    "tier": "A",
+    "win_rate": "13.1%",
+    "image": "images/tft16_darius.png",
+    "traits": [
+      "Noxus",
+      "Defender"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Taric",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "15.3%",
+    "image": "images/tft16_taric.png",
+    "traits": [
+      "Targon"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Yunara",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "14.9%",
+    "image": "images/tft16_yunara.png",
+    "traits": [
+      "Ionia",
+      "Quickstriker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Blitzcrank",
+    "cost": 1,
+    "tier": "A",
+    "win_rate": "9.3%",
+    "image": "images/tft16_blitzcrank.png",
+    "traits": [
+      "Zaun",
+      "Juggernaut"
+    ],
+    "locked": false
+  },
+  {
+    "name": "BelVeth",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "12.8%",
+    "image": "images/tft16_belveth.png",
+    "traits": [
+      "Void",
+      "Slayer"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Lissandra",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "12.2%",
+    "image": "images/tft16_lissandra.png",
+    "traits": [
+      "Freljord",
+      "Invoker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Poppy",
+    "cost": 2,
+    "tier": "A",
+    "win_rate": "14.7%",
+    "image": "images/tft16_poppy.png",
+    "traits": [
+      "Demacia",
+      "Yordle",
+      "Juggernaut"
+    ],
+    "locked": true
+  },
+  {
+    "name": "AurelionSol",
+    "cost": 7,
+    "tier": "A",
+    "win_rate": "13.0%",
+    "image": "images/tft16_aurelionsol.png",
+    "traits": [
+      "Star Forger",
+      "Targon"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Teemo",
+    "cost": 2,
+    "tier": "A",
+    "win_rate": "16.8%",
+    "image": "images/tft16_teemo.png",
+    "traits": [
+      "Yordle",
+      "Longshot"
+    ],
+    "locked": false
+  },
+  {
+    "name": "DrMundo",
+    "cost": 3,
+    "tier": "A",
+    "win_rate": "9.8%",
+    "image": "images/tft16_drmundo.png",
+    "traits": [
+      "Zaun",
+      "Bruiser"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Loris",
+    "cost": 3,
+    "tier": "A",
+    "win_rate": "12.3%",
+    "image": "images/tft16_loris.png",
+    "traits": [
+      "Piltover",
+      "Warden"
+    ],
+    "locked": false
+  },
+  {
+    "name": "RiftHerald",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "12.2%",
+    "image": "images/tft16_riftherald.png",
+    "traits": [
+      "Void",
+      "Bruiser"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Fizz",
+    "cost": 4,
+    "tier": "B",
+    "win_rate": "16.0%",
+    "image": "images/tft16_fizz.png",
+    "traits": [
+      "Bilgewater",
+      "Yordle"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Kennen",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "14.8%",
+    "image": "images/tft16_kennen.png",
+    "traits": [
+      "Ionia",
+      "Yordle",
+      "Defender"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Rumble",
+    "cost": 1,
+    "tier": "B",
+    "win_rate": "16.0%",
+    "image": "images/tft16_rumble.png",
+    "traits": [
+      "Yordle",
+      "Defender"
+    ],
+    "locked": false
+  },
+  {
+    "name": "JarvanIV",
+    "cost": 1,
+    "tier": "B",
+    "win_rate": "12.2%",
+    "image": "images/tft16_jarvaniv.png",
+    "traits": [
+      "Demacia",
+      "Defender"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Vayne",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "10.5%",
+    "image": "images/tft16_vayne.png",
+    "traits": [
+      "Demacia",
+      "Longshot"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Diana",
+    "cost": 4,
+    "tier": "B",
+    "win_rate": "11.5%",
+    "image": "images/tft16_diana.png",
+    "traits": [
+      "Targon"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Lulu",
+    "cost": 1,
+    "tier": "B",
+    "win_rate": "15.5%",
+    "image": "images/tft16_lulu.png",
+    "traits": [
+      "Yordle",
+      "Arcanist"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Shen",
+    "cost": 1,
+    "tier": "B",
+    "win_rate": "13.7%",
+    "image": "images/tft16_shen.png",
+    "traits": [
+      "Ionia",
+      "Bruiser"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Vi",
+    "cost": 2,
+    "tier": "B",
+    "win_rate": "10.7%",
+    "image": "images/tft16_vi.png",
+    "traits": [
+      "Piltover",
+      "Zaun",
+      "Defender"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Ahri",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "14.2%",
+    "image": "images/tft16_ahri.png",
+    "traits": [
+      "Ionia",
+      "Arcanist"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Draven",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "12.8%",
+    "image": "images/tft16_draven.png",
+    "traits": [
+      "Noxus",
+      "Quickstriker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "ChoGath",
+    "cost": 2,
+    "tier": "B",
+    "win_rate": "11.6%",
+    "image": "images/tft16_chogath.png",
+    "traits": [
+      "Void",
+      "Juggernaut"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Tristana",
+    "cost": 2,
+    "tier": "B",
+    "win_rate": "14.3%",
+    "image": "images/tft16_tristana.png",
+    "traits": [
+      "Yordle",
+      "Gunslinger"
+    ],
+    "locked": false
+  },
+  {
+    "name": "KogMaw",
+    "cost": 1,
+    "tier": "B",
+    "win_rate": "12.1%",
+    "image": "images/tft16_kogmaw.png",
+    "traits": [
+      "Void",
+      "Arcanist",
+      "Longshot"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Sona",
+    "cost": 1,
+    "tier": "B",
+    "win_rate": "11.8%",
+    "image": "images/tft16_sona.png",
+    "traits": [
+      "Demacia",
+      "Invoker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Sejuani",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "10.6%",
+    "image": "images/tft16_sejuani.png",
+    "traits": [
+      "Freljord",
+      "Defender"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Viego",
+    "cost": 1,
+    "tier": "B",
+    "win_rate": "12.1%",
+    "image": "images/tft16_viego.png",
+    "traits": [
+      "Shadow Isles",
+      "Quickstriker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Leblanc",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "11.3%",
+    "image": "images/tft16_leblanc.png",
+    "traits": [
+      "Noxus",
+      "Invoker"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Aphelios",
+    "cost": 2,
+    "tier": "B",
+    "win_rate": "10.5%",
+    "image": "images/tft16_aphelios.png",
+    "traits": [
+      "Targon"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Orianna",
+    "cost": 2,
+    "tier": "B",
+    "win_rate": "10.8%",
+    "image": "images/tft16_orianna.png",
+    "traits": [
+      "Piltover",
+      "Invoker"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Sion",
+    "cost": 2,
+    "tier": "B",
+    "win_rate": "10.9%",
+    "image": "images/tft16_sion.png",
+    "traits": [
+      "Noxus",
+      "Bruiser"
+    ],
+    "locked": false
+  },
+  {
+    "name": "THex",
+    "cost": 5,
+    "tier": "C",
+    "win_rate": "8.2%",
+    "image": "images/tft16_thex.png",
+    "traits": [
+      "HexMech",
+      "Piltover",
+      "Gunslinger"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Malzahar",
+    "cost": 3,
+    "tier": "C",
+    "win_rate": "11.9%",
+    "image": "images/tft16_malzahar.png",
+    "traits": [
+      "Void",
+      "Disruptor"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Nasus",
+    "cost": 4,
+    "tier": "C",
+    "win_rate": "9.9%",
+    "image": "images/tft16_nasus.png",
+    "traits": [
+      "Shurima"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Briar",
+    "cost": 1,
+    "tier": "C",
+    "win_rate": "10.8%",
+    "image": "images/tft16_briar.png",
+    "traits": [
+      "Noxus",
+      "Slayer",
+      "Juggernaut"
+    ],
+    "locked": false
+  },
+  {
+    "name": "RekSai",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "11.4%",
+    "image": "images/tft16_reksai.png",
+    "traits": [
+      "Void",
+      "Vanquisher"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Tryndamere",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "8.9%",
+    "image": "images/tft16_tryndamere.png",
+    "traits": [
+      "Freljord",
+      "Slayer"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Skarner",
+    "cost": 4,
+    "tier": "C",
+    "win_rate": "14.3%",
+    "image": "images/tft16_skarner.png",
+    "traits": [
+      "Ixtal"
+    ],
+    "locked": true
+  },
+  {
+    "name": "MissFortune",
+    "cost": 4,
+    "tier": "C",
+    "win_rate": "12.1%",
+    "image": "images/tft16_missfortune.png",
+    "traits": [
+      "Bilgewater",
+      "Gunslinger"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Ashe",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "9.3%",
+    "image": "images/tft16_ashe.png",
+    "traits": [
+      "Freljord",
+      "Quickstriker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Nidalee",
+    "cost": 4,
+    "tier": "C",
+    "win_rate": "11.4%",
+    "image": "images/tft16_nidalee.png",
+    "traits": [
+      "Ixtal",
+      "Huntress"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Anivia",
+    "cost": 1,
+    "tier": "C",
+    "win_rate": "9.4%",
+    "image": "images/tft16_anivia.png",
+    "traits": [
+      "Freljord",
+      "Invoker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Bard",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "10.9%",
+    "image": "images/tft16_bard.png",
+    "traits": [
+      "Caretaker"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Gangplank",
+    "cost": 3,
+    "tier": "D",
+    "win_rate": "9.9%",
+    "image": "images/tft16_gangplank.png",
+    "traits": [
+      "Bilgewater",
+      "Slayer",
+      "Vanquisher"
+    ],
+    "locked": false
+  },
+  {
+    "name": "XinZhao",
+    "cost": 2,
+    "tier": "D",
+    "win_rate": "9.3%",
+    "image": "images/tft16_xinzhao.png",
+    "traits": [
+      "Demacia",
+      "Ionia",
+      "Warden"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Yasuo",
+    "cost": 2,
+    "tier": "D",
+    "win_rate": "9.6%",
+    "image": "images/tft16_yasuo.png",
+    "traits": [
+      "Ionia",
+      "Slayer"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Nautilus",
+    "cost": 3,
+    "tier": "D",
+    "win_rate": "10.0%",
+    "image": "images/tft16_nautilus.png",
+    "traits": [
+      "Bilgewater",
+      "Juggernaut",
+      "Warden"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Zoe",
+    "cost": 3,
+    "tier": "D",
+    "win_rate": "8.2%",
+    "image": "images/tft16_zoe.png",
+    "traits": [
+      "Targon"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Leona",
+    "cost": 3,
+    "tier": "D",
+    "win_rate": "8.0%",
+    "image": "images/tft16_leona.png",
+    "traits": [
+      "Targon"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Illaoi",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "9.7%",
+    "image": "images/tft16_illaoi.png",
+    "traits": [
+      "Bilgewater",
+      "Bruiser"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Caitlyn",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "7.2%",
+    "image": "images/tft16_caitlyn.png",
+    "traits": [
+      "Piltover",
+      "Longshot"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Neeko",
+    "cost": 2,
+    "tier": "D",
+    "win_rate": "9.7%",
+    "image": "images/tft16_neeko.png",
+    "traits": [
+      "Ixtal",
+      "Arcanist",
+      "Defender"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Jhin",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "9.2%",
+    "image": "images/tft16_jhin.png",
+    "traits": [
+      "Ionia",
+      "Gunslinger"
+    ],
+    "locked": false
+  },
+  {
+    "name": "TwistedFate",
+    "cost": 2,
+    "tier": "D",
+    "win_rate": "10.2%",
+    "image": "images/tft16_twistedfate.png",
+    "traits": [
+      "Bilgewater",
+      "Quickstriker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Graves",
+    "cost": 2,
+    "tier": "D",
+    "win_rate": "9.2%",
+    "image": "images/tft16_graves.png",
+    "traits": [
+      "Bilgewater",
+      "Gunslinger"
+    ],
+    "locked": true
+  },
+  {
+    "name": "Milio",
+    "cost": 3,
+    "tier": "D",
+    "win_rate": "7.6%",
+    "image": "images/tft16_milio.png",
+    "traits": [
+      "Ixtal",
+      "Invoker"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Qiyana",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "4.6%",
+    "image": "images/tft16_qiyana.png",
+    "traits": [
+      "Ixtal",
+      "Slayer"
+    ],
+    "locked": false
+  }
+]
