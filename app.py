@@ -65,6 +65,12 @@ def _count_available_for_trait(trait_name, selected_names, unlocked_names, units
 
 
 DEFAULT_WEIGHTS = {"tier": 1.0, "traits": 1.0, "odds": 1.0, "multi_synergy": 1.0}
+SCENARIO_SORT_MODES = [
+    ("score", "Score max"),
+    ("roll", "Facile a roll"),
+    ("eco", "Economie"),
+    ("spike", "Power spike rapide"),
+]
 
 
 def compute_trait_score(candidate, selected_units, all_units_map, trait_thresholds,
@@ -193,17 +199,48 @@ def _get_trait_upgrades(before_counts, after_counts, trait_thresholds):
     return upgrades
 
 
+def _analyze_trait_deltas(before_counts, after_counts, trait_thresholds):
+    deltas = []
+    for trait_name in sorted(set(before_counts) | set(after_counts)):
+        before_count = before_counts.get(trait_name, 0)
+        after_count = after_counts.get(trait_name, 0)
+        before_tier, before_reached, _ = _get_trait_tier_state(
+            before_count, trait_thresholds.get(trait_name, []))
+        after_tier, after_reached, _ = _get_trait_tier_state(
+            after_count, trait_thresholds.get(trait_name, []))
+        if before_tier < 0 and after_tier < 0:
+            continue
+        deltas.append({
+            "name": trait_name,
+            "before_count": before_count,
+            "after_count": after_count,
+            "before_tier": before_tier,
+            "after_tier": after_tier,
+            "before_reached": before_reached,
+            "after_reached": after_reached,
+        })
+
+    upgrades = [d for d in deltas if d["after_tier"] > d["before_tier"]]
+    stable = [d for d in deltas if d["before_tier"] >= 0 and d["after_tier"] == d["before_tier"]]
+    new_active = [d for d in deltas if d["before_tier"] < 0 <= d["after_tier"]]
+
+    upgrades.sort(key=lambda x: (-x["after_tier"], -(x["after_count"] - x["before_count"]), x["name"]))
+    stable.sort(key=lambda x: (-x["after_count"], x["name"]))
+    new_active.sort(key=lambda x: (-x["after_tier"], -x["after_count"], x["name"]))
+    return deltas, upgrades, stable, new_active
+
+
 def _short_list(items, limit=3):
     if len(items) <= limit:
         return ", ".join(items)
     return ", ".join(items[:limit]) + f" +{len(items) - limit}"
 
 
-def _build_scenario_reason(picks, trait_upgrades):
+def _build_scenario_reason(picks, trait_upgrades, stable_traits):
     reasons = []
 
     if trait_upgrades:
-        labels = [f"{t['name']} ({t['reached']})" for t in trait_upgrades]
+        labels = [f"{t['name']} ({t['after_reached']})" for t in trait_upgrades]
         reasons.append(f"Active ou ameliore: {_short_list(labels)}")
 
     shared_traits = sorted({trait for p in picks for trait in p["matching"]})
@@ -218,7 +255,44 @@ def _build_scenario_reason(picks, trait_upgrades):
     else:
         reasons.append(f"Plan plus greedy ({int(avg_odds * 100)}% moyen)")
 
+    if stable_traits:
+        labels = [f"{t['name']} ({t['after_count']})" for t in stable_traits[:3]]
+        reasons.append(f"Garde stables: {', '.join(labels)}")
+
     return "\n".join(f"- {reason}" for reason in reasons)
+
+
+def _build_reason_tooltip(picks, trait_upgrades, stable_traits, score, avg_odds, avg_cost, spike_score):
+    lines = [
+        f"Total scenario: {score:.2f}",
+        f"Avg odds: {avg_odds * 100:.1f}%",
+        f"Avg cost: {avg_cost:.2f}",
+        f"Spike score: {spike_score:.2f}",
+        "",
+        "Details per unit:",
+    ]
+    for pick in picks:
+        lines.append(
+            f"- {pick['name']}: total={pick['score']:.2f} "
+            f"(tier={pick['tier_score']:.2f}, traits={pick['trait_score']:.2f}, odds={pick['odds'] * 100:.1f}%)"
+        )
+    if trait_upgrades:
+        lines.append("")
+        lines.append("Trait upgrades:")
+        for delta in trait_upgrades[:6]:
+            lines.append(
+                f"- {delta['name']}: tier {max(delta['before_tier'] + 1, 0)} -> {delta['after_tier'] + 1}, "
+                f"count {delta['before_count']} -> {delta['after_count']}"
+            )
+    if stable_traits:
+        lines.append("")
+        lines.append("Stable traits:")
+        for delta in stable_traits[:5]:
+            lines.append(
+                f"- {delta['name']}: tier {delta['after_tier'] + 1}, "
+                f"count {delta['before_count']} -> {delta['after_count']}"
+            )
+    return "\n".join(lines)
 
 
 def summarize_trait_entries(entries, limit=6):
@@ -231,7 +305,8 @@ def summarize_trait_entries(entries, limit=6):
 
 
 def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, units,
-                                     trait_thresholds, weights=None, top_n=3):
+                                     trait_thresholds, weights=None, top_n=3,
+                                     diversity=0.5, sort_mode="score"):
     w = weights or DEFAULT_WEIGHTS
     all_units_map = {u["name"]: u for u in units}
     level = team_size
@@ -313,20 +388,42 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             return None
 
         after_traits = _compute_team_traits(used, all_units_map)
-        trait_upgrades = _get_trait_upgrades(before_traits, after_traits, trait_thresholds)
+        trait_deltas, trait_upgrades, stable_traits, new_active_traits = _analyze_trait_deltas(
+            before_traits, after_traits, trait_thresholds
+        )
         active_traits = _get_active_trait_entries(after_traits, trait_thresholds)
         total_score = sum(p["score"] for p in picks)
         avg_odds = sum(p["odds"] for p in picks) / len(picks)
+        total_cost = sum(p["unit"]["cost"] for p in picks)
+        avg_cost = total_cost / len(picks)
+        spike_score = 0.0
+        for delta in trait_deltas:
+            if delta["after_tier"] > delta["before_tier"]:
+                jump = delta["after_tier"] - delta["before_tier"]
+                spike_score += jump * (delta["after_tier"] + 1)
+            elif delta["before_tier"] >= 0 and delta["after_count"] > delta["before_count"]:
+                spike_score += 0.3
         pick_names = [p["name"] for p in picks]
+        reason = _build_scenario_reason(picks, trait_upgrades, stable_traits)
 
         return {
             "score": total_score,
             "avg_odds": avg_odds,
+            "avg_cost": avg_cost,
+            "total_cost": total_cost,
+            "spike_score": spike_score,
             "pick_names": pick_names,
+            "pick_set": set(pick_names),
             "picks": picks,
+            "trait_deltas": trait_deltas,
             "active_traits": active_traits,
             "trait_upgrades": trait_upgrades,
-            "reason": _build_scenario_reason(picks, trait_upgrades),
+            "stable_traits": stable_traits,
+            "new_active_traits": new_active_traits,
+            "reason": reason,
+            "reason_tooltip": _build_reason_tooltip(
+                picks, trait_upgrades, stable_traits, total_score, avg_odds, avg_cost, spike_score
+            ),
         }
 
     first_pass_scores.sort(key=lambda x: -x[0])
@@ -347,8 +444,52 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             deduped[key] = scenario
 
     unique_scenarios = list(deduped.values())
-    unique_scenarios.sort(key=lambda s: (-s["score"], -len(s["trait_upgrades"]), -s["avg_odds"]))
-    return unique_scenarios[:top_n]
+    if not unique_scenarios:
+        return []
+
+    def _style_value(scenario):
+        if sort_mode == "roll":
+            return scenario["avg_odds"] * 100 + scenario["score"] * 0.05
+        if sort_mode == "eco":
+            return (6.0 - scenario["avg_cost"]) * 8 + scenario["avg_odds"] * 20 + scenario["score"] * 0.03
+        if sort_mode == "spike":
+            return scenario["spike_score"] * 10 + len(scenario["trait_upgrades"]) * 2 + scenario["score"] * 0.03
+        return scenario["score"] + len(scenario["trait_upgrades"]) * 1.2 + scenario["avg_odds"] * 5
+
+    for scenario in unique_scenarios:
+        scenario["style_value"] = _style_value(scenario)
+
+    values = [s["style_value"] for s in unique_scenarios]
+    value_span = max(values) - min(values)
+    penalty_scale = value_span if value_span > 0 else max(1.0, abs(max(values)))
+
+    def _overlap_ratio(a, b):
+        inter = len(a["pick_set"] & b["pick_set"])
+        union = len(a["pick_set"] | b["pick_set"])
+        return inter / union if union else 0.0
+
+    remaining = sorted(unique_scenarios, key=lambda s: (-s["style_value"], -s["score"]))
+    selected = []
+    diversity = max(0.0, min(1.0, diversity))
+
+    while remaining and len(selected) < top_n:
+        best = None
+        best_adjusted = None
+        for scenario in remaining:
+            if not selected:
+                adjusted = scenario["style_value"]
+            else:
+                overlap = max(_overlap_ratio(scenario, chosen) for chosen in selected)
+                adjusted = scenario["style_value"] - (diversity * overlap * penalty_scale)
+            if best is None or adjusted > best_adjusted:
+                best = scenario
+                best_adjusted = adjusted
+        best["style_rank_value"] = best_adjusted
+        selected.append(best)
+        remaining.remove(best)
+
+    selected.sort(key=lambda s: (-s.get("style_rank_value", s["style_value"]), -s["score"]))
+    return selected[:top_n]
 
 
 def compute_recommendations(selected_names, team_size, unlocked_names, units,
@@ -400,6 +541,11 @@ class TFTFinderApp:
         self.w_traits = tk.DoubleVar(value=1.0)
         self.w_odds = tk.DoubleVar(value=1.0)
         self.w_multi = tk.DoubleVar(value=1.0)
+        self.scenario_diversity = tk.DoubleVar(value=0.5)
+        self.scenario_sort_mode = "score"
+        self.scenario_sort_buttons = {}
+        self.tooltip_window = None
+        self.tooltip_label = None
 
         self._load_images()
         self._build_ui()
@@ -503,6 +649,45 @@ class TFTFinderApp:
                       font=("Segoe UI", 8), relief=tk.FLAT, padx=8, pady=2,
                       command=lambda v=values: self._apply_preset(v)
                       ).pack(side=tk.LEFT, padx=2)
+
+        scenario_cfg = tk.Frame(self.config_frame, bg="#333")
+        scenario_cfg.pack(fill=tk.X, pady=(8, 0))
+        tk.Label(scenario_cfg, text="Scenario diversity", bg="#333", fg="#aaa",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
+        tk.Scale(
+            scenario_cfg,
+            from_=0.0,
+            to=1.0,
+            resolution=0.1,
+            orient=tk.HORIZONTAL,
+            variable=self.scenario_diversity,
+            bg="#333",
+            fg="white",
+            highlightthickness=0,
+            troughcolor="#555",
+            length=130,
+            command=lambda _: self._refresh(),
+        ).pack(side=tk.LEFT)
+
+        scenario_sort_frame = tk.Frame(self.config_frame, bg="#333")
+        scenario_sort_frame.pack(fill=tk.X, pady=(8, 0))
+        tk.Label(scenario_sort_frame, text="Scenario style:", bg="#333", fg="#aaa",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
+        for mode, label in SCENARIO_SORT_MODES:
+            btn = tk.Button(
+                scenario_sort_frame,
+                text=label,
+                bg="#444",
+                fg="white",
+                font=("Segoe UI", 8),
+                relief=tk.FLAT,
+                padx=6,
+                pady=1,
+                command=lambda m=mode: self._set_scenario_sort(m),
+            )
+            btn.pack(side=tk.LEFT, padx=1)
+            self.scenario_sort_buttons[mode] = btn
+        self._update_scenario_sort_buttons()
 
         # Search bar + sort buttons
         search_bar = tk.Frame(self.root, bg="#2a2b2e", pady=6, padx=12)
@@ -712,6 +897,8 @@ class TFTFinderApp:
 
     def _reset_config(self):
         self._apply_preset(DEFAULT_WEIGHTS)
+        self.scenario_diversity.set(0.5)
+        self._set_scenario_sort("score")
 
     def _get_weights(self):
         return {
@@ -726,9 +913,21 @@ class TFTFinderApp:
         self._update_sort_buttons()
         self._resort_grid()
 
+    def _set_scenario_sort(self, mode):
+        self.scenario_sort_mode = mode
+        self._update_scenario_sort_buttons()
+        self._refresh()
+
     def _update_sort_buttons(self):
         for m, btn in self.sort_buttons.items():
             if m == self.sort_mode:
+                btn.config(bg="#666", relief=tk.SUNKEN)
+            else:
+                btn.config(bg="#444", relief=tk.FLAT)
+
+    def _update_scenario_sort_buttons(self):
+        for m, btn in self.scenario_sort_buttons.items():
+            if m == self.scenario_sort_mode:
                 btn.config(bg="#666", relief=tk.SUNKEN)
             else:
                 btn.config(bg="#444", relief=tk.FLAT)
@@ -817,6 +1016,49 @@ class TFTFinderApp:
                 self.selected.add(name)
         self._refresh()
 
+    def _apply_scenario(self, scenario):
+        self.history.append(set(self.selected))
+        team_size = self.team_size_var.get()
+        for name in scenario["pick_names"]:
+            if len(self.selected) >= team_size:
+                break
+            self.selected.add(name)
+        self._refresh()
+
+    def _show_tooltip(self, event, text):
+        if not text:
+            return
+        self._hide_tooltip()
+        self.tooltip_window = tk.Toplevel(self.root)
+        self.tooltip_window.overrideredirect(True)
+        self.tooltip_window.configure(bg="#111")
+        self.tooltip_label = tk.Label(
+            self.tooltip_window,
+            text=text,
+            justify=tk.LEFT,
+            bg="#111",
+            fg="#ddd",
+            font=("Consolas", 8),
+            padx=6,
+            pady=4,
+            wraplength=360,
+        )
+        self.tooltip_label.pack()
+        self._move_tooltip(event)
+
+    def _move_tooltip(self, event):
+        if not self.tooltip_window:
+            return
+        x = event.x_root + 12
+        y = event.y_root + 12
+        self.tooltip_window.geometry(f"+{x}+{y}")
+
+    def _hide_tooltip(self, _event=None):
+        if self.tooltip_window is not None:
+            self.tooltip_window.destroy()
+            self.tooltip_window = None
+            self.tooltip_label = None
+
     def _get_active_traits(self):
         traits = {}
         for name in self.selected:
@@ -890,8 +1132,16 @@ class TFTFinderApp:
         for trait_name, count in active.items():
             self._render_trait_row(self.traits_frame, trait_name, count)
 
-    def _render_trait_row(self, parent, trait_name, count):
+    def _format_trait_progress(self, trait_name, count):
         reached, next_th, reached_index = self._get_highest_threshold(trait_name, count)
+        if next_th:
+            return f"{count}/{next_th}"
+        if reached > 0:
+            return f"{count} (max)"
+        return str(count)
+
+    def _render_trait_row(self, parent, trait_name, count, progress_text=None, row_bg="#2a2b2e"):
+        reached, _, reached_index = self._get_highest_threshold(trait_name, count)
 
         if reached_index < 0:
             color = "#aaa"
@@ -899,24 +1149,31 @@ class TFTFinderApp:
             clamped = min(reached_index, len(TRAIT_TIER_COLORS) - 1)
             color = TRAIT_TIER_COLORS[clamped]
 
-        row = tk.Frame(parent, bg="#2a2b2e", pady=2, padx=6)
+        row = tk.Frame(parent, bg=row_bg, pady=2, padx=6)
         row.pack(fill=tk.X, pady=1)
 
         icon = self.trait_images.get(trait_name)
         if icon:
-            tk.Label(row, image=icon, bg="#2a2b2e").pack(side=tk.LEFT, padx=(0, 6))
+            tk.Label(row, image=icon, bg=row_bg).pack(side=tk.LEFT, padx=(0, 6))
 
-        tk.Label(row, text=trait_name, bg="#2a2b2e", fg=color,
+        tk.Label(row, text=trait_name, bg=row_bg, fg=color,
                  font=("Segoe UI", 9, "bold"), anchor="w").pack(side=tk.LEFT)
 
-        if next_th:
-            progress = f"{count}/{next_th}"
-        elif reached > 0:
-            progress = f"{count} (max)"
-        else:
-            progress = str(count)
-        tk.Label(row, text=progress, bg="#2a2b2e", fg=color,
+        progress = progress_text if progress_text is not None else self._format_trait_progress(trait_name, count)
+        tk.Label(row, text=progress, bg=row_bg, fg=color,
                  font=("Segoe UI", 8)).pack(side=tk.RIGHT)
+
+    def _render_trait_delta_row(self, parent, delta, is_upgrade=False):
+        gain = delta["after_count"] - delta["before_count"]
+        progress_txt = f"+{gain}" if gain >= 0 else str(gain)
+        row_bg = "#2f3a31" if is_upgrade else "#2a2b2e"
+        self._render_trait_row(
+            parent,
+            delta["name"],
+            delta["after_count"],
+            progress_text=progress_txt,
+            row_bg=row_bg,
+        )
 
     def _refresh(self):
         team_size = self.team_size_var.get()
@@ -930,7 +1187,9 @@ class TFTFinderApp:
         # Compute recommendation scenarios first (needed for grid highlight)
         scenarios = compute_recommendation_scenarios(
             self.selected, team_size, self.unlocked,
-            self.units, self.trait_thresholds, self._get_weights(), top_n=3
+            self.units, self.trait_thresholds, self._get_weights(), top_n=3,
+            diversity=self.scenario_diversity.get(),
+            sort_mode=self.scenario_sort_mode,
         )
         self.recommended_names = {
             name for scenario in scenarios for name in scenario["pick_names"]
@@ -977,6 +1236,7 @@ class TFTFinderApp:
 
         self._refresh_team()
         self._refresh_traits()
+        self._hide_tooltip()
 
         for w in self.rec_frame.winfo_children():
             w.destroy()
@@ -1011,10 +1271,37 @@ class TFTFinderApp:
                      font=("Segoe UI", 10, "bold")).pack(side=tk.LEFT)
             tk.Label(header, text=f"{scenario['score']:.1f}pts", bg="#2a2b2e", fg="#aaa",
                      font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(8, 0))
+            tk.Label(header, text=f"{int(scenario['avg_odds'] * 100)}% roll", bg="#2a2b2e", fg="#aaa",
+                     font=("Segoe UI", 8)).pack(side=tk.LEFT, padx=(6, 0))
+            tk.Button(
+                header,
+                text="Apply",
+                bg="#3b6f9e",
+                fg="white",
+                activebackground="#4a83b5",
+                activeforeground="white",
+                relief=tk.FLAT,
+                padx=6,
+                pady=1,
+                command=lambda s=scenario: self._apply_scenario(s),
+            ).pack(side=tk.RIGHT)
 
-            tk.Label(card, text=f"Pourquoi:\n{scenario['reason']}", bg="#2a2b2e", fg="#b8b8b8",
-                     font=("Segoe UI", 8, "italic"), anchor="w",
-                     justify=tk.LEFT, wraplength=175).pack(fill=tk.X, pady=(4, 4))
+            reason_label = tk.Label(
+                card,
+                text=f"Pourquoi:\n{scenario['reason']}",
+                bg="#2a2b2e",
+                fg="#b8b8b8",
+                font=("Segoe UI", 8, "italic"),
+                anchor="w",
+                justify=tk.LEFT,
+                wraplength=175,
+            )
+            reason_label.pack(fill=tk.X, pady=(4, 4))
+            reason_label.bind(
+                "<Enter>", lambda e, txt=scenario["reason_tooltip"]: self._show_tooltip(e, txt)
+            )
+            reason_label.bind("<Motion>", self._move_tooltip)
+            reason_label.bind("<Leave>", self._hide_tooltip)
 
             picks_title = tk.Label(card, text="Ajouts proposes", bg="#2a2b2e", fg="#9fc7ff",
                                    font=("Segoe UI", 8, "bold"), anchor="w")
@@ -1039,20 +1326,43 @@ class TFTFinderApp:
                 )
                 pick_button.pack(fill=tk.X, pady=1)
 
-            traits_title = tk.Label(card, text="Traits actifs apres scenario",
+            compare_title = tk.Label(card, text="Paliers montes (avant -> apres)",
+                                     bg="#2a2b2e", fg="#9fc7ff",
+                                     font=("Segoe UI", 8, "bold"), anchor="w")
+            compare_title.pack(fill=tk.X, pady=(6, 2))
+
+            upgrade_box = tk.Frame(card, bg="#1d1e20")
+            upgrade_box.pack(fill=tk.X)
+            if scenario["trait_upgrades"]:
+                for delta in scenario["trait_upgrades"][:4]:
+                    self._render_trait_delta_row(upgrade_box, delta, is_upgrade=True)
+            else:
+                tk.Label(upgrade_box, text="No tier upgrade", bg="#1d1e20", fg="#777",
+                         font=("Segoe UI", 8)).pack(anchor="w", padx=6, pady=2)
+
+            stable_title = tk.Label(card, text="Traits stables",
                                     bg="#2a2b2e", fg="#9fc7ff",
                                     font=("Segoe UI", 8, "bold"), anchor="w")
-            traits_title.pack(fill=tk.X, pady=(6, 2))
+            stable_title.pack(fill=tk.X, pady=(6, 2))
 
-            traits_box = tk.Frame(card, bg="#1d1e20")
-            traits_box.pack(fill=tk.BOTH, expand=True)
+            stable_box = tk.Frame(card, bg="#1d1e20")
+            stable_box.pack(fill=tk.X)
+            if scenario["stable_traits"]:
+                for delta in scenario["stable_traits"][:3]:
+                    self._render_trait_delta_row(stable_box, delta, is_upgrade=False)
+            else:
+                tk.Label(stable_box, text="No stable active trait", bg="#1d1e20", fg="#777",
+                         font=("Segoe UI", 8)).pack(anchor="w", padx=6, pady=2)
 
-            shown_traits = 0
-            for trait_entry in scenario["active_traits"]:
-                if shown_traits >= 6:
-                    break
-                self._render_trait_row(traits_box, trait_entry["name"], trait_entry["count"])
-                shown_traits += 1
+            final_traits_title = tk.Label(card, text="Traits actifs finaux",
+                                          bg="#2a2b2e", fg="#9fc7ff",
+                                          font=("Segoe UI", 8, "bold"), anchor="w")
+            final_traits_title.pack(fill=tk.X, pady=(6, 2))
+
+            final_traits_box = tk.Frame(card, bg="#1d1e20")
+            final_traits_box.pack(fill=tk.X)
+            for trait_entry in scenario["active_traits"][:4]:
+                self._render_trait_row(final_traits_box, trait_entry["name"], trait_entry["count"])
 
 
 if __name__ == "__main__":
