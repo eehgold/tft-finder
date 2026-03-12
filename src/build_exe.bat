@@ -3,10 +3,16 @@ setlocal
 cd /d "%~dp0"
 
 set "WORK_DIR=.build\work"
-set "APP_VERSION=1.0.0"
+set "APP_VERSION="
+
+for /f "tokens=1,2,* delims= " %%A in ('findstr /B /C:"APP_VERSION" app.py') do (
+  set "APP_VERSION=%%C"
+)
+set "APP_VERSION=%APP_VERSION:"=%"
+for /f "tokens=* delims= " %%V in ("%APP_VERSION%") do set "APP_VERSION=%%V"
 
 if "%APP_VERSION%"=="" (
-  echo APP_VERSION is empty in build_exe.bat
+  echo Could not read APP_VERSION from app.py
   goto :error
 )
 

@@ -59,12 +59,13 @@ You can build a standalone executable so users do not need Python installed.
    ```
 3. After build completes, share:
    ```
-   TFT-Finder-v1.0.0.exe
+   TFT-Finder-vX.Y.Z.exe
    ```
 
 Version is controlled in:
 - `src/app.py` (`APP_VERSION`)
-- `src/build_exe.bat` (`APP_VERSION`, keep in sync)
+
+`src/build_exe.bat` reads `APP_VERSION` automatically from `src/app.py`.
 
 ## App icon and favicon files
 
@@ -74,7 +75,7 @@ Version is controlled in:
 
 ## Project layout
 
-- Root (for non-technical users): `TFT-Finder-v1.0.0.exe`, `README`, `LICENSE`
+- Root (for non-technical users): `TFT-Finder-vX.Y.Z.exe`, `README`, `LICENSE`
 - Source files: `src/`
 
 ## How it works

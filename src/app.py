@@ -5,7 +5,7 @@ import json
 import os
 import sys
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
 
 def _get_base_dir():
@@ -34,6 +34,8 @@ COST_COLORS = {1: "#888888", 2: "#11b288", 3: "#207ac7", 4: "#c440da", 5: "#ffb9
                6: "#ffb93b", 7: "#ffb93b"}
 # Recommended champion highlight color
 REC_HIGHLIGHT = "#e8a33c"
+TRAIT_QUALITY_SCORES = {"D": 1.0, "C": 3.0, "B": 5.0, "A": 8.0, "S": 12.0}
+DEFAULT_TRAIT_QUALITY_ORDER = ["D", "C", "B", "A", "S"]
 
 # Level -> probability (0-1) per unit cost (1-5). Cost 6/7 use cost 5 odds.
 ROLL_ODDS = {
@@ -57,13 +59,17 @@ def load_data():
         traits_raw = json.load(f)
     trait_thresholds = {}
     trait_icons = {}
+    trait_tiers = {}
     for t in traits_raw:
         trait_thresholds.setdefault(t["name"], []).append(t["count"])
         if t["name"] not in trait_icons:
             trait_icons[t["name"]] = t.get("image")
+        tier_letter = (t.get("tier") or "").strip().upper()
+        if tier_letter:
+            trait_tiers.setdefault(t["name"], {})[t["count"]] = tier_letter
     for k in trait_thresholds:
         trait_thresholds[k] = sorted(set(trait_thresholds[k]))
-    return units, trait_thresholds, trait_icons
+    return units, trait_thresholds, trait_icons, trait_tiers
 
 
 def _count_available_for_trait(trait_name, selected_names, unlocked_names, units):
@@ -79,7 +85,41 @@ def _count_available_for_trait(trait_name, selected_names, unlocked_names, units
     return count
 
 
-DEFAULT_WEIGHTS = {"tier": 1.0, "traits": 1.0, "odds": 1.0, "multi_synergy": 1.0}
+def _trait_uses_explicit_quality(trait_name, trait_tiers, thresholds):
+    tier_map = (trait_tiers or {}).get(trait_name, {})
+    labels = [tier_map.get(th) for th in thresholds if tier_map.get(th) in TRAIT_QUALITY_SCORES]
+    unique_labels = set(labels)
+    if len(thresholds) <= 1:
+        return bool(unique_labels)
+    return len(unique_labels) > 1
+
+
+def _trait_quality_letter(trait_name, reached_value, reached_index, thresholds, trait_tiers):
+    if reached_index < 0 or reached_value <= 0:
+        return None
+    tier_map = (trait_tiers or {}).get(trait_name, {})
+    if _trait_uses_explicit_quality(trait_name, trait_tiers, thresholds):
+        letter = tier_map.get(reached_value)
+        if letter in TRAIT_QUALITY_SCORES:
+            return letter
+    return DEFAULT_TRAIT_QUALITY_ORDER[min(reached_index, len(DEFAULT_TRAIT_QUALITY_ORDER) - 1)]
+
+
+def _trait_quality_value(trait_name, count, thresholds, trait_tiers):
+    reached_index, reached_value, _ = _get_trait_tier_state(count, thresholds)
+    letter = _trait_quality_letter(trait_name, reached_value, reached_index, thresholds, trait_tiers)
+    if not letter:
+        return 0.0, None, reached_value, reached_index
+    return TRAIT_QUALITY_SCORES.get(letter, 0.0), letter, reached_value, reached_index
+
+
+DEFAULT_WEIGHTS = {
+    "tier": 1.0,
+    "traits": 1.0,
+    "cap_potential": 0.8,
+    "odds": 1.0,
+    "multi_synergy": 1.0,
+}
 SCENARIO_SORT_MODES = [
     ("score", "Score max"),
     ("roll", "Facile a roll"),
@@ -89,10 +129,15 @@ SCENARIO_SORT_MODES = [
 
 
 def compute_trait_score(candidate, selected_units, all_units_map, trait_thresholds,
-                        unlocked_names=None, all_units=None, weights=None):
-    """Score based on trait synergy. Returns (total_trait_score, matching_traits set)."""
+                        trait_tiers=None, unlocked_names=None, all_units=None,
+                        weights=None, team_size=None):
+    """Score based on trait synergy with tier quality and cap potential.
+
+    Returns (total_trait_score, matching_traits set, trait_details list).
+    """
     w = weights or DEFAULT_WEIGHTS
-    trait_w = w.get("traits", 1.0)
+    quality_w = w.get("traits", 1.0)
+    cap_w = w.get("cap_potential", 0.8)
     multi_w = w.get("multi_synergy", 1.0)
 
     selected_traits = {}
@@ -102,6 +147,13 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
 
     score = 0
     matching = set()
+    details = []
+    used_after_pick = set(selected_units)
+    used_after_pick.add(candidate["name"])
+    slots_left_after_pick = None
+    if team_size is not None:
+        slots_left_after_pick = max(0, team_size - len(used_after_pick))
+
     for t in candidate["traits"]:
         current = selected_traits.get(t, 0)
         new = current + 1
@@ -110,46 +162,72 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
         if current > 0:
             matching.add(t)
 
-        # Bonus for crossing a threshold (activating a new tier)
-        for i, th in enumerate(thresholds):
-            tier_bonus = (i + 1) * 3
-            if new >= th > current:
-                score += tier_bonus * trait_w
-            elif new >= th:
-                score += 1 * trait_w
+        current_quality, current_letter, current_reached, current_idx = _trait_quality_value(
+            t, current, thresholds, trait_tiers
+        )
+        new_quality, new_letter, new_reached, new_idx = _trait_quality_value(
+            t, new, thresholds, trait_tiers
+        )
+        immediate_gain = max(0.0, new_quality - current_quality)
+        score += immediate_gain * quality_w
 
-        # Proximity bonus: reward getting closer to the next threshold
-        if current > 0:
-            next_th = None
-            next_tier = 0
-            for i, th in enumerate(thresholds):
-                if th > current:
-                    next_th = th
-                    next_tier = i + 1
-                    break
-            if next_th:
-                missing = next_th - new
-                if missing == 0:
-                    pass  # Already handled by threshold crossing above
-                else:
-                    if all_units is not None and unlocked_names is not None:
-                        available = _count_available_for_trait(
-                            t, selected_units, unlocked_names, all_units)
-                        units_still_needed = next_th - new
-                        if available < units_still_needed:
-                            proximity = new / next_th
-                            score += proximity * next_tier * 0.5 * trait_w
-                            continue
-                    proximity = new / next_th
-                    score += proximity * next_tier * 3 * trait_w
-            else:
-                score += 1 * trait_w
+        # Minor progress bonus even when threshold not crossed.
+        next_th = None
+        for th in thresholds:
+            if th > new:
+                next_th = th
+                break
+        if current > 0 and next_th:
+            progress = new / next_th
+            score += progress * 0.6 * quality_w
+
+        potential_count = new
+        potential_quality = new_quality
+        potential_letter = new_letter
+        potential_reached = new_reached
+        future_gain = 0.0
+        max_possible_count = new
+        if all_units is not None and unlocked_names is not None and slots_left_after_pick is not None:
+            available_after_pick = _count_available_for_trait(
+                t, used_after_pick, unlocked_names, all_units)
+            max_extra = min(available_after_pick, slots_left_after_pick)
+            max_possible_count = new + max_extra
+            potential_count = max_possible_count
+            potential_quality, potential_letter, potential_reached, _ = _trait_quality_value(
+                t, potential_count, thresholds, trait_tiers
+            )
+            future_gain = max(0.0, potential_quality - new_quality)
+            if future_gain > 0:
+                # Discount very long-term potential by how far it is from current state.
+                distance = max(1, potential_count - new)
+                score += (future_gain / distance) * cap_w
+
+            # If next threshold is impossible in remaining slots, downweight this trait.
+            if next_th and max_possible_count < next_th:
+                score -= 0.8 * quality_w
+
+        details.append({
+            "trait": t,
+            "delta_count": 1,
+            "current_count": current,
+            "new_count": new,
+            "current_reached": current_reached,
+            "new_reached": new_reached,
+            "current_tier_letter": current_letter,
+            "new_tier_letter": new_letter,
+            "potential_count": potential_count,
+            "potential_reached": potential_reached,
+            "potential_tier_letter": potential_letter,
+            "quality_gain": immediate_gain,
+            "future_gain": future_gain,
+            "max_possible_count": max_possible_count,
+        })
 
     # Multi-synergy bonus
     if len(matching) >= 2:
         score += len(matching) * 2 * multi_w
 
-    return score, matching
+    return score, matching, details
 
 
 def get_roll_odds(level, cost):
@@ -180,49 +258,63 @@ def _get_trait_tier_state(count, thresholds):
     return reached_tier, reached_value, next_value
 
 
-def _get_active_trait_entries(trait_counts, trait_thresholds):
+def _get_active_trait_entries(trait_counts, trait_thresholds, trait_tiers=None):
     active = []
     for trait_name, count in trait_counts.items():
-        tier_idx, reached_value, _ = _get_trait_tier_state(
-            count, trait_thresholds.get(trait_name, []))
+        thresholds = trait_thresholds.get(trait_name, [])
+        tier_idx, reached_value, _ = _get_trait_tier_state(count, thresholds)
+        _, tier_letter, _, _ = _trait_quality_value(trait_name, count, thresholds, trait_tiers)
         if tier_idx >= 0:
             active.append({
                 "name": trait_name,
                 "count": count,
                 "tier_idx": tier_idx,
                 "reached": reached_value,
+                "tier_letter": tier_letter,
             })
     active.sort(key=lambda x: (-x["tier_idx"], -x["count"], x["name"]))
     return active
 
 
-def _get_trait_upgrades(before_counts, after_counts, trait_thresholds):
+def _get_trait_upgrades(before_counts, after_counts, trait_thresholds, trait_tiers=None):
     upgrades = []
     for trait_name, after_count in after_counts.items():
-        before_tier, _, _ = _get_trait_tier_state(
-            before_counts.get(trait_name, 0), trait_thresholds.get(trait_name, []))
-        after_tier, reached_value, _ = _get_trait_tier_state(
-            after_count, trait_thresholds.get(trait_name, []))
+        thresholds = trait_thresholds.get(trait_name, [])
+        before_tier, _, _ = _get_trait_tier_state(before_counts.get(trait_name, 0), thresholds)
+        after_tier, reached_value, _ = _get_trait_tier_state(after_count, thresholds)
+        _, before_tier_letter, _, _ = _trait_quality_value(
+            trait_name, before_counts.get(trait_name, 0), thresholds, trait_tiers
+        )
+        _, after_tier_letter, _, _ = _trait_quality_value(
+            trait_name, after_count, thresholds, trait_tiers
+        )
         if after_tier > before_tier and after_tier >= 0:
             upgrades.append({
                 "name": trait_name,
                 "count": after_count,
                 "tier_idx": after_tier,
                 "reached": reached_value,
+                "before_tier_letter": before_tier_letter,
+                "after_tier_letter": after_tier_letter,
             })
     upgrades.sort(key=lambda x: (-x["tier_idx"], -x["count"], x["name"]))
     return upgrades
 
 
-def _analyze_trait_deltas(before_counts, after_counts, trait_thresholds):
+def _analyze_trait_deltas(before_counts, after_counts, trait_thresholds, trait_tiers=None):
     deltas = []
     for trait_name in sorted(set(before_counts) | set(after_counts)):
         before_count = before_counts.get(trait_name, 0)
         after_count = after_counts.get(trait_name, 0)
-        before_tier, before_reached, _ = _get_trait_tier_state(
-            before_count, trait_thresholds.get(trait_name, []))
-        after_tier, after_reached, _ = _get_trait_tier_state(
-            after_count, trait_thresholds.get(trait_name, []))
+        thresholds = trait_thresholds.get(trait_name, [])
+        before_tier, before_reached, _ = _get_trait_tier_state(before_count, thresholds)
+        after_tier, after_reached, _ = _get_trait_tier_state(after_count, thresholds)
+        _, before_tier_letter, _, _ = _trait_quality_value(
+            trait_name, before_count, thresholds, trait_tiers
+        )
+        _, after_tier_letter, _, _ = _trait_quality_value(
+            trait_name, after_count, thresholds, trait_tiers
+        )
         if before_tier < 0 and after_tier < 0:
             continue
         deltas.append({
@@ -233,6 +325,8 @@ def _analyze_trait_deltas(before_counts, after_counts, trait_thresholds):
             "after_tier": after_tier,
             "before_reached": before_reached,
             "after_reached": after_reached,
+            "before_tier_letter": before_tier_letter,
+            "after_tier_letter": after_tier_letter,
         })
 
     upgrades = [d for d in deltas if d["after_tier"] > d["before_tier"]]
@@ -251,12 +345,16 @@ def _short_list(items, limit=3):
     return ", ".join(items[:limit]) + f" +{len(items) - limit}"
 
 
-def _build_scenario_reason(picks, trait_upgrades, stable_traits):
+def _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities):
     reasons = []
 
     if trait_upgrades:
-        labels = [f"{t['name']} ({t['after_reached']})" for t in trait_upgrades]
+        labels = [f"{t['name']} ({t['after_tier_letter'] or '?'} @ {t['after_reached']})" for t in trait_upgrades]
         reasons.append(f"Active ou ameliore: {_short_list(labels)}")
+
+    if cap_opportunities:
+        labels = [f"{c['trait']} -> {c['potential_tier_letter']} (cap {c['potential_count']})" for c in cap_opportunities[:3]]
+        reasons.append(f"Potentiel cap max: {_short_list(labels)}")
 
     shared_traits = sorted({trait for p in picks for trait in p["matching"]})
     if shared_traits:
@@ -277,7 +375,8 @@ def _build_scenario_reason(picks, trait_upgrades, stable_traits):
     return "\n".join(f"- {reason}" for reason in reasons)
 
 
-def _build_reason_tooltip(picks, trait_upgrades, stable_traits, score, avg_odds, avg_cost, spike_score):
+def _build_reason_tooltip(picks, trait_upgrades, stable_traits, cap_opportunities,
+                          score, avg_odds, avg_cost, spike_score):
     lines = [
         f"Total scenario: {score:.2f}",
         f"Avg odds: {avg_odds * 100:.1f}%",
@@ -291,20 +390,39 @@ def _build_reason_tooltip(picks, trait_upgrades, stable_traits, score, avg_odds,
             f"- {pick['name']}: total={pick['score']:.2f} "
             f"(tier={pick['tier_score']:.2f}, traits={pick['trait_score']:.2f}, odds={pick['odds'] * 100:.1f}%)"
         )
+        for detail in pick.get("trait_details", []):
+            if detail["quality_gain"] <= 0 and detail["future_gain"] <= 0:
+                continue
+            curr = detail["current_tier_letter"] or "-"
+            new = detail["new_tier_letter"] or "-"
+            pot = detail["potential_tier_letter"] or new
+            lines.append(
+                f"  {detail['trait']}: +{detail['delta_count']} ({curr} -> {new}), "
+                f"gain={detail['quality_gain']:.2f}, cap={pot}, future={detail['future_gain']:.2f}"
+            )
+
     if trait_upgrades:
         lines.append("")
         lines.append("Trait upgrades:")
         for delta in trait_upgrades[:6]:
             lines.append(
-                f"- {delta['name']}: tier {max(delta['before_tier'] + 1, 0)} -> {delta['after_tier'] + 1}, "
+                f"- {delta['name']}: {delta['before_tier_letter'] or '-'} -> {delta['after_tier_letter'] or '-'}, "
                 f"count {delta['before_count']} -> {delta['after_count']}"
+            )
+    if cap_opportunities:
+        lines.append("")
+        lines.append("Cap opportunities:")
+        for cap in cap_opportunities[:5]:
+            lines.append(
+                f"- {cap['trait']}: now {cap['new_tier_letter'] or '-'} "
+                f"-> potential {cap['potential_tier_letter'] or '-'} (future gain {cap['future_gain']:.2f})"
             )
     if stable_traits:
         lines.append("")
         lines.append("Stable traits:")
         for delta in stable_traits[:5]:
             lines.append(
-                f"- {delta['name']}: tier {delta['after_tier'] + 1}, "
+                f"- {delta['name']}: tier {delta['after_tier_letter'] or '-'}, "
                 f"count {delta['before_count']} -> {delta['after_count']}"
             )
     return "\n".join(lines)
@@ -320,7 +438,7 @@ def summarize_trait_entries(entries, limit=6):
 
 
 def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, units,
-                                     trait_thresholds, weights=None, top_n=3,
+                                     trait_thresholds, trait_tiers=None, weights=None, top_n=3,
                                      diversity=0.5, sort_mode="score"):
     w = weights or DEFAULT_WEIGHTS
     all_units_map = {u["name"]: u for u in units}
@@ -337,23 +455,29 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
         if odds <= 0:
             return None
         tier_score = TIER_SCORES.get(u["tier"], 0) * tier_w
-        trait_score, matching = compute_trait_score(
-            u, team, all_units_map, trait_thresholds, unlocked_names, units, w)
+        trait_score, matching, trait_details = compute_trait_score(
+            u, team, all_units_map, trait_thresholds, trait_tiers, unlocked_names, units, w, team_size
+        )
         raw_score = tier_score + trait_score
         # odds_w controls how much drop rate matters: 0=ignore odds, 1=full weight
         total = raw_score * (odds ** odds_w) if odds_w > 0 else raw_score
-        return (total, tier_score, trait_score, odds, matching, u)
+        return (total, tier_score, trait_score, odds, matching, trait_details, u)
 
     def _to_pick(entry):
-        total, tier_score, trait_score, odds, matching, unit = entry
+        total, tier_score, trait_score, odds, matching, trait_details, unit = entry
+        quality_gain = sum(d["quality_gain"] for d in trait_details)
+        future_gain = sum(d["future_gain"] for d in trait_details)
         return {
             "name": unit["name"],
             "unit": unit,
             "score": total,
             "tier_score": tier_score,
             "trait_score": trait_score,
+            "quality_gain": quality_gain,
+            "future_gain": future_gain,
             "odds": odds,
             "matching": sorted(matching),
+            "trait_details": trait_details,
         }
 
     available_units = []
@@ -404,13 +528,15 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
 
         after_traits = _compute_team_traits(used, all_units_map)
         trait_deltas, trait_upgrades, stable_traits, new_active_traits = _analyze_trait_deltas(
-            before_traits, after_traits, trait_thresholds
+            before_traits, after_traits, trait_thresholds, trait_tiers
         )
-        active_traits = _get_active_trait_entries(after_traits, trait_thresholds)
+        active_traits = _get_active_trait_entries(after_traits, trait_thresholds, trait_tiers)
         total_score = sum(p["score"] for p in picks)
         avg_odds = sum(p["odds"] for p in picks) / len(picks)
         total_cost = sum(p["unit"]["cost"] for p in picks)
         avg_cost = total_cost / len(picks)
+        total_quality_gain = sum(p["quality_gain"] for p in picks)
+        total_future_gain = sum(p["future_gain"] for p in picks)
         spike_score = 0.0
         for delta in trait_deltas:
             if delta["after_tier"] > delta["before_tier"]:
@@ -418,14 +544,28 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
                 spike_score += jump * (delta["after_tier"] + 1)
             elif delta["before_tier"] >= 0 and delta["after_count"] > delta["before_count"]:
                 spike_score += 0.3
+        cap_map = {}
+        for pick in picks:
+            for detail in pick["trait_details"]:
+                if detail["future_gain"] <= 0:
+                    continue
+                current = cap_map.get(detail["trait"])
+                if current is None or detail["future_gain"] > current["future_gain"]:
+                    cap_map[detail["trait"]] = detail
+        cap_opportunities = sorted(
+            cap_map.values(),
+            key=lambda d: (-d["future_gain"], -d["potential_count"], d["trait"])
+        )
         pick_names = [p["name"] for p in picks]
-        reason = _build_scenario_reason(picks, trait_upgrades, stable_traits)
+        reason = _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities)
 
         return {
             "score": total_score,
             "avg_odds": avg_odds,
             "avg_cost": avg_cost,
             "total_cost": total_cost,
+            "quality_gain": total_quality_gain,
+            "future_gain": total_future_gain,
             "spike_score": spike_score,
             "pick_names": pick_names,
             "pick_set": set(pick_names),
@@ -435,15 +575,17 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             "trait_upgrades": trait_upgrades,
             "stable_traits": stable_traits,
             "new_active_traits": new_active_traits,
+            "cap_opportunities": cap_opportunities,
             "reason": reason,
             "reason_tooltip": _build_reason_tooltip(
-                picks, trait_upgrades, stable_traits, total_score, avg_odds, avg_cost, spike_score
+                picks, trait_upgrades, stable_traits, cap_opportunities,
+                total_score, avg_odds, avg_cost, spike_score
             ),
         }
 
     first_pass_scores.sort(key=lambda x: -x[0])
     seed_count = min(len(first_pass_scores), max(12, top_n * 6))
-    seed_names = [None] + [entry[5]["name"] for entry in first_pass_scores[:seed_count]]
+    seed_names = [None] + [entry[6]["name"] for entry in first_pass_scores[:seed_count]]
 
     scenarios = []
     for seed_name in seed_names:
@@ -464,12 +606,24 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
 
     def _style_value(scenario):
         if sort_mode == "roll":
-            return scenario["avg_odds"] * 100 + scenario["score"] * 0.05
+            return scenario["avg_odds"] * 100 + scenario["future_gain"] * 0.8 + scenario["score"] * 0.04
         if sort_mode == "eco":
             return (6.0 - scenario["avg_cost"]) * 8 + scenario["avg_odds"] * 20 + scenario["score"] * 0.03
         if sort_mode == "spike":
-            return scenario["spike_score"] * 10 + len(scenario["trait_upgrades"]) * 2 + scenario["score"] * 0.03
-        return scenario["score"] + len(scenario["trait_upgrades"]) * 1.2 + scenario["avg_odds"] * 5
+            return (
+                scenario["spike_score"] * 10
+                + scenario["quality_gain"] * 1.5
+                + scenario["future_gain"] * 1.2
+                + len(scenario["trait_upgrades"]) * 2
+                + scenario["score"] * 0.03
+            )
+        return (
+            scenario["score"]
+            + scenario["quality_gain"] * 1.3
+            + scenario["future_gain"] * 0.9
+            + len(scenario["trait_upgrades"]) * 1.2
+            + scenario["avg_odds"] * 5
+        )
 
     for scenario in unique_scenarios:
         scenario["style_value"] = _style_value(scenario)
@@ -508,10 +662,10 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
 
 
 def compute_recommendations(selected_names, team_size, unlocked_names, units,
-                            trait_thresholds, weights=None):
+                            trait_thresholds, trait_tiers=None, weights=None):
     """Backward-compatible wrapper kept for older UI paths."""
     scenarios = compute_recommendation_scenarios(
-        selected_names, team_size, unlocked_names, units, trait_thresholds, weights, top_n=1)
+        selected_names, team_size, unlocked_names, units, trait_thresholds, trait_tiers, weights, top_n=1)
     if not scenarios:
         return []
     recs = []
@@ -534,7 +688,7 @@ class TFTFinderApp:
         self.root.title(f"TFT Finder - Season 16 - v{APP_VERSION}")
         self.root.configure(bg="#1d1e20")
 
-        self.units, self.trait_thresholds, self.trait_icon_paths = load_data()
+        self.units, self.trait_thresholds, self.trait_icon_paths, self.trait_tiers = load_data()
         self.units_map = {u["name"]: u for u in self.units}
         self.normal_units = [u for u in self.units if not u["locked"]]
         self.locked_units = [u for u in self.units if u["locked"]]
@@ -554,6 +708,7 @@ class TFTFinderApp:
         # Scoring weight variables (DoubleVar created after root exists)
         self.w_tier = tk.DoubleVar(value=1.0)
         self.w_traits = tk.DoubleVar(value=1.0)
+        self.w_cap = tk.DoubleVar(value=0.8)
         self.w_odds = tk.DoubleVar(value=1.0)
         self.w_multi = tk.DoubleVar(value=1.0)
         self.scenario_diversity = tk.DoubleVar(value=0.5)
@@ -651,7 +806,8 @@ class TFTFinderApp:
 
         slider_defs = [
             ("Tier", self.w_tier, "Raw power (S > A > B...)"),
-            ("Synergies", self.w_traits, "Active trait bonuses"),
+            ("Trait quality", self.w_traits, "Immediate value from trait tier gains"),
+            ("Cap potential", self.w_cap, "Future value from reachable high tiers"),
             ("Odds", self.w_odds, "Probability to find the unit"),
             ("Multi-synergy", self.w_multi, "Bonus if 2+ traits match"),
         ]
@@ -674,10 +830,10 @@ class TFTFinderApp:
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
 
         presets = [
-            ("Balanced", {"tier": 1.0, "traits": 1.0, "odds": 1.0, "multi_synergy": 1.0}),
-            ("Max synergy", {"tier": 0.3, "traits": 2.0, "odds": 0.5, "multi_synergy": 2.0}),
-            ("Brute force", {"tier": 2.0, "traits": 0.5, "odds": 1.0, "multi_synergy": 0.3}),
-            ("Ignore odds", {"tier": 1.0, "traits": 1.0, "odds": 0.0, "multi_synergy": 1.0}),
+            ("Balanced", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 1.0, "multi_synergy": 1.0}),
+            ("Max synergy", {"tier": 0.3, "traits": 2.0, "cap_potential": 1.4, "odds": 0.5, "multi_synergy": 2.0}),
+            ("Brute force", {"tier": 2.0, "traits": 0.5, "cap_potential": 0.2, "odds": 1.0, "multi_synergy": 0.3}),
+            ("Ignore odds", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 0.0, "multi_synergy": 1.0}),
         ]
         for name, values in presets:
             tk.Button(presets_frame, text=name, bg="#555", fg="white",
@@ -926,6 +1082,7 @@ class TFTFinderApp:
     def _apply_preset(self, values):
         self.w_tier.set(values["tier"])
         self.w_traits.set(values["traits"])
+        self.w_cap.set(values["cap_potential"])
         self.w_odds.set(values["odds"])
         self.w_multi.set(values["multi_synergy"])
         self._refresh()
@@ -939,6 +1096,7 @@ class TFTFinderApp:
         return {
             "tier": self.w_tier.get(),
             "traits": self.w_traits.get(),
+            "cap_potential": self.w_cap.get(),
             "odds": self.w_odds.get(),
             "multi_synergy": self.w_multi.get(),
         }
@@ -1200,7 +1358,9 @@ class TFTFinderApp:
 
     def _render_trait_delta_row(self, parent, delta, is_upgrade=False):
         gain = delta["after_count"] - delta["before_count"]
-        progress_txt = f"+{gain}" if gain >= 0 else str(gain)
+        gain_txt = f"+{gain}" if gain >= 0 else str(gain)
+        tier_txt = delta.get("after_tier_letter")
+        progress_txt = f"{gain_txt} ({tier_txt})" if tier_txt else gain_txt
         row_bg = "#2f3a31" if is_upgrade else "#2a2b2e"
         self._render_trait_row(
             parent,
@@ -1222,7 +1382,7 @@ class TFTFinderApp:
         # Compute recommendation scenarios first (needed for grid highlight)
         scenarios = compute_recommendation_scenarios(
             self.selected, team_size, self.unlocked,
-            self.units, self.trait_thresholds, self._get_weights(), top_n=3,
+            self.units, self.trait_thresholds, self.trait_tiers, self._get_weights(), top_n=3,
             diversity=self.scenario_diversity.get(),
             sort_mode=self.scenario_sort_mode,
         )
@@ -1361,7 +1521,7 @@ class TFTFinderApp:
                 )
                 pick_button.pack(fill=tk.X, pady=1)
 
-            compare_title = tk.Label(card, text="Paliers montes (avant -> apres)",
+            compare_title = tk.Label(card, text="Paliers montes (gain net)",
                                      bg="#2a2b2e", fg="#9fc7ff",
                                      font=("Segoe UI", 8, "bold"), anchor="w")
             compare_title.pack(fill=tk.X, pady=(6, 2))
@@ -1373,6 +1533,25 @@ class TFTFinderApp:
                     self._render_trait_delta_row(upgrade_box, delta, is_upgrade=True)
             else:
                 tk.Label(upgrade_box, text="No tier upgrade", bg="#1d1e20", fg="#777",
+                         font=("Segoe UI", 8)).pack(anchor="w", padx=6, pady=2)
+
+            cap_title = tk.Label(card, text="Potentiel cap max",
+                                 bg="#2a2b2e", fg="#9fc7ff",
+                                 font=("Segoe UI", 8, "bold"), anchor="w")
+            cap_title.pack(fill=tk.X, pady=(6, 2))
+
+            cap_box = tk.Frame(card, bg="#1d1e20")
+            cap_box.pack(fill=tk.X)
+            if scenario["cap_opportunities"]:
+                for cap in scenario["cap_opportunities"][:3]:
+                    txt = (
+                        f"{cap['trait']}: {cap['new_tier_letter'] or '-'} -> "
+                        f"{cap['potential_tier_letter'] or '-'} (+{cap['future_gain']:.1f})"
+                    )
+                    tk.Label(cap_box, text=txt, bg="#1d1e20", fg="#8bc5ff",
+                             font=("Segoe UI", 8), anchor="w").pack(fill=tk.X, padx=6, pady=1)
+            else:
+                tk.Label(cap_box, text="No strong cap opportunity", bg="#1d1e20", fg="#777",
                          font=("Segoe UI", 8)).pack(anchor="w", padx=6, pady=2)
 
             stable_title = tk.Label(card, text="Traits stables",
