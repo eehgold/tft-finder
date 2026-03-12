@@ -7,6 +7,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 IMG_SIZE = 48
 TEAM_IMG_SIZE = 56
 TRAIT_ICON_SIZE = 20
+REC_PICK_ICON_SIZE = 20
 GRID_COLS = 10
 LOCKED_GRID_COLS = 8
 TIER_SCORES = {"S": 10, "A": 7, "B": 5, "C": 3, "D": 1}
@@ -137,8 +138,100 @@ def get_roll_odds(level, cost):
     return odds.get(lookup_cost, 0.0)
 
 
-def compute_recommendations(selected_names, team_size, unlocked_names, units,
-                            trait_thresholds, weights=None):
+def _compute_team_traits(team_names, all_units_map):
+    traits = {}
+    for name in team_names:
+        for trait_name in all_units_map[name]["traits"]:
+            traits[trait_name] = traits.get(trait_name, 0) + 1
+    return traits
+
+
+def _get_trait_tier_state(count, thresholds):
+    reached_tier = -1
+    reached_value = 0
+    next_value = None
+    for i, threshold in enumerate(thresholds):
+        if count >= threshold:
+            reached_tier = i
+            reached_value = threshold
+        elif next_value is None:
+            next_value = threshold
+    return reached_tier, reached_value, next_value
+
+
+def _get_active_trait_entries(trait_counts, trait_thresholds):
+    active = []
+    for trait_name, count in trait_counts.items():
+        tier_idx, reached_value, _ = _get_trait_tier_state(
+            count, trait_thresholds.get(trait_name, []))
+        if tier_idx >= 0:
+            active.append({
+                "name": trait_name,
+                "count": count,
+                "tier_idx": tier_idx,
+                "reached": reached_value,
+            })
+    active.sort(key=lambda x: (-x["tier_idx"], -x["count"], x["name"]))
+    return active
+
+
+def _get_trait_upgrades(before_counts, after_counts, trait_thresholds):
+    upgrades = []
+    for trait_name, after_count in after_counts.items():
+        before_tier, _, _ = _get_trait_tier_state(
+            before_counts.get(trait_name, 0), trait_thresholds.get(trait_name, []))
+        after_tier, reached_value, _ = _get_trait_tier_state(
+            after_count, trait_thresholds.get(trait_name, []))
+        if after_tier > before_tier and after_tier >= 0:
+            upgrades.append({
+                "name": trait_name,
+                "count": after_count,
+                "tier_idx": after_tier,
+                "reached": reached_value,
+            })
+    upgrades.sort(key=lambda x: (-x["tier_idx"], -x["count"], x["name"]))
+    return upgrades
+
+
+def _short_list(items, limit=3):
+    if len(items) <= limit:
+        return ", ".join(items)
+    return ", ".join(items[:limit]) + f" +{len(items) - limit}"
+
+
+def _build_scenario_reason(picks, trait_upgrades):
+    reasons = []
+
+    if trait_upgrades:
+        labels = [f"{t['name']} ({t['reached']})" for t in trait_upgrades]
+        reasons.append(f"Active ou ameliore: {_short_list(labels)}")
+
+    shared_traits = sorted({trait for p in picks for trait in p["matching"]})
+    if shared_traits:
+        reasons.append(f"Renforce des synergies deja presentes: {_short_list(shared_traits)}")
+
+    avg_odds = sum(p["odds"] for p in picks) / max(1, len(picks))
+    if avg_odds >= 0.20:
+        reasons.append(f"Plan facile a roll ({int(avg_odds * 100)}% moyen)")
+    elif avg_odds >= 0.08:
+        reasons.append(f"Plan jouable en roll ({int(avg_odds * 100)}% moyen)")
+    else:
+        reasons.append(f"Plan plus greedy ({int(avg_odds * 100)}% moyen)")
+
+    return "\n".join(f"- {reason}" for reason in reasons)
+
+
+def summarize_trait_entries(entries, limit=6):
+    if not entries:
+        return "none"
+    labels = [f"{e['name']} {e['count']}" for e in entries[:limit]]
+    if len(entries) > limit:
+        labels.append(f"+{len(entries) - limit}")
+    return ", ".join(labels)
+
+
+def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, units,
+                                     trait_thresholds, weights=None, top_n=3):
     w = weights or DEFAULT_WEIGHTS
     all_units_map = {u["name"]: u for u in units}
     level = team_size
@@ -161,39 +254,122 @@ def compute_recommendations(selected_names, team_size, unlocked_names, units,
         total = raw_score * (odds ** odds_w) if odds_w > 0 else raw_score
         return (total, tier_score, trait_score, odds, matching, u)
 
-    # Score each candidate individually
-    candidates = []
+    def _to_pick(entry):
+        total, tier_score, trait_score, odds, matching, unit = entry
+        return {
+            "name": unit["name"],
+            "unit": unit,
+            "score": total,
+            "tier_score": tier_score,
+            "trait_score": trait_score,
+            "odds": odds,
+            "matching": sorted(matching),
+        }
+
+    available_units = []
+    first_pass_scores = []
     for u in units:
         if u["name"] in selected_names:
             continue
         if u["locked"] and u["name"] not in unlocked_names:
             continue
+        available_units.append(u)
         entry = _score_unit(u, selected_names)
         if entry:
-            candidates.append(entry)
+            first_pass_scores.append(entry)
 
-    if slots <= 1 or not candidates:
-        candidates.sort(key=lambda x: -x[0])
-        return candidates[:slots]
+    if not available_units or not first_pass_scores:
+        return []
 
-    # Combo optimization: greedy approach with re-scoring after each pick
-    combo = []
-    used = set(selected_names)
-    for _ in range(slots):
-        best = None
-        for c in candidates:
-            u = c[5]
-            if u["name"] in used:
-                continue
-            entry = _score_unit(u, used)
-            if entry and (best is None or entry[0] > best[0]):
-                best = entry
-        if best is None:
-            break
-        combo.append(best)
-        used.add(best[5]["name"])
+    before_traits = _compute_team_traits(selected_names, all_units_map)
 
-    return combo
+    def _build_scenario(seed_name=None):
+        used = set(selected_names)
+        picks = []
+
+        if seed_name is not None:
+            seed_unit = all_units_map[seed_name]
+            seed_entry = _score_unit(seed_unit, used)
+            if not seed_entry:
+                return None
+            picks.append(_to_pick(seed_entry))
+            used.add(seed_name)
+
+        while len(picks) < slots:
+            best_entry = None
+            for u in available_units:
+                if u["name"] in used:
+                    continue
+                entry = _score_unit(u, used)
+                if entry and (best_entry is None or entry[0] > best_entry[0]):
+                    best_entry = entry
+            if best_entry is None:
+                break
+            pick = _to_pick(best_entry)
+            picks.append(pick)
+            used.add(pick["name"])
+
+        if not picks:
+            return None
+
+        after_traits = _compute_team_traits(used, all_units_map)
+        trait_upgrades = _get_trait_upgrades(before_traits, after_traits, trait_thresholds)
+        active_traits = _get_active_trait_entries(after_traits, trait_thresholds)
+        total_score = sum(p["score"] for p in picks)
+        avg_odds = sum(p["odds"] for p in picks) / len(picks)
+        pick_names = [p["name"] for p in picks]
+
+        return {
+            "score": total_score,
+            "avg_odds": avg_odds,
+            "pick_names": pick_names,
+            "picks": picks,
+            "active_traits": active_traits,
+            "trait_upgrades": trait_upgrades,
+            "reason": _build_scenario_reason(picks, trait_upgrades),
+        }
+
+    first_pass_scores.sort(key=lambda x: -x[0])
+    seed_count = min(len(first_pass_scores), max(12, top_n * 6))
+    seed_names = [None] + [entry[5]["name"] for entry in first_pass_scores[:seed_count]]
+
+    scenarios = []
+    for seed_name in seed_names:
+        scenario = _build_scenario(seed_name)
+        if scenario:
+            scenarios.append(scenario)
+
+    deduped = {}
+    for scenario in scenarios:
+        key = tuple(sorted(scenario["pick_names"]))
+        current = deduped.get(key)
+        if current is None or scenario["score"] > current["score"]:
+            deduped[key] = scenario
+
+    unique_scenarios = list(deduped.values())
+    unique_scenarios.sort(key=lambda s: (-s["score"], -len(s["trait_upgrades"]), -s["avg_odds"]))
+    return unique_scenarios[:top_n]
+
+
+def compute_recommendations(selected_names, team_size, unlocked_names, units,
+                            trait_thresholds, weights=None):
+    """Backward-compatible wrapper kept for older UI paths."""
+    scenarios = compute_recommendation_scenarios(
+        selected_names, team_size, unlocked_names, units, trait_thresholds, weights, top_n=1)
+    if not scenarios:
+        return []
+    recs = []
+    for pick in scenarios[0]["picks"]:
+        u = pick["unit"]
+        recs.append((
+            pick["score"],
+            pick["tier_score"],
+            pick["trait_score"],
+            pick["odds"],
+            set(pick["matching"]),
+            u,
+        ))
+    return recs
 
 
 class TFTFinderApp:
@@ -211,6 +387,7 @@ class TFTFinderApp:
         self.unlock_vars = {}
         self.unit_images = {}
         self.team_images = {}
+        self.rec_pick_images = {}
         self.trait_images = {}
         self.unit_widgets = {}
         self.recommended_names = set()
@@ -241,6 +418,8 @@ class TFTFinderApp:
                     img.resize((IMG_SIZE, IMG_SIZE), Image.LANCZOS))
                 self.team_images[u["name"]] = ImageTk.PhotoImage(
                     img.resize((TEAM_IMG_SIZE, TEAM_IMG_SIZE), Image.LANCZOS))
+                self.rec_pick_images[u["name"]] = ImageTk.PhotoImage(
+                    img.resize((REC_PICK_ICON_SIZE, REC_PICK_ICON_SIZE), Image.LANCZOS))
         for trait_name, img_path in self.trait_icon_paths.items():
             if img_path:
                 full = os.path.join(DATA_DIR, img_path)
@@ -421,7 +600,7 @@ class TFTFinderApp:
         self._build_locked_grid()
 
         # Right panel: team + traits + recommendations
-        right_panel = tk.Frame(main, bg="#1d1e20", width=380)
+        right_panel = tk.Frame(main, bg="#1d1e20", width=620)
         main.add(right_panel, stretch="never")
 
         # -- Mon equipe --
@@ -443,7 +622,7 @@ class TFTFinderApp:
         self.traits_frame.pack(fill=tk.X)
 
         # -- Recommandations --
-        rec_section = tk.LabelFrame(right_panel, text="Recommendations", bg="#1d1e20", fg="white",
+        rec_section = tk.LabelFrame(right_panel, text="Top 3 scenarios", bg="#1d1e20", fg="white",
                                      font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
                                      labelanchor="n", padx=4, pady=4)
         rec_section.pack(fill=tk.BOTH, expand=True, padx=4, pady=(2, 4))
@@ -451,7 +630,7 @@ class TFTFinderApp:
         rec_container = tk.Frame(rec_section, bg="#1d1e20")
         rec_container.pack(fill=tk.BOTH, expand=True)
 
-        rec_canvas = tk.Canvas(rec_container, bg="#1d1e20", highlightthickness=0, width=350)
+        rec_canvas = tk.Canvas(rec_container, bg="#1d1e20", highlightthickness=0, width=590)
         rec_scrollbar = ttk.Scrollbar(rec_container, orient=tk.VERTICAL, command=rec_canvas.yview)
         self.rec_frame = tk.Frame(rec_canvas, bg="#1d1e20")
 
@@ -709,32 +888,35 @@ class TFTFinderApp:
             return
 
         for trait_name, count in active.items():
-            reached, next_th, reached_index = self._get_highest_threshold(trait_name, count)
+            self._render_trait_row(self.traits_frame, trait_name, count)
 
-            if reached_index < 0:
-                color = "#aaa"
-            else:
-                clamped = min(reached_index, len(TRAIT_TIER_COLORS) - 1)
-                color = TRAIT_TIER_COLORS[clamped]
+    def _render_trait_row(self, parent, trait_name, count):
+        reached, next_th, reached_index = self._get_highest_threshold(trait_name, count)
 
-            row = tk.Frame(self.traits_frame, bg="#2a2b2e", pady=2, padx=6)
-            row.pack(fill=tk.X, pady=1)
+        if reached_index < 0:
+            color = "#aaa"
+        else:
+            clamped = min(reached_index, len(TRAIT_TIER_COLORS) - 1)
+            color = TRAIT_TIER_COLORS[clamped]
 
-            icon = self.trait_images.get(trait_name)
-            if icon:
-                tk.Label(row, image=icon, bg="#2a2b2e").pack(side=tk.LEFT, padx=(0, 6))
+        row = tk.Frame(parent, bg="#2a2b2e", pady=2, padx=6)
+        row.pack(fill=tk.X, pady=1)
 
-            tk.Label(row, text=trait_name, bg="#2a2b2e", fg=color,
-                     font=("Segoe UI", 9, "bold"), anchor="w").pack(side=tk.LEFT)
+        icon = self.trait_images.get(trait_name)
+        if icon:
+            tk.Label(row, image=icon, bg="#2a2b2e").pack(side=tk.LEFT, padx=(0, 6))
 
-            if next_th:
-                progress = f"{count}/{next_th}"
-            elif reached > 0:
-                progress = f"{count} (max)"
-            else:
-                progress = str(count)
-            tk.Label(row, text=progress, bg="#2a2b2e", fg=color,
-                     font=("Segoe UI", 8)).pack(side=tk.RIGHT)
+        tk.Label(row, text=trait_name, bg="#2a2b2e", fg=color,
+                 font=("Segoe UI", 9, "bold"), anchor="w").pack(side=tk.LEFT)
+
+        if next_th:
+            progress = f"{count}/{next_th}"
+        elif reached > 0:
+            progress = f"{count} (max)"
+        else:
+            progress = str(count)
+        tk.Label(row, text=progress, bg="#2a2b2e", fg=color,
+                 font=("Segoe UI", 8)).pack(side=tk.RIGHT)
 
     def _refresh(self):
         team_size = self.team_size_var.get()
@@ -745,12 +927,14 @@ class TFTFinderApp:
         self.selection_count_label.config(
             text=f"{len(self.selected)} / {team_size} selected")
 
-        # Compute recommendations first (needed for grid highlight)
-        recs = compute_recommendations(
+        # Compute recommendation scenarios first (needed for grid highlight)
+        scenarios = compute_recommendation_scenarios(
             self.selected, team_size, self.unlocked,
-            self.units, self.trait_thresholds, self._get_weights()
+            self.units, self.trait_thresholds, self._get_weights(), top_n=3
         )
-        self.recommended_names = {r[5]["name"] for r in recs}
+        self.recommended_names = {
+            name for scenario in scenarios for name in scenario["pick_names"]
+        }
 
         # Update normal grid visuals
         for u in self.normal_units:
@@ -797,62 +981,78 @@ class TFTFinderApp:
         for w in self.rec_frame.winfo_children():
             w.destroy()
 
-        if not recs:
+        if not scenarios:
             msg = "Team full!" if len(self.selected) >= team_size else \
                   "Select champions\nand adjust team size"
             tk.Label(self.rec_frame, text=msg,
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 10)).pack(pady=20)
             return
 
-        for total, tier_score, trait_score, odds, matching, u in recs:
-            row = tk.Frame(self.rec_frame, bg="#2a2b2e", pady=4, padx=6, cursor="hand2")
-            row.pack(fill=tk.X, pady=2)
+        for col in range(3):
+            self.rec_frame.grid_columnconfigure(col, weight=1)
 
-            img = self.unit_images.get(u["name"])
-            if img:
-                tk.Label(row, image=img, bg="#2a2b2e").pack(side=tk.LEFT, padx=(0, 8))
+        for col in range(3):
+            scenario = scenarios[col] if col < len(scenarios) else None
 
-            info = tk.Frame(row, bg="#2a2b2e")
-            info.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            card = tk.Frame(self.rec_frame, bg="#2a2b2e", pady=6, padx=8, bd=1, relief=tk.RIDGE)
+            card.grid(row=0, column=col, sticky="nsew", padx=3, pady=3)
 
-            header = tk.Frame(info, bg="#2a2b2e")
+            if scenario is None:
+                tk.Label(card, text=f"Scenario {col + 1}", bg="#2a2b2e", fg="#777",
+                         font=("Segoe UI", 10, "bold")).pack(anchor="w")
+                tk.Label(card, text="Indisponible", bg="#2a2b2e", fg="#777",
+                         font=("Segoe UI", 9)).pack(anchor="w", pady=(6, 0))
+                continue
+
+            header = tk.Frame(card, bg="#2a2b2e")
             header.pack(fill=tk.X)
 
-            tk.Label(header, text=u["name"], bg="#2a2b2e", fg="white",
+            tk.Label(header, text=f"Scenario {col + 1}", bg="#2a2b2e", fg="white",
                      font=("Segoe UI", 10, "bold")).pack(side=tk.LEFT)
+            tk.Label(header, text=f"{scenario['score']:.1f}pts", bg="#2a2b2e", fg="#aaa",
+                     font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(8, 0))
 
-            tier_color = TIER_COLORS.get(u["tier"], "white")
-            tk.Label(header, text=f" [{u['tier']}]", bg="#2a2b2e", fg=tier_color,
-                     font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT)
+            tk.Label(card, text=f"Pourquoi:\n{scenario['reason']}", bg="#2a2b2e", fg="#b8b8b8",
+                     font=("Segoe UI", 8, "italic"), anchor="w",
+                     justify=tk.LEFT, wraplength=175).pack(fill=tk.X, pady=(4, 4))
 
-            tk.Label(header, text=f"  {total:.1f}pts", bg="#2a2b2e", fg="#aaa",
-                     font=("Segoe UI", 9)).pack(side=tk.LEFT)
+            picks_title = tk.Label(card, text="Ajouts proposes", bg="#2a2b2e", fg="#9fc7ff",
+                                   font=("Segoe UI", 8, "bold"), anchor="w")
+            picks_title.pack(fill=tk.X)
 
-            odds_pct = int(odds * 100)
-            tk.Label(header, text=f"  {odds_pct}% drop", bg="#2a2b2e",
-                     fg="#4caf50" if odds >= 0.20 else "#e8a33c" if odds >= 0.05 else "#ff5555",
-                     font=("Segoe UI", 8)).pack(side=tk.LEFT)
+            for pick in scenario["picks"]:
+                unit_name = pick["name"]
+                unit_icon = self.rec_pick_images.get(unit_name)
+                pick_button = tk.Button(
+                    card,
+                    text=f" {unit_name}",
+                    image=unit_icon,
+                    compound=tk.LEFT,
+                    bg="#26272a",
+                    fg="white",
+                    activebackground="#333",
+                    activeforeground="white",
+                    relief=tk.FLAT,
+                    anchor="w",
+                    padx=4,
+                    command=lambda n=unit_name: self._toggle(n),
+                )
+                pick_button.pack(fill=tk.X, pady=1)
 
-            # Score detail line
-            detail = f"tier:{tier_score} + traits:{trait_score:.1f}"
-            tk.Label(info, text=detail, bg="#2a2b2e", fg="#666",
-                     font=("Segoe UI", 7), anchor="w").pack(fill=tk.X)
+            traits_title = tk.Label(card, text="Traits actifs apres scenario",
+                                    bg="#2a2b2e", fg="#9fc7ff",
+                                    font=("Segoe UI", 8, "bold"), anchor="w")
+            traits_title.pack(fill=tk.X, pady=(6, 2))
 
-            # Traits with matching ones highlighted in green
-            traits_frame = tk.Frame(info, bg="#2a2b2e")
-            traits_frame.pack(fill=tk.X)
-            for i, t in enumerate(u["traits"]):
-                color = "#4caf50" if t in matching else "#7fbfff"
-                text = t if i == 0 else f", {t}"
-                tk.Label(traits_frame, text=text, bg="#2a2b2e", fg=color,
-                         font=("Segoe UI", 8)).pack(side=tk.LEFT)
+            traits_box = tk.Frame(card, bg="#1d1e20")
+            traits_box.pack(fill=tk.BOTH, expand=True)
 
-            # Click anywhere on the recommendation row to add to team
-            def _bind_click(widget, name):
-                widget.bind("<Button-1>", lambda _: self._toggle(name))
-                for child in widget.winfo_children():
-                    _bind_click(child, name)
-            _bind_click(row, u["name"])
+            shown_traits = 0
+            for trait_entry in scenario["active_traits"]:
+                if shown_traits >= 6:
+                    break
+                self._render_trait_row(traits_box, trait_entry["name"], trait_entry["count"])
+                shown_traits += 1
 
 
 if __name__ == "__main__":
