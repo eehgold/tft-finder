@@ -12,7 +12,7 @@ Select your champions, and the tool recommends the best next unit to buy based o
 You can run the app directly with:
 
 ```
-TFT-Finder.exe
+TFT-Finder-v1.0.0.exe
 ```
 
 No Python installation is required for this mode.
@@ -59,8 +59,12 @@ You can build a standalone executable so users do not need Python installed.
    ```
 3. After build completes, share:
    ```
-   TFT-Finder.exe
+   TFT-Finder-v1.0.0.exe
    ```
+
+Version is controlled in:
+- `src/app.py` (`APP_VERSION`)
+- `src/build_exe.bat` (`APP_VERSION`, keep in sync)
 
 ## App icon and favicon files
 
@@ -70,7 +74,7 @@ You can build a standalone executable so users do not need Python installed.
 
 ## Project layout
 
-- Root (for non-technical users): `TFT-Finder.exe`, `README`, `LICENSE`
+- Root (for non-technical users): `TFT-Finder-v1.0.0.exe`, `README`, `LICENSE`
 - Source files: `src/`
 
 ## How it works

@@ -5,6 +5,8 @@ import json
 import os
 import sys
 
+APP_VERSION = "1.0.0"
+
 
 def _get_base_dir():
     # PyInstaller onefile extracts bundled files into _MEIPASS.
@@ -529,7 +531,7 @@ def compute_recommendations(selected_names, team_size, unlocked_names, units,
 class TFTFinderApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("TFT Finder - Season 16")
+        self.root.title(f"TFT Finder - Season 16 - v{APP_VERSION}")
         self.root.configure(bg="#1d1e20")
 
         self.units, self.trait_thresholds, self.trait_icon_paths = load_data()
@@ -620,6 +622,10 @@ class TFTFinderApp:
         self.selection_count_label = tk.Label(top, text="", bg="#2a2b2e", fg="#aaa",
                                               font=("Segoe UI", 10))
         self.selection_count_label.pack(side=tk.RIGHT)
+
+        self.version_label = tk.Label(top, text=f"v{APP_VERSION}", bg="#2a2b2e", fg="#7f8fa4",
+                                      font=("Segoe UI", 9, "bold"))
+        self.version_label.pack(side=tk.RIGHT, padx=(0, 10))
 
         tk.Button(top, text="Reset", bg="#ff5555", fg="white",
                   font=("Segoe UI", 9, "bold"), relief=tk.FLAT, padx=10, pady=2,
