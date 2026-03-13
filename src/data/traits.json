@@ -580,5 +580,53 @@
     "count": 3,
     "tier": "D",
     "image": "images/traits/explorer.png"
+  },
+  {
+    "name": "Shadow Isles",
+    "count": 2,
+    "tier": "C",
+    "image": "images/traits/soulbound.png"
+  },
+  {
+    "name": "Shadow Isles",
+    "count": 4,
+    "tier": "A",
+    "image": "images/traits/soulbound.png"
+  },
+  {
+    "name": "Shadow Isles",
+    "count": 5,
+    "tier": "S",
+    "image": "images/traits/soulbound.png"
+  },
+  {
+    "name": "Dark Child",
+    "count": 1,
+    "tier": "S",
+    "image": "images/traits/sorcerer.png"
+  },
+  {
+    "name": "Rune Mage",
+    "count": 1,
+    "tier": "S",
+    "image": "images/traits/invoker.png"
+  },
+  {
+    "name": "Star Forger",
+    "count": 1,
+    "tier": "S",
+    "image": "images/traits/targon.png"
+  },
+  {
+    "name": "The Boss",
+    "count": 1,
+    "tier": "S",
+    "image": "images/traits/brawler.png"
+  },
+  {
+    "name": "World Ender",
+    "count": 1,
+    "tier": "S",
+    "image": "images/traits/darkinweapon.png"
   }
 ]

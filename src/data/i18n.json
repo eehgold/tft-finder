@@ -314,7 +314,12 @@
       "first-mates-flintlock": "First Mate's Flintlock",
       "lucky-doubloon": "Lucky Doubloon",
       "pile-o-citrus": "Pile O' Citrus"
-    }
+    },
+    "cfg_bridge": "Bridge planning",
+    "cfg_bridge_desc": "Reward steps toward higher trait caps",
+    "cfg_planning_slots": "Planning slots:",
+    "hint_emblem_short": "(emblem)",
+    "tooltip_needs_emblem": "needs emblem"
   },
   "fr": {
     "scenario_sort_score": "Score max",
@@ -631,6 +636,11 @@
       "first-mates-flintlock": "First Mate's Flintlock",
       "lucky-doubloon": "Lucky Doubloon",
       "pile-o-citrus": "Pile O' Citrus"
-    }
+    },
+    "cfg_bridge": "Bridge long terme",
+    "cfg_bridge_desc": "Valorise les etapes vers les gros caps de traits",
+    "cfg_planning_slots": "Slots de planif:",
+    "hint_emblem_short": "(embleme)",
+    "tooltip_needs_emblem": "demande embleme"
   }
 }

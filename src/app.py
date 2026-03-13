@@ -6,7 +6,7 @@ import os
 import sys
 from collections import defaultdict
 
-APP_VERSION = "1.2.1"
+APP_VERSION = "1.2.2"
 
 
 def _get_base_dir():
@@ -149,7 +149,9 @@ DEFAULT_WEIGHTS = {
     "cap_potential": 0.8,
     "odds": 1.0,
     "multi_synergy": 1.0,
+    "bridge": 1.0,
 }
+DEFAULT_PLANNING_EXTRA_SLOTS = 2
 SCENARIO_SORT_MODES = [
     ("score", "scenario_sort_score"),
     ("roll", "scenario_sort_roll"),
@@ -213,7 +215,8 @@ def tr_item(lang, item_slug, fallback_name=None):
 
 def compute_trait_score(candidate, selected_units, all_units_map, trait_thresholds,
                         trait_tiers=None, unlocked_names=None, all_units=None,
-                        weights=None, team_size=None):
+                        weights=None, team_size=None, planning_extra_slots=0,
+                        emblem_potential_by_trait=None):
     """Score based on trait synergy with tier quality and cap potential.
 
     Returns (total_trait_score, matching_traits set, trait_details list).
@@ -222,6 +225,9 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
     quality_w = w.get("traits", 1.0)
     cap_w = w.get("cap_potential", 0.8)
     multi_w = w.get("multi_synergy", 1.0)
+    bridge_w = w.get("bridge", 1.0)
+    planning_slots = max(0, int(planning_extra_slots or 0))
+    emblem_map = emblem_potential_by_trait or {}
 
     selected_traits = {}
     for name in selected_units:
@@ -260,21 +266,25 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
             if th > new:
                 next_th = th
                 break
-        if current > 0 and next_th:
-            progress = new / next_th
-            score += progress * 0.6 * quality_w
-
         potential_count = new
         potential_quality = new_quality
         potential_letter = new_letter
         potential_reached = new_reached
         future_gain = 0.0
         max_possible_count = new
+        natural_max_count = new
+        emblem_extra = max(0, int(emblem_map.get(t, 0)))
+        bridge_bonus = 0.0
+        bridge_target = None
+        bridge_target_letter = None
+        bridge_requires_emblem = False
         if all_units is not None and unlocked_names is not None and slots_left_after_pick is not None:
             available_after_pick = _count_available_for_trait(
                 t, used_after_pick, unlocked_names, all_units)
-            max_extra = min(available_after_pick, slots_left_after_pick)
-            max_possible_count = new + max_extra
+            effective_slots = slots_left_after_pick + planning_slots
+            max_extra = min(available_after_pick, effective_slots)
+            natural_max_count = new + max_extra
+            max_possible_count = natural_max_count + emblem_extra
             potential_count = max_possible_count
             potential_quality, potential_letter, potential_reached, _ = _trait_quality_value(
                 t, potential_count, thresholds, trait_tiers
@@ -285,9 +295,54 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
                 distance = max(1, potential_count - new)
                 score += (future_gain / distance) * cap_w
 
-            # If next threshold is impossible in remaining slots, downweight this trait.
-            if next_th and max_possible_count < next_th:
+            if bridge_w > 0 and thresholds:
+                best_bridge_raw = 0.0
+                for th in thresholds:
+                    if th <= new or th > max_possible_count:
+                        continue
+                    target_quality, target_letter, _, _ = _trait_quality_value(
+                        t, th, thresholds, trait_tiers
+                    )
+                    gain_to_target = max(0.0, target_quality - new_quality)
+                    # Support long cap chase even when quality letter is unchanged (e.g. S -> S).
+                    # In that case, use a small depth gain based on breakpoint distance.
+                    if gain_to_target <= 0:
+                        tier_span = max(1, thresholds[-1] - thresholds[0]) if thresholds else 1
+                        depth_gain = ((th - new) / tier_span) * 1.2
+                        effective_gain = max(0.0, depth_gain)
+                    else:
+                        effective_gain = gain_to_target
+                    if effective_gain <= 0:
+                        continue
+                    distance_to_target = max(1, th - new)
+                    progress_to_target = (new / th) if th > 0 else 1.0
+                    bridge_raw = (effective_gain / distance_to_target) * (0.5 + progress_to_target)
+                    if bridge_raw > best_bridge_raw:
+                        best_bridge_raw = bridge_raw
+                        bridge_target = th
+                        bridge_target_letter = target_letter
+                if bridge_target is not None and best_bridge_raw > 0:
+                    bridge_bonus = best_bridge_raw * bridge_w * cap_w
+                    score += bridge_bonus
+                    bridge_requires_emblem = bridge_target > natural_max_count
+
+            # If next threshold is impossible, downweight dead-end picks.
+            if next_th and max_possible_count < next_th and immediate_gain <= 0 and future_gain <= 0 and bridge_bonus <= 0:
                 score -= 0.8 * quality_w
+        else:
+            max_possible_count = new + emblem_extra
+            potential_count = max_possible_count
+            potential_quality, potential_letter, potential_reached, _ = _trait_quality_value(
+                t, potential_count, thresholds, trait_tiers
+            )
+            future_gain = max(0.0, potential_quality - new_quality)
+
+        if current > 0 and next_th:
+            progress = new / next_th
+            progress_bonus = progress * 0.6 * quality_w
+            if max_possible_count < next_th:
+                progress_bonus *= 0.35
+            score += progress_bonus
 
         details.append({
             "trait": t,
@@ -304,6 +359,13 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
             "quality_gain": immediate_gain,
             "future_gain": future_gain,
             "max_possible_count": max_possible_count,
+            "max_natural_count": natural_max_count,
+            "emblem_extra": emblem_extra,
+            "bridge_bonus": bridge_bonus,
+            "bridge_target": bridge_target,
+            "bridge_target_letter": bridge_target_letter,
+            "bridge_requires_emblem": bridge_requires_emblem,
+            "potential_requires_emblem": potential_count > natural_max_count,
         })
 
     # Multi-synergy bonus
@@ -438,6 +500,7 @@ def _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportuniti
     if cap_opportunities:
         labels = [
             f"{tr_trait(lang, c['trait'])} -> {c['potential_tier_letter']} (cap {c['potential_count']})"
+            + (f" {tr(lang, 'hint_emblem_short')}" if c.get("potential_requires_emblem") else "")
             for c in cap_opportunities[:3]
         ]
         reasons.append(tr(lang, "reason_cap_potential", list=_short_list(labels)))
@@ -477,14 +540,21 @@ def _build_reason_tooltip(picks, trait_upgrades, stable_traits, cap_opportunitie
             f"(tier={pick['tier_score']:.2f}, traits={pick['trait_score']:.2f}, odds={pick['odds'] * 100:.1f}%)"
         )
         for detail in pick.get("trait_details", []):
-            if detail["quality_gain"] <= 0 and detail["future_gain"] <= 0:
+            if detail["quality_gain"] <= 0 and detail["future_gain"] <= 0 and detail.get("bridge_bonus", 0) <= 0:
                 continue
             curr = detail["current_tier_letter"] or "-"
             new = detail["new_tier_letter"] or "-"
             pot = detail["potential_tier_letter"] or new
+            bridge_txt = ""
+            if detail.get("bridge_bonus", 0) > 0 and detail.get("bridge_target"):
+                needs_emblem = f" ({tr(lang, 'tooltip_needs_emblem')})" if detail.get("bridge_requires_emblem") else ""
+                bridge_txt = (
+                    f", bridge={detail['bridge_bonus']:.2f} -> "
+                    f"{detail.get('bridge_target_letter') or '-'}@{detail['bridge_target']}{needs_emblem}"
+                )
             lines.append(
                 f"  {tr_trait(lang, detail['trait'])}: +{detail['delta_count']} ({curr} -> {new}), "
-                f"gain={detail['quality_gain']:.2f}, cap={pot}, future={detail['future_gain']:.2f}"
+                f"gain={detail['quality_gain']:.2f}, cap={pot}, future={detail['future_gain']:.2f}{bridge_txt}"
             )
 
     if trait_upgrades:
@@ -499,9 +569,10 @@ def _build_reason_tooltip(picks, trait_upgrades, stable_traits, cap_opportunitie
         lines.append("")
         lines.append(tr(lang, "tooltip_cap_opportunities"))
         for cap in cap_opportunities[:5]:
+            needs_emblem = f" ({tr(lang, 'tooltip_needs_emblem')})" if cap.get("potential_requires_emblem") else ""
             lines.append(
                 f"- {tr_trait(lang, cap['trait'])}: now {cap['new_tier_letter'] or '-'} "
-                f"-> potential {cap['potential_tier_letter'] or '-'} (future gain {cap['future_gain']:.2f})"
+                f"-> potential {cap['potential_tier_letter'] or '-'} (future gain {cap['future_gain']:.2f}){needs_emblem}"
             )
     if stable_traits:
         lines.append("")
@@ -525,7 +596,8 @@ def summarize_trait_entries(entries, limit=6):
 
 def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, units,
                                      trait_thresholds, trait_tiers=None, weights=None, top_n=3,
-                                     diversity=0.5, sort_mode="score", lang=DEFAULT_LANGUAGE):
+                                     diversity=0.5, sort_mode="score", lang=DEFAULT_LANGUAGE,
+                                     planning_extra_slots=0, emblem_potential_by_trait=None):
     w = weights or DEFAULT_WEIGHTS
     all_units_map = {u["name"]: u for u in units}
     level = team_size
@@ -542,7 +614,9 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             return None
         tier_score = TIER_SCORES.get(u["tier"], 0) * tier_w
         trait_score, matching, trait_details = compute_trait_score(
-            u, team, all_units_map, trait_thresholds, trait_tiers, unlocked_names, units, w, team_size
+            u, team, all_units_map, trait_thresholds, trait_tiers, unlocked_names, units, w, team_size,
+            planning_extra_slots=planning_extra_slots,
+            emblem_potential_by_trait=emblem_potential_by_trait,
         )
         raw_score = tier_score + trait_score
         # odds_w controls how much drop rate matters: 0=ignore odds, 1=full weight
@@ -748,10 +822,14 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
 
 
 def compute_recommendations(selected_names, team_size, unlocked_names, units,
-                            trait_thresholds, trait_tiers=None, weights=None):
+                            trait_thresholds, trait_tiers=None, weights=None,
+                            planning_extra_slots=0, emblem_potential_by_trait=None):
     """Backward-compatible wrapper kept for older UI paths."""
     scenarios = compute_recommendation_scenarios(
-        selected_names, team_size, unlocked_names, units, trait_thresholds, trait_tiers, weights, top_n=1)
+        selected_names, team_size, unlocked_names, units, trait_thresholds, trait_tiers, weights, top_n=1,
+        planning_extra_slots=planning_extra_slots,
+        emblem_potential_by_trait=emblem_potential_by_trait,
+    )
     if not scenarios:
         return []
     recs = []
@@ -805,7 +883,9 @@ class TFTFinderApp:
         self.w_cap = tk.DoubleVar(value=0.8)
         self.w_odds = tk.DoubleVar(value=1.0)
         self.w_multi = tk.DoubleVar(value=1.0)
+        self.w_bridge = tk.DoubleVar(value=1.0)
         self.scenario_diversity = tk.DoubleVar(value=0.5)
+        self.planning_extra_slots = tk.IntVar(value=DEFAULT_PLANNING_EXTRA_SLOTS)
         self.scenario_sort_mode = "score"
         self.lang_var = tk.StringVar(value=DEFAULT_LANGUAGE)
         self.scenario_sort_buttons = {}
@@ -836,6 +916,55 @@ class TFTFinderApp:
             slug = item_or_slug
             fallback = self.items_map.get(slug, {}).get("name", slug)
         return tr_item(self.lang_var.get(), slug, fallback)
+
+    @staticmethod
+    def _extract_emblem_trait(item):
+        if not item or item.get("nature") != "emblem":
+            return None
+        name = (item.get("name") or "").strip()
+        lower_name = name.lower()
+        suffix = " emblem"
+        if lower_name.endswith(suffix):
+            return name[:len(name) - len(suffix)].strip()
+        return None
+
+    def _compute_emblem_potential_by_trait(self):
+        """Estimate additional trait counts reachable from current emblem inventory/crafts."""
+        owned_by_trait = defaultdict(int)
+        craftable_by_trait = defaultdict(int)
+
+        for slug, count in self.inventory_counts.items():
+            if count <= 0:
+                continue
+            item = self.items_map.get(slug)
+            trait = self._extract_emblem_trait(item)
+            if trait:
+                owned_by_trait[trait] += int(count)
+
+        for i, comp_a in enumerate(self.component_slugs):
+            row = self.component_matrix.get(comp_a, {})
+            for comp_b in self.component_slugs[i:]:
+                result = row.get(comp_b)
+                if not result:
+                    continue
+                result_item = self.items_map.get(result.get("slug"))
+                trait = self._extract_emblem_trait(result_item)
+                if not trait:
+                    continue
+                if not self._can_craft_now(comp_a, comp_b):
+                    continue
+                craft_count = (
+                    self.inventory_counts.get(comp_a, 0) // 2
+                    if comp_a == comp_b
+                    else min(self.inventory_counts.get(comp_a, 0), self.inventory_counts.get(comp_b, 0))
+                )
+                if craft_count > craftable_by_trait[trait]:
+                    craftable_by_trait[trait] = craft_count
+
+        merged = {}
+        for trait_name in set(owned_by_trait) | set(craftable_by_trait):
+            merged[trait_name] = owned_by_trait.get(trait_name, 0) + craftable_by_trait.get(trait_name, 0)
+        return merged
 
     def _on_language_change(self, *_):
         self._rebuild_ui_for_language()
@@ -971,6 +1100,7 @@ class TFTFinderApp:
             ("cfg_cap_potential", self.w_cap, "cfg_cap_potential_desc"),
             ("cfg_odds", self.w_odds, "cfg_odds_desc"),
             ("cfg_multi_synergy", self.w_multi, "cfg_multi_synergy_desc"),
+            ("cfg_bridge", self.w_bridge, "cfg_bridge_desc"),
         ]
         for label_key, var, desc_key in slider_defs:
             sf = tk.Frame(sliders_frame, bg="#333")
@@ -991,10 +1121,10 @@ class TFTFinderApp:
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
 
         presets = [
-            ("preset_balanced", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 1.0, "multi_synergy": 1.0}),
-            ("preset_max_synergy", {"tier": 0.3, "traits": 2.0, "cap_potential": 1.4, "odds": 0.5, "multi_synergy": 2.0}),
-            ("preset_brute_force", {"tier": 2.0, "traits": 0.5, "cap_potential": 0.2, "odds": 1.0, "multi_synergy": 0.3}),
-            ("preset_ignore_odds", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 0.0, "multi_synergy": 1.0}),
+            ("preset_balanced", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 1.0, "multi_synergy": 1.0, "bridge": 1.0}),
+            ("preset_max_synergy", {"tier": 0.3, "traits": 2.0, "cap_potential": 1.4, "odds": 0.5, "multi_synergy": 2.0, "bridge": 1.6}),
+            ("preset_brute_force", {"tier": 2.0, "traits": 0.5, "cap_potential": 0.2, "odds": 1.0, "multi_synergy": 0.3, "bridge": 0.2}),
+            ("preset_ignore_odds", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 0.0, "multi_synergy": 1.0, "bridge": 1.0}),
         ]
         for name_key, values in presets:
             tk.Button(presets_frame, text=self._t(name_key), bg="#555", fg="white",
@@ -1018,6 +1148,22 @@ class TFTFinderApp:
             highlightthickness=0,
             troughcolor="#555",
             length=130,
+            command=lambda _: self._refresh(),
+        ).pack(side=tk.LEFT)
+        tk.Label(scenario_cfg, text=self._t("cfg_planning_slots"), bg="#333", fg="#aaa",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(14, 8))
+        tk.Scale(
+            scenario_cfg,
+            from_=0,
+            to=4,
+            resolution=1,
+            orient=tk.HORIZONTAL,
+            variable=self.planning_extra_slots,
+            bg="#333",
+            fg="white",
+            highlightthickness=0,
+            troughcolor="#555",
+            length=90,
             command=lambda _: self._refresh(),
         ).pack(side=tk.LEFT)
 
@@ -2084,16 +2230,18 @@ class TFTFinderApp:
             self.config_frame.pack_forget()
 
     def _apply_preset(self, values):
-        self.w_tier.set(values["tier"])
-        self.w_traits.set(values["traits"])
-        self.w_cap.set(values["cap_potential"])
-        self.w_odds.set(values["odds"])
-        self.w_multi.set(values["multi_synergy"])
+        self.w_tier.set(values.get("tier", self.w_tier.get()))
+        self.w_traits.set(values.get("traits", self.w_traits.get()))
+        self.w_cap.set(values.get("cap_potential", self.w_cap.get()))
+        self.w_odds.set(values.get("odds", self.w_odds.get()))
+        self.w_multi.set(values.get("multi_synergy", self.w_multi.get()))
+        self.w_bridge.set(values.get("bridge", self.w_bridge.get()))
         self._refresh()
 
     def _reset_config(self):
         self._apply_preset(DEFAULT_WEIGHTS)
         self.scenario_diversity.set(0.5)
+        self.planning_extra_slots.set(DEFAULT_PLANNING_EXTRA_SLOTS)
         self._set_scenario_sort("score")
 
     def _get_weights(self):
@@ -2103,6 +2251,7 @@ class TFTFinderApp:
             "cap_potential": self.w_cap.get(),
             "odds": self.w_odds.get(),
             "multi_synergy": self.w_multi.get(),
+            "bridge": self.w_bridge.get(),
         }
 
     def _set_sort(self, mode):
@@ -2400,12 +2549,15 @@ class TFTFinderApp:
         self.selection_count_label.config(text=self._t("selection_count", selected=len(self.selected), total=team_size))
 
         # Compute recommendation scenarios first (needed for grid highlight)
+        emblem_potential = self._compute_emblem_potential_by_trait()
         scenarios = compute_recommendation_scenarios(
             self.selected, team_size, self.unlocked,
             self.units, self.trait_thresholds, self.trait_tiers, self._get_weights(), top_n=3,
             diversity=self.scenario_diversity.get(),
             sort_mode=self.scenario_sort_mode,
             lang=self.lang_var.get(),
+            planning_extra_slots=self.planning_extra_slots.get(),
+            emblem_potential_by_trait=emblem_potential,
         )
         self.recommended_names = {
             name for scenario in scenarios for name in scenario["pick_names"]
