@@ -6,7 +6,7 @@ import os
 import sys
 from collections import defaultdict
 
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.2.1"
 
 
 def _get_base_dir():
@@ -20,6 +20,8 @@ DATA_DIR = os.path.join(_get_base_dir(), "data")
 ICON_DIR = os.path.join(DATA_DIR, "icons")
 APP_ICON_ICO = os.path.join(ICON_DIR, "app.ico")
 APP_ICON_PNG = os.path.join(ICON_DIR, "logo_tft-finder.png")
+I18N_JSON = os.path.join(DATA_DIR, "i18n.json")
+DEFAULT_LANGUAGE = "en"
 IMG_SIZE = 48
 TEAM_IMG_SIZE = 56
 TRAIT_ICON_SIZE = 20
@@ -149,11 +151,64 @@ DEFAULT_WEIGHTS = {
     "multi_synergy": 1.0,
 }
 SCENARIO_SORT_MODES = [
-    ("score", "Score max"),
-    ("roll", "Facile a roll"),
-    ("eco", "Economie"),
-    ("spike", "Power spike rapide"),
+    ("score", "scenario_sort_score"),
+    ("roll", "scenario_sort_roll"),
+    ("eco", "scenario_sort_eco"),
+    ("spike", "scenario_sort_spike"),
 ]
+
+
+def load_i18n_data():
+    fallback = {"en": {}, "fr": {}}
+    if not os.path.exists(I18N_JSON):
+        return fallback
+    try:
+        with open(I18N_JSON, encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return fallback
+        for lang in ("en", "fr"):
+            if lang not in data or not isinstance(data[lang], dict):
+                data[lang] = {}
+        return data
+    except Exception:
+        return fallback
+
+
+I18N = load_i18n_data()
+
+
+def tr(lang, key, **kwargs):
+    lang_table = I18N.get(lang, {})
+    text = lang_table.get(key)
+    if text is None:
+        text = I18N.get(DEFAULT_LANGUAGE, {}).get(key, key)
+    if kwargs:
+        try:
+            return text.format(**kwargs)
+        except Exception:
+            return text
+    return text
+
+
+def tr_trait(lang, trait_name):
+    lang_traits = I18N.get(lang, {}).get("trait_names", {})
+    if trait_name in lang_traits:
+        return lang_traits[trait_name]
+    en_traits = I18N.get(DEFAULT_LANGUAGE, {}).get("trait_names", {})
+    return en_traits.get(trait_name, trait_name)
+
+
+def tr_item(lang, item_slug, fallback_name=None):
+    if not item_slug:
+        return fallback_name or ""
+    lang_items = I18N.get(lang, {}).get("item_names", {})
+    if item_slug in lang_items:
+        return lang_items[item_slug]
+    en_items = I18N.get(DEFAULT_LANGUAGE, {}).get("item_names", {})
+    if item_slug in en_items:
+        return en_items[item_slug]
+    return fallback_name if fallback_name is not None else item_slug
 
 
 def compute_trait_score(candidate, selected_units, all_units_map, trait_thresholds,
@@ -373,45 +428,48 @@ def _short_list(items, limit=3):
     return ", ".join(items[:limit]) + f" +{len(items) - limit}"
 
 
-def _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities):
+def _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities, lang=DEFAULT_LANGUAGE):
     reasons = []
 
     if trait_upgrades:
-        labels = [f"{t['name']} ({t['after_tier_letter'] or '?'} @ {t['after_reached']})" for t in trait_upgrades]
-        reasons.append(f"Active ou ameliore: {_short_list(labels)}")
+        labels = [f"{tr_trait(lang, t['name'])} ({t['after_tier_letter'] or '?'} @ {t['after_reached']})" for t in trait_upgrades]
+        reasons.append(tr(lang, "reason_active_or_upgraded", list=_short_list(labels)))
 
     if cap_opportunities:
-        labels = [f"{c['trait']} -> {c['potential_tier_letter']} (cap {c['potential_count']})" for c in cap_opportunities[:3]]
-        reasons.append(f"Potentiel cap max: {_short_list(labels)}")
+        labels = [
+            f"{tr_trait(lang, c['trait'])} -> {c['potential_tier_letter']} (cap {c['potential_count']})"
+            for c in cap_opportunities[:3]
+        ]
+        reasons.append(tr(lang, "reason_cap_potential", list=_short_list(labels)))
 
-    shared_traits = sorted({trait for p in picks for trait in p["matching"]})
+    shared_traits = sorted({tr_trait(lang, trait) for p in picks for trait in p["matching"]})
     if shared_traits:
-        reasons.append(f"Renforce des synergies deja presentes: {_short_list(shared_traits)}")
+        reasons.append(tr(lang, "reason_reinforce_existing", list=_short_list(shared_traits)))
 
     avg_odds = sum(p["odds"] for p in picks) / max(1, len(picks))
     if avg_odds >= 0.20:
-        reasons.append(f"Plan facile a roll ({int(avg_odds * 100)}% moyen)")
+        reasons.append(tr(lang, "reason_plan_easy_roll", pct=int(avg_odds * 100)))
     elif avg_odds >= 0.08:
-        reasons.append(f"Plan jouable en roll ({int(avg_odds * 100)}% moyen)")
+        reasons.append(tr(lang, "reason_plan_playable_roll", pct=int(avg_odds * 100)))
     else:
-        reasons.append(f"Plan plus greedy ({int(avg_odds * 100)}% moyen)")
+        reasons.append(tr(lang, "reason_plan_greedy", pct=int(avg_odds * 100)))
 
     if stable_traits:
-        labels = [f"{t['name']} ({t['after_count']})" for t in stable_traits[:3]]
-        reasons.append(f"Garde stables: {', '.join(labels)}")
+        labels = [f"{tr_trait(lang, t['name'])} ({t['after_count']})" for t in stable_traits[:3]]
+        reasons.append(tr(lang, "reason_keep_stable", list=", ".join(labels)))
 
     return "\n".join(f"- {reason}" for reason in reasons)
 
 
 def _build_reason_tooltip(picks, trait_upgrades, stable_traits, cap_opportunities,
-                          score, avg_odds, avg_cost, spike_score):
+                          score, avg_odds, avg_cost, spike_score, lang=DEFAULT_LANGUAGE):
     lines = [
-        f"Total scenario: {score:.2f}",
-        f"Avg odds: {avg_odds * 100:.1f}%",
-        f"Avg cost: {avg_cost:.2f}",
-        f"Spike score: {spike_score:.2f}",
+        tr(lang, "tooltip_total_scenario", score=f"{score:.2f}"),
+        tr(lang, "tooltip_avg_odds", pct=f"{avg_odds * 100:.1f}"),
+        tr(lang, "tooltip_avg_cost", value=f"{avg_cost:.2f}"),
+        tr(lang, "tooltip_spike_score", value=f"{spike_score:.2f}"),
         "",
-        "Details per unit:",
+        tr(lang, "tooltip_details_per_unit"),
     ]
     for pick in picks:
         lines.append(
@@ -425,32 +483,32 @@ def _build_reason_tooltip(picks, trait_upgrades, stable_traits, cap_opportunitie
             new = detail["new_tier_letter"] or "-"
             pot = detail["potential_tier_letter"] or new
             lines.append(
-                f"  {detail['trait']}: +{detail['delta_count']} ({curr} -> {new}), "
+                f"  {tr_trait(lang, detail['trait'])}: +{detail['delta_count']} ({curr} -> {new}), "
                 f"gain={detail['quality_gain']:.2f}, cap={pot}, future={detail['future_gain']:.2f}"
             )
 
     if trait_upgrades:
         lines.append("")
-        lines.append("Trait upgrades:")
+        lines.append(tr(lang, "tooltip_trait_upgrades"))
         for delta in trait_upgrades[:6]:
             lines.append(
-                f"- {delta['name']}: {delta['before_tier_letter'] or '-'} -> {delta['after_tier_letter'] or '-'}, "
+                f"- {tr_trait(lang, delta['name'])}: {delta['before_tier_letter'] or '-'} -> {delta['after_tier_letter'] or '-'}, "
                 f"count {delta['before_count']} -> {delta['after_count']}"
             )
     if cap_opportunities:
         lines.append("")
-        lines.append("Cap opportunities:")
+        lines.append(tr(lang, "tooltip_cap_opportunities"))
         for cap in cap_opportunities[:5]:
             lines.append(
-                f"- {cap['trait']}: now {cap['new_tier_letter'] or '-'} "
+                f"- {tr_trait(lang, cap['trait'])}: now {cap['new_tier_letter'] or '-'} "
                 f"-> potential {cap['potential_tier_letter'] or '-'} (future gain {cap['future_gain']:.2f})"
             )
     if stable_traits:
         lines.append("")
-        lines.append("Stable traits:")
+        lines.append(tr(lang, "tooltip_stable_traits"))
         for delta in stable_traits[:5]:
             lines.append(
-                f"- {delta['name']}: tier {delta['after_tier_letter'] or '-'}, "
+                f"- {tr_trait(lang, delta['name'])}: tier {delta['after_tier_letter'] or '-'}, "
                 f"count {delta['before_count']} -> {delta['after_count']}"
             )
     return "\n".join(lines)
@@ -458,7 +516,7 @@ def _build_reason_tooltip(picks, trait_upgrades, stable_traits, cap_opportunitie
 
 def summarize_trait_entries(entries, limit=6):
     if not entries:
-        return "none"
+        return tr(DEFAULT_LANGUAGE, "tooltip_none")
     labels = [f"{e['name']} {e['count']}" for e in entries[:limit]]
     if len(entries) > limit:
         labels.append(f"+{len(entries) - limit}")
@@ -467,7 +525,7 @@ def summarize_trait_entries(entries, limit=6):
 
 def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, units,
                                      trait_thresholds, trait_tiers=None, weights=None, top_n=3,
-                                     diversity=0.5, sort_mode="score"):
+                                     diversity=0.5, sort_mode="score", lang=DEFAULT_LANGUAGE):
     w = weights or DEFAULT_WEIGHTS
     all_units_map = {u["name"]: u for u in units}
     level = team_size
@@ -585,7 +643,7 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             key=lambda d: (-d["future_gain"], -d["potential_count"], d["trait"])
         )
         pick_names = [p["name"] for p in picks]
-        reason = _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities)
+        reason = _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities, lang=lang)
 
         return {
             "score": total_score,
@@ -607,7 +665,7 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             "reason": reason,
             "reason_tooltip": _build_reason_tooltip(
                 picks, trait_upgrades, stable_traits, cap_opportunities,
-                total_score, avg_odds, avg_cost, spike_score
+                total_score, avg_odds, avg_cost, spike_score, lang=lang
             ),
         }
 
@@ -749,6 +807,7 @@ class TFTFinderApp:
         self.w_multi = tk.DoubleVar(value=1.0)
         self.scenario_diversity = tk.DoubleVar(value=0.5)
         self.scenario_sort_mode = "score"
+        self.lang_var = tk.StringVar(value=DEFAULT_LANGUAGE)
         self.scenario_sort_buttons = {}
         self.tooltip_window = None
         self.tooltip_label = None
@@ -762,6 +821,52 @@ class TFTFinderApp:
         # Keyboard shortcuts
         self.root.bind("<Control-z>", lambda _: self._undo())
         self.root.bind("<Escape>", lambda _: self._reset_selection())
+
+    def _t(self, key, **kwargs):
+        return tr(self.lang_var.get(), key, **kwargs)
+
+    def _trait_name(self, trait_name):
+        return tr_trait(self.lang_var.get(), trait_name)
+
+    def _item_name(self, item_or_slug):
+        if isinstance(item_or_slug, dict):
+            slug = item_or_slug.get("slug")
+            fallback = item_or_slug.get("name", slug or "")
+        else:
+            slug = item_or_slug
+            fallback = self.items_map.get(slug, {}).get("name", slug)
+        return tr_item(self.lang_var.get(), slug, fallback)
+
+    def _on_language_change(self, *_):
+        self._rebuild_ui_for_language()
+
+    def _rebuild_ui_for_language(self):
+        team_size = self.team_size_var.get() if hasattr(self, "team_size_var") else 6
+        search_query = self.search_var.get() if hasattr(self, "search_var") else ""
+        item_query = self.item_search_var.get() if hasattr(self, "item_search_var") else ""
+        item_nature = self.item_nature_var.get() if hasattr(self, "item_nature_var") else "all"
+        item_rank = self.item_rank_var.get() if hasattr(self, "item_rank_var") else "all"
+        was_config_visible = self.config_visible
+        self.config_visible = False
+
+        for child in self.root.winfo_children():
+            child.destroy()
+
+        self.unit_widgets = {}
+        self.item_widgets = {}
+        self.sort_buttons = {}
+        self.scenario_sort_buttons = {}
+        self.unlock_vars = {}
+
+        self._build_ui()
+        self.team_size_var.set(team_size)
+        self.search_var.set(search_query)
+        self.item_search_var.set(item_query)
+        self.item_nature_var.set(item_nature)
+        self.item_rank_var.set(item_rank)
+        if was_config_visible:
+            self._toggle_config()
+        self._refresh()
 
     def _load_images(self):
         for u in self.units:
@@ -820,7 +925,7 @@ class TFTFinderApp:
         top = tk.Frame(self.root, bg="#2a2b2e", pady=8, padx=12)
         top.pack(fill=tk.X)
 
-        tk.Label(top, text="Team size:", bg="#2a2b2e", fg="white",
+        tk.Label(top, text=self._t("label_team_size"), bg="#2a2b2e", fg="white",
                  font=("Segoe UI", 11)).pack(side=tk.LEFT)
 
         self.team_size_var = tk.IntVar(value=6)
@@ -838,11 +943,11 @@ class TFTFinderApp:
                                       font=("Segoe UI", 9, "bold"))
         self.version_label.pack(side=tk.RIGHT, padx=(0, 10))
 
-        tk.Button(top, text="Reset", bg="#ff5555", fg="white",
+        tk.Button(top, text=self._t("button_reset"), bg="#ff5555", fg="white",
                   font=("Segoe UI", 9, "bold"), relief=tk.FLAT, padx=10, pady=2,
                   command=self._reset_selection).pack(side=tk.RIGHT, padx=(0, 12))
 
-        tk.Button(top, text="Config", bg="#444", fg="white",
+        tk.Button(top, text=self._t("button_config"), bg="#444", fg="white",
                   font=("Segoe UI", 9), relief=tk.FLAT, padx=10, pady=2,
                   command=self._toggle_config).pack(side=tk.RIGHT, padx=(0, 6))
 
@@ -851,9 +956,9 @@ class TFTFinderApp:
 
         cfg_title = tk.Frame(self.config_frame, bg="#333")
         cfg_title.pack(fill=tk.X, pady=(0, 6))
-        tk.Label(cfg_title, text="Scoring weights", bg="#333", fg="white",
+        tk.Label(cfg_title, text=self._t("cfg_scoring_weights"), bg="#333", fg="white",
                  font=("Segoe UI", 10, "bold")).pack(side=tk.LEFT)
-        tk.Button(cfg_title, text="Reset config", bg="#555", fg="white",
+        tk.Button(cfg_title, text=self._t("button_reset_config"), bg="#555", fg="white",
                   font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=1,
                   command=self._reset_config).pack(side=tk.RIGHT)
 
@@ -861,18 +966,18 @@ class TFTFinderApp:
         sliders_frame.pack(fill=tk.X)
 
         slider_defs = [
-            ("Tier", self.w_tier, "Raw power (S > A > B...)"),
-            ("Trait quality", self.w_traits, "Immediate value from trait tier gains"),
-            ("Cap potential", self.w_cap, "Future value from reachable high tiers"),
-            ("Odds", self.w_odds, "Probability to find the unit"),
-            ("Multi-synergy", self.w_multi, "Bonus if 2+ traits match"),
+            ("cfg_tier", self.w_tier, "cfg_tier_desc"),
+            ("cfg_trait_quality", self.w_traits, "cfg_trait_quality_desc"),
+            ("cfg_cap_potential", self.w_cap, "cfg_cap_potential_desc"),
+            ("cfg_odds", self.w_odds, "cfg_odds_desc"),
+            ("cfg_multi_synergy", self.w_multi, "cfg_multi_synergy_desc"),
         ]
-        for label, var, desc in slider_defs:
+        for label_key, var, desc_key in slider_defs:
             sf = tk.Frame(sliders_frame, bg="#333")
             sf.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=8)
-            tk.Label(sf, text=label, bg="#333", fg="#aaa",
+            tk.Label(sf, text=self._t(label_key), bg="#333", fg="#aaa",
                      font=("Segoe UI", 9, "bold")).pack()
-            tk.Label(sf, text=desc, bg="#333", fg="#666",
+            tk.Label(sf, text=self._t(desc_key), bg="#333", fg="#666",
                      font=("Segoe UI", 7)).pack()
             tk.Scale(sf, from_=0, to=2.0, resolution=0.1, orient=tk.HORIZONTAL,
                      variable=var, bg="#333", fg="white", highlightthickness=0,
@@ -882,24 +987,24 @@ class TFTFinderApp:
         # Preset strategies
         presets_frame = tk.Frame(self.config_frame, bg="#333")
         presets_frame.pack(fill=tk.X, pady=(8, 0))
-        tk.Label(presets_frame, text="Presets:", bg="#333", fg="#aaa",
+        tk.Label(presets_frame, text=self._t("cfg_presets"), bg="#333", fg="#aaa",
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
 
         presets = [
-            ("Balanced", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 1.0, "multi_synergy": 1.0}),
-            ("Max synergy", {"tier": 0.3, "traits": 2.0, "cap_potential": 1.4, "odds": 0.5, "multi_synergy": 2.0}),
-            ("Brute force", {"tier": 2.0, "traits": 0.5, "cap_potential": 0.2, "odds": 1.0, "multi_synergy": 0.3}),
-            ("Ignore odds", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 0.0, "multi_synergy": 1.0}),
+            ("preset_balanced", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 1.0, "multi_synergy": 1.0}),
+            ("preset_max_synergy", {"tier": 0.3, "traits": 2.0, "cap_potential": 1.4, "odds": 0.5, "multi_synergy": 2.0}),
+            ("preset_brute_force", {"tier": 2.0, "traits": 0.5, "cap_potential": 0.2, "odds": 1.0, "multi_synergy": 0.3}),
+            ("preset_ignore_odds", {"tier": 1.0, "traits": 1.0, "cap_potential": 0.8, "odds": 0.0, "multi_synergy": 1.0}),
         ]
-        for name, values in presets:
-            tk.Button(presets_frame, text=name, bg="#555", fg="white",
+        for name_key, values in presets:
+            tk.Button(presets_frame, text=self._t(name_key), bg="#555", fg="white",
                       font=("Segoe UI", 8), relief=tk.FLAT, padx=8, pady=2,
                       command=lambda v=values: self._apply_preset(v)
                       ).pack(side=tk.LEFT, padx=2)
 
         scenario_cfg = tk.Frame(self.config_frame, bg="#333")
         scenario_cfg.pack(fill=tk.X, pady=(8, 0))
-        tk.Label(scenario_cfg, text="Scenario diversity", bg="#333", fg="#aaa",
+        tk.Label(scenario_cfg, text=self._t("cfg_scenario_diversity"), bg="#333", fg="#aaa",
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
         tk.Scale(
             scenario_cfg,
@@ -916,14 +1021,28 @@ class TFTFinderApp:
             command=lambda _: self._refresh(),
         ).pack(side=tk.LEFT)
 
+        language_cfg = tk.Frame(self.config_frame, bg="#333")
+        language_cfg.pack(fill=tk.X, pady=(8, 0))
+        tk.Label(language_cfg, text=self._t("cfg_language"), bg="#333", fg="#aaa",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
+        language_box = ttk.Combobox(
+            language_cfg,
+            state="readonly",
+            width=6,
+            textvariable=self.lang_var,
+            values=["en", "fr"],
+        )
+        language_box.pack(side=tk.LEFT)
+        language_box.bind("<<ComboboxSelected>>", self._on_language_change)
+
         scenario_sort_frame = tk.Frame(self.config_frame, bg="#333")
         scenario_sort_frame.pack(fill=tk.X, pady=(8, 0))
-        tk.Label(scenario_sort_frame, text="Scenario style:", bg="#333", fg="#aaa",
+        tk.Label(scenario_sort_frame, text=self._t("cfg_scenario_style"), bg="#333", fg="#aaa",
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 8))
-        for mode, label in SCENARIO_SORT_MODES:
+        for mode, label_key in SCENARIO_SORT_MODES:
             btn = tk.Button(
                 scenario_sort_frame,
-                text=label,
+                text=self._t(label_key),
                 bg="#444",
                 fg="white",
                 font=("Segoe UI", 8),
@@ -940,7 +1059,7 @@ class TFTFinderApp:
         search_bar = tk.Frame(self.root, bg="#2a2b2e", pady=6, padx=12)
         search_bar.pack(fill=tk.X)
 
-        tk.Label(search_bar, text="Search:", bg="#2a2b2e", fg="white",
+        tk.Label(search_bar, text=self._t("search_label"), bg="#2a2b2e", fg="white",
                  font=("Segoe UI", 10)).pack(side=tk.LEFT)
 
         self.search_var = tk.StringVar()
@@ -950,19 +1069,19 @@ class TFTFinderApp:
                                 relief=tk.FLAT)
         search_entry.pack(side=tk.LEFT, padx=(8, 12))
 
-        tk.Label(search_bar, text="name, cost (ex: 3) or trait", bg="#2a2b2e", fg="#888",
+        tk.Label(search_bar, text=self._t("search_hint"), bg="#2a2b2e", fg="#888",
                  font=("Segoe UI", 9, "italic")).pack(side=tk.LEFT)
 
         # Sort buttons
         sort_frame = tk.Frame(search_bar, bg="#2a2b2e")
         sort_frame.pack(side=tk.RIGHT)
 
-        tk.Label(sort_frame, text="Sort:", bg="#2a2b2e", fg="#aaa",
+        tk.Label(sort_frame, text=self._t("sort_label"), bg="#2a2b2e", fg="#aaa",
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(0, 4))
 
         self.sort_buttons = {}
-        for mode, label in [("default", "Default"), ("cost", "Cost"), ("tier", "Tier")]:
-            btn = tk.Button(sort_frame, text=label, bg="#444", fg="white",
+        for mode, label_key in [("default", "sort_default"), ("cost", "sort_cost"), ("tier", "sort_tier")]:
+            btn = tk.Button(sort_frame, text=self._t(label_key), bg="#444", fg="white",
                             font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=1,
                             command=lambda m=mode: self._set_sort(m))
             btn.pack(side=tk.LEFT, padx=1)
@@ -998,7 +1117,7 @@ class TFTFinderApp:
         left_canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
         # --- Normal champions section ---
-        tk.Label(self.left_scroll_frame, text="Champions", bg="#1d1e20", fg="white",
+        tk.Label(self.left_scroll_frame, text=self._t("section_champions"), bg="#1d1e20", fg="white",
                  font=("Segoe UI", 12, "bold"), pady=4).pack(anchor="w", padx=8)
 
         self.grid_frame = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
@@ -1013,16 +1132,16 @@ class TFTFinderApp:
         locked_header = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
         locked_header.pack(fill=tk.X, padx=8)
 
-        tk.Label(locked_header, text="Locked champions", bg="#1d1e20", fg="#e8a33c",
+        tk.Label(locked_header, text=self._t("section_locked_champions"), bg="#1d1e20", fg="#e8a33c",
                  font=("Segoe UI", 12, "bold"), pady=4).pack(side=tk.LEFT)
 
         btn_frame = tk.Frame(locked_header, bg="#1d1e20")
         btn_frame.pack(side=tk.RIGHT)
 
-        tk.Button(btn_frame, text="Unlock all", bg="#444", fg="white",
+        tk.Button(btn_frame, text=self._t("button_unlock_all"), bg="#444", fg="white",
                   font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
                   command=self._unlock_all).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text="Lock all", bg="#444", fg="white",
+        tk.Button(btn_frame, text=self._t("button_lock_all"), bg="#444", fg="white",
                   font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
                   command=self._lock_all).pack(side=tk.LEFT, padx=2)
 
@@ -1035,10 +1154,9 @@ class TFTFinderApp:
         right_panel = tk.Frame(main, bg="#1d1e20", width=620)
         main.add(right_panel, stretch="never")
 
-        # -- Mon equipe --
-        team_section = tk.LabelFrame(right_panel, text="My team", bg="#1d1e20", fg="white",
-                                      font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
-                                      labelanchor="n", padx=4, pady=4)
+        team_section = tk.LabelFrame(right_panel, text=self._t("section_my_team"), bg="#1d1e20", fg="white",
+                                       font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
+                                       labelanchor="n", padx=4, pady=4)
         team_section.pack(fill=tk.X, padx=4, pady=(4, 2))
 
         self.team_frame = tk.Frame(team_section, bg="#1d1e20")
@@ -1049,11 +1167,11 @@ class TFTFinderApp:
 
         unit_tab = tk.Frame(self.tabs, bg="#1d1e20")
         item_tab = tk.Frame(self.tabs, bg="#1d1e20")
-        self.tabs.add(unit_tab, text="Opti unites")
-        self.tabs.add(item_tab, text="Opti items")
+        self.tabs.add(unit_tab, text=self._t("tab_unit_opt"))
+        self.tabs.add(item_tab, text=self._t("tab_item_opt"))
 
         # -- Unit tab: traits + recommendations --
-        traits_section = tk.LabelFrame(unit_tab, text="Active traits", bg="#1d1e20", fg="white",
+        traits_section = tk.LabelFrame(unit_tab, text=self._t("section_active_traits"), bg="#1d1e20", fg="white",
                                        font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
                                        labelanchor="n", padx=4, pady=4)
         traits_section.pack(fill=tk.X, padx=0, pady=0)
@@ -1061,7 +1179,7 @@ class TFTFinderApp:
         self.traits_frame = tk.Frame(traits_section, bg="#1d1e20")
         self.traits_frame.pack(fill=tk.X)
 
-        rec_section = tk.LabelFrame(unit_tab, text="Top 3 scenarios", bg="#1d1e20", fg="white",
+        rec_section = tk.LabelFrame(unit_tab, text=self._t("section_top3"), bg="#1d1e20", fg="white",
                                     font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
                                     labelanchor="n", padx=4, pady=4)
         rec_section.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
@@ -1113,7 +1231,7 @@ class TFTFinderApp:
                              bd=2, relief=tk.FLAT)
             frame.grid(row=row, column=col, padx=2, pady=2)
 
-            var = tk.BooleanVar(value=False)
+            var = tk.BooleanVar(value=u["name"] in self.unlocked)
             self.unlock_vars[u["name"]] = var
 
             img = self.unit_images.get(u["name"])
@@ -1141,7 +1259,7 @@ class TFTFinderApp:
         filters = tk.Frame(parent, bg="#1d1e20", pady=4)
         filters.pack(fill=tk.X)
 
-        tk.Label(filters, text="Search item:", bg="#1d1e20", fg="white",
+        tk.Label(filters, text=self._t("item_search_label"), bg="#1d1e20", fg="white",
                  font=("Segoe UI", 9)).pack(side=tk.LEFT)
         self.item_search_var = tk.StringVar()
         self.item_search_var.trace_add("write", lambda *_: self._refresh_item_grid_filter())
@@ -1149,7 +1267,7 @@ class TFTFinderApp:
                  insertbackground="white", relief=tk.FLAT, width=18,
                  font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(6, 10))
 
-        tk.Label(filters, text="Category:", bg="#1d1e20", fg="#ccc",
+        tk.Label(filters, text=self._t("item_category_label"), bg="#1d1e20", fg="#ccc",
                  font=("Segoe UI", 9)).pack(side=tk.LEFT)
         self.item_nature_var = tk.StringVar(value="all")
         nature_values = ["all", "component", "normal", "radiant", "artifact", "emblem", "trait"]
@@ -1158,7 +1276,7 @@ class TFTFinderApp:
         nature_box.pack(side=tk.LEFT, padx=(6, 10))
         nature_box.bind("<<ComboboxSelected>>", lambda *_: self._refresh_item_grid_filter())
 
-        tk.Label(filters, text="Rank:", bg="#1d1e20", fg="#ccc",
+        tk.Label(filters, text=self._t("item_rank_label"), bg="#1d1e20", fg="#ccc",
                  font=("Segoe UI", 9)).pack(side=tk.LEFT)
         self.item_rank_var = tk.StringVar(value="all")
         rank_box = ttk.Combobox(filters, state="readonly", width=9,
@@ -1167,10 +1285,10 @@ class TFTFinderApp:
         rank_box.pack(side=tk.LEFT, padx=(6, 10))
         rank_box.bind("<<ComboboxSelected>>", lambda *_: self._refresh_item_grid_filter())
 
-        tk.Button(filters, text="Reset items", bg="#444", fg="white",
+        tk.Button(filters, text=self._t("button_reset_items"), bg="#444", fg="white",
                   relief=tk.FLAT, padx=8, pady=1,
                   command=self._reset_inventory).pack(side=tk.RIGHT)
-        tk.Label(filters, text="Left click = +1, right click = -1",
+        tk.Label(filters, text=self._t("item_click_hint"),
                  bg="#1d1e20", fg="#777", font=("Segoe UI", 8, "italic")).pack(side=tk.RIGHT, padx=(0, 10))
 
         tab_main = tk.PanedWindow(parent, orient=tk.HORIZONTAL, bg="#1d1e20",
@@ -1213,7 +1331,7 @@ class TFTFinderApp:
     def _build_item_grid(self):
         ordered = sorted(
             self.items,
-            key=lambda i: (ITEM_NATURE_ORDER.get(i.get("nature"), 99), i.get("name", "")),
+            key=lambda i: (ITEM_NATURE_ORDER.get(i.get("nature"), 99), self._item_name(i)),
         )
         self.item_display_slugs = [item["slug"] for item in ordered]
 
@@ -1234,7 +1352,7 @@ class TFTFinderApp:
             icon_lbl = tk.Label(card, image=icon, bg="#333")
             icon_lbl.pack()
 
-            name_lbl = tk.Label(card, text=item["name"], bg="#1d1e20", fg="white",
+            name_lbl = tk.Label(card, text=self._item_name(item), bg="#1d1e20", fg="white",
                                 font=("Segoe UI", 7), wraplength=ITEM_IMG_SIZE + 18, justify=tk.CENTER)
             name_lbl.pack(fill=tk.X)
 
@@ -1393,13 +1511,13 @@ class TFTFinderApp:
             return False
         holder = self._find_holder_with_slot(item, preferred_holders)
         if not holder:
-            self.item_action_message = f"Aucun slot item libre dans l'equipe pour {item['name']}."
+            self.item_action_message = self._t("msg_no_slot_for_item", item=self._item_name(item))
             return False
         self.inventory_counts[item_slug] -= 1
         if self.inventory_counts[item_slug] <= 0:
             self.inventory_counts.pop(item_slug, None)
         self.equipped_items.setdefault(holder, []).append(item_slug)
-        self.item_action_message = f"{item['name']} equipe sur {holder}."
+        self.item_action_message = self._t("msg_item_equipped_on", item=self._item_name(item), holder=holder)
         return True
 
     def _craft_from_components(self, comp_a, comp_b, preferred_holders=None):
@@ -1425,41 +1543,41 @@ class TFTFinderApp:
         holder = self._find_holder_with_slot(item, preferred_holders)
         if holder:
             self.equipped_items.setdefault(holder, []).append(result_slug)
-            self.item_action_message = f"Craft {item['name']} puis equipe sur {holder}."
+            self.item_action_message = self._t("msg_craft_then_equip", item=self._item_name(item), holder=holder)
         else:
             self.inventory_counts[result_slug] = self.inventory_counts.get(result_slug, 0) + 1
-            self.item_action_message = f"Craft {item['name']} (ajoute a l'inventaire, aucun slot libre)."
+            self.item_action_message = self._t("msg_craft_to_inventory_no_slot", item=self._item_name(item))
         return True
 
     def _craft_option(self, option):
         preferred = option.get("holders", [])
         crafted = self._craft_from_components(option["a"], option["b"], preferred)
         if not crafted:
-            self.item_action_message = "Craft impossible avec l'inventaire actuel."
+            self.item_action_message = self._t("msg_craft_impossible_current_inventory")
         self._refresh()
 
     def _craft_option_for_holder(self, option, holder_name):
         if holder_name not in self.selected:
-            self.item_action_message = f"{holder_name} n'est pas dans l'equipe."
+            self.item_action_message = self._t("msg_holder_not_in_team", holder=holder_name)
             self._refresh()
             return
         if len(self.equipped_items.get(holder_name, [])) >= MAX_ITEMS_PER_UNIT:
-            self.item_action_message = f"{holder_name} a deja {MAX_ITEMS_PER_UNIT} items."
+            self.item_action_message = self._t("msg_holder_max_items", holder=holder_name, max_items=MAX_ITEMS_PER_UNIT)
             self._refresh()
             return
         crafted = self._craft_from_components(option["a"], option["b"], [holder_name])
         if not crafted:
-            self.item_action_message = "Craft impossible avec l'inventaire actuel."
+            self.item_action_message = self._t("msg_craft_impossible_current_inventory")
         self._refresh()
 
     def _equip_option(self, item_slug, holders=None):
         if not self.selected:
-            self.item_action_message = "Selectionne une equipe avant d'equiper un item."
+            self.item_action_message = self._t("msg_select_team_before_equip")
             self._refresh()
             return
         if not self._equip_from_inventory(item_slug, holders):
             if not self.item_action_message:
-                self.item_action_message = "Equipement impossible."
+                self.item_action_message = self._t("msg_equip_impossible")
         self._refresh()
 
     def _unequip_item(self, unit_name, slot_idx):
@@ -1470,8 +1588,8 @@ class TFTFinderApp:
         if not equipped:
             self.equipped_items.pop(unit_name, None)
         self.inventory_counts[item_slug] = self.inventory_counts.get(item_slug, 0) + 1
-        item_name = self.items_map.get(item_slug, {}).get("name", item_slug)
-        self.item_action_message = f"{item_name} retire de {unit_name}."
+        item_name = self._item_name(item_slug)
+        self.item_action_message = self._t("msg_item_removed_from", item=item_name, holder=unit_name)
         self._refresh()
 
     def _on_team_item_click(self, unit_name, slot_idx):
@@ -1552,7 +1670,7 @@ class TFTFinderApp:
                     "holders": holders[:3],
                     "craft_count": max(1, craft_count),
                 })
-        options.sort(key=lambda x: (-x["score"], x["result"]["name"]))
+        options.sort(key=lambda x: (-x["score"], self._item_name(x["result"])))
         return options
 
     def _matches_item_filter(self, item, query, nature_filter, rank_filter):
@@ -1571,6 +1689,8 @@ class TFTFinderApp:
 
         q = query.lower()
         if q in item["name"].lower():
+            return True
+        if q in self._item_name(item).lower():
             return True
         if q in item["slug"].lower():
             return True
@@ -1632,7 +1752,7 @@ class TFTFinderApp:
     def _reset_inventory(self):
         self.inventory_counts.clear()
         self.equipped_items.clear()
-        self.item_action_message = "Inventaire et equipements reinitialises."
+        self.item_action_message = self._t("msg_inventory_and_equipment_reset")
         self._refresh()
 
     def _refresh_items_tab(self):
@@ -1663,12 +1783,12 @@ class TFTFinderApp:
             for slug, count in self.inventory_counts.items()
             if count > 0 and slug in self.items_map
         ]
-        selected_items.sort(key=lambda i: (ITEM_NATURE_ORDER.get(i.get("nature"), 99), i["name"]))
+        selected_items.sort(key=lambda i: (ITEM_NATURE_ORDER.get(i.get("nature"), 99), self._item_name(i)))
         team_names = sorted(self.selected)
 
         tk.Label(
             self.item_insight_frame,
-            text="Pertinence porteur: ordre + badge sous la tete (S meilleur -> D plus faible).",
+            text=self._t("msg_holder_relevance_legend"),
             bg="#1d1e20",
             fg="#9fc7ff",
             font=("Segoe UI", 8, "italic"),
@@ -1677,12 +1797,12 @@ class TFTFinderApp:
             wraplength=285,
         ).pack(fill=tk.X, pady=(0, 4))
 
-        inv_section = tk.LabelFrame(self.item_insight_frame, text="Inventory", bg="#1d1e20", fg="white",
+        inv_section = tk.LabelFrame(self.item_insight_frame, text=self._t("section_inventory"), bg="#1d1e20", fg="white",
                                     font=("Segoe UI", 9, "bold"), bd=1, relief=tk.GROOVE, padx=4, pady=4)
         inv_section.pack(fill=tk.X, pady=(0, 4))
 
         if not selected_items:
-            tk.Label(inv_section, text="Click items/components to add them.",
+            tk.Label(inv_section, text=self._t("msg_click_items_to_add"),
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 8)).pack(anchor="w")
         else:
             for item in selected_items:
@@ -1691,31 +1811,31 @@ class TFTFinderApp:
                 row.pack(fill=tk.X, pady=1)
                 icon = self.item_inv_images.get(slug)
                 tk.Label(row, image=icon, bg="#1d1e20").pack(side=tk.LEFT, padx=(0, 4))
-                tk.Label(row, text=f"x{self.inventory_counts[slug]}  {item['name']}",
+                tk.Label(row, text=f"x{self.inventory_counts[slug]}  {self._item_name(item)}",
                          bg="#1d1e20", fg="white", font=("Segoe UI", 8)).pack(side=tk.LEFT)
                 tk.Button(row, text="-", bg="#444", fg="white", relief=tk.FLAT, width=2,
                           command=lambda s=slug: self._toggle_item(s, -1)).pack(side=tk.RIGHT, padx=(2, 0))
                 tk.Button(row, text="+", bg="#444", fg="white", relief=tk.FLAT, width=2,
                           command=lambda s=slug: self._toggle_item(s, +1)).pack(side=tk.RIGHT)
 
-        equip_section = tk.LabelFrame(self.item_insight_frame, text="Best holders for completed items",
+        equip_section = tk.LabelFrame(self.item_insight_frame, text=self._t("section_best_holders_completed"),
                                       bg="#1d1e20", fg="white", font=("Segoe UI", 9, "bold"),
                                       bd=1, relief=tk.GROOVE, padx=4, pady=4)
         equip_section.pack(fill=tk.X, pady=(0, 4))
 
         completed = [i for i in selected_items if i.get("nature") != "component"]
         if not completed:
-            tk.Label(equip_section, text="No completed item selected.",
+            tk.Label(equip_section, text=self._t("msg_no_completed_item_selected"),
                      bg="#1d1e20", fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
         elif not team_names:
-            tk.Label(equip_section, text="Select champions in your team to get holder advice.",
+            tk.Label(equip_section, text=self._t("msg_select_team_for_holder_advice"),
                      bg="#1d1e20", fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
         else:
             completed_scores = []
             for item in completed:
                 score, holders = self._item_team_score(item, team_names)
                 completed_scores.append((score, item, holders))
-            completed_scores.sort(key=lambda x: (-x[0], x[1]["name"]))
+            completed_scores.sort(key=lambda x: (-x[0], self._item_name(x[1])))
             for _, item, holders in completed_scores:
                 slug = item["slug"]
                 qty = self.inventory_counts.get(slug, 0)
@@ -1724,7 +1844,7 @@ class TFTFinderApp:
 
                 tk.Button(
                     row,
-                    text="Equip best",
+                    text=self._t("button_equip_best"),
                     bg="#3b6f9e",
                     fg="white",
                     activebackground="#4a83b5",
@@ -1745,7 +1865,7 @@ class TFTFinderApp:
                 rank = (item.get("rank") or "?").upper()
                 title_lbl = tk.Label(
                     text_col,
-                    text=f"x{qty} {item['name']} ({rank})",
+                    text=f"x{qty} {self._item_name(item)} ({rank})",
                     bg="#1d1e20",
                     fg="white",
                     font=("Segoe UI", 8, "bold"),
@@ -1767,7 +1887,7 @@ class TFTFinderApp:
                 else:
                     tk.Label(
                         text_col,
-                        text="  -> No holder suggestion",
+                        text=self._t("msg_no_holder_suggestion"),
                         bg="#1d1e20",
                         fg="#777",
                         font=("Segoe UI", 8),
@@ -1776,7 +1896,7 @@ class TFTFinderApp:
                 for widget in (icon_lbl, title_lbl):
                     widget.bind("<Button-1>", lambda e, s=slug, h=holders: self._equip_option(s, h))
 
-        component_section = tk.LabelFrame(self.item_insight_frame, text="Component decisions (craft vs wait)",
+        component_section = tk.LabelFrame(self.item_insight_frame, text=self._t("section_component_decisions"),
                                           bg="#1d1e20", fg="white", font=("Segoe UI", 9, "bold"),
                                           bd=1, relief=tk.GROOVE, padx=4, pady=4)
         component_section.pack(fill=tk.X, pady=(0, 4))
@@ -1788,7 +1908,7 @@ class TFTFinderApp:
         ]
         component_best = {}
         if not owned_components:
-            tk.Label(component_section, text="No component selected.", bg="#1d1e20",
+            tk.Label(component_section, text=self._t("msg_no_component_selected"), bg="#1d1e20",
                      fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
         else:
             for comp in owned_components:
@@ -1814,7 +1934,7 @@ class TFTFinderApp:
                     })
                 if not options:
                     continue
-                options.sort(key=lambda x: (-x["score"], x["result_item"]["name"]))
+                options.sort(key=lambda x: (-x["score"], self._item_name(x["result_item"])))
                 best_overall = options[0]
                 best_now = next((o for o in options if o["craft_now"]), None)
                 component_best[comp_slug] = best_overall
@@ -1823,11 +1943,11 @@ class TFTFinderApp:
                 block.pack(fill=tk.X, pady=2)
                 tk.Label(block, image=self.item_inv_images.get(comp_slug), bg="#1d1e20").pack(side=tk.LEFT, padx=(0, 4))
                 qty = self.inventory_counts.get(comp_slug, 0)
-                tk.Label(block, text=f"{comp['name']} x{qty}", bg="#1d1e20", fg="white",
+                tk.Label(block, text=f"{self._item_name(comp)} x{qty}", bg="#1d1e20", fg="white",
                          font=("Segoe UI", 8, "bold")).pack(anchor="w")
 
                 if best_now:
-                    partner_name = self.items_map[best_now["partner_slug"]]["name"]
+                    partner_name = self._item_name(best_now["partner_slug"])
                     rank = (best_now["result_item"].get("rank") or "?").upper()
                     result_slug = best_now["result_item"]["slug"]
                     now_row = tk.Frame(block, bg="#1d1e20")
@@ -1841,7 +1961,12 @@ class TFTFinderApp:
                     now_icon.pack(side=tk.LEFT, padx=(0, 4))
                     now_text = tk.Label(
                         now_row,
-                        text=f"  Craft now with {partner_name}: {best_now['result_item']['name']} ({rank})  [click holder icon]",
+                        text=self._t(
+                            "msg_craft_now_with",
+                            partner=partner_name,
+                            item=self._item_name(best_now["result_item"]),
+                            rank=rank,
+                        ),
                         bg="#1d1e20",
                         fg="#9fc7ff",
                         font=("Segoe UI", 8),
@@ -1856,17 +1981,22 @@ class TFTFinderApp:
                         on_click=lambda holder, o=now_option: self._craft_option_for_holder(o, holder),
                     )
                 else:
-                    tk.Label(block, text="  No immediate craft from current inventory.",
+                    tk.Label(block, text=self._t("msg_no_immediate_craft_current_inventory"),
                              bg="#1d1e20", fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
 
                 if (not best_overall["craft_now"]) or (best_now and best_overall["score"] > best_now["score"] + 8):
-                    partner_name = self.items_map[best_overall["partner_slug"]]["name"]
+                    partner_name = self._item_name(best_overall["partner_slug"])
                     rank = (best_overall["result_item"].get("rank") or "?").upper()
                     wait_row = tk.Frame(block, bg="#1d1e20")
                     wait_row.pack(fill=tk.X)
                     tk.Label(
                         wait_row,
-                        text=f"  Better to wait for {partner_name}: {best_overall['result_item']['name']} ({rank})",
+                        text=self._t(
+                            "msg_better_to_wait_for",
+                            partner=partner_name,
+                            item=self._item_name(best_overall["result_item"]),
+                            rank=rank,
+                        ),
                         bg="#1d1e20",
                         fg="#e8a33c",
                         font=("Segoe UI", 8),
@@ -1876,21 +2006,21 @@ class TFTFinderApp:
                     ).pack(side=tk.LEFT, fill=tk.X, expand=True)
                     self._render_holder_icons(wait_row, best_overall["holders"])
 
-        craft_section = tk.LabelFrame(self.item_insight_frame, text="Immediate crafts available",
+        craft_section = tk.LabelFrame(self.item_insight_frame, text=self._t("section_immediate_crafts"),
                                       bg="#1d1e20", fg="white", font=("Segoe UI", 9, "bold"),
                                       bd=1, relief=tk.GROOVE, padx=4, pady=4)
         craft_section.pack(fill=tk.X, pady=(0, 4))
 
         craft_options = self._current_craft_options(team_names)
         if not craft_options:
-            tk.Label(craft_section, text="No craft possible with current components.",
+            tk.Label(craft_section, text=self._t("msg_no_craft_possible"),
                      bg="#1d1e20", fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
         else:
             for opt in craft_options[:10]:
                 res = opt["result"]
                 rank = (res.get("rank") or "?").upper()
-                comp_a_name = self.items_map[opt["a"]]["name"]
-                comp_b_name = self.items_map[opt["b"]]["name"]
+                comp_a_name = self._item_name(opt["a"])
+                comp_b_name = self._item_name(opt["b"])
 
                 row = tk.Frame(craft_section, bg="#1d1e20")
                 row.pack(fill=tk.X, pady=1)
@@ -1905,7 +2035,14 @@ class TFTFinderApp:
                 title_row.pack(fill=tk.X)
                 title_lbl = tk.Label(
                     title_row,
-                    text=f"{res['name']} ({rank}) | {comp_a_name} + {comp_b_name} | x{opt['craft_count']}  [click holder icon]",
+                    text=self._t(
+                        "msg_immediate_craft_line",
+                        item=self._item_name(res),
+                        rank=rank,
+                        comp_a=comp_a_name,
+                        comp_b=comp_b_name,
+                        count=opt["craft_count"],
+                    ),
                     bg="#1d1e20",
                     fg="white",
                     font=("Segoe UI", 8),
@@ -1930,7 +2067,7 @@ class TFTFinderApp:
                 if rank in ("D", "C") or better_wait:
                     tk.Label(
                         text_col,
-                        text="  Attention: low value now, waiting for a better component can be stronger.",
+                        text=self._t("msg_low_value_waiting_stronger"),
                         bg="#1d1e20",
                         fg="#e8a33c",
                         font=("Segoe UI", 8, "italic"),
@@ -2045,6 +2182,8 @@ class TFTFinderApp:
         for t in unit["traits"]:
             if q in t.lower():
                 return True
+            if q in self._trait_name(t).lower():
+                return True
         return False
 
     def _reset_selection(self):
@@ -2146,7 +2285,7 @@ class TFTFinderApp:
         team_size = self.team_size_var.get()
 
         if not self.selected:
-            tk.Label(self.team_frame, text="Click a champion to add it",
+            tk.Label(self.team_frame, text=self._t("msg_click_champion_to_add"),
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 9)).pack(pady=8)
             return
 
@@ -2199,7 +2338,7 @@ class TFTFinderApp:
 
         active = self._get_active_traits()
         if not active:
-            tk.Label(self.traits_frame, text="No active traits",
+            tk.Label(self.traits_frame, text=self._t("msg_no_active_traits"),
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 9)).pack(pady=6)
             return
 
@@ -2230,7 +2369,7 @@ class TFTFinderApp:
         if icon:
             tk.Label(row, image=icon, bg=row_bg).pack(side=tk.LEFT, padx=(0, 6))
 
-        tk.Label(row, text=trait_name, bg=row_bg, fg=color,
+        tk.Label(row, text=self._trait_name(trait_name), bg=row_bg, fg=color,
                  font=("Segoe UI", 9, "bold"), anchor="w").pack(side=tk.LEFT)
 
         progress = progress_text if progress_text is not None else self._format_trait_progress(trait_name, count)
@@ -2258,8 +2397,7 @@ class TFTFinderApp:
             self.selected.pop()
         self._sync_equipped_with_team()
 
-        self.selection_count_label.config(
-            text=f"{len(self.selected)} / {team_size} selected")
+        self.selection_count_label.config(text=self._t("selection_count", selected=len(self.selected), total=team_size))
 
         # Compute recommendation scenarios first (needed for grid highlight)
         scenarios = compute_recommendation_scenarios(
@@ -2267,6 +2405,7 @@ class TFTFinderApp:
             self.units, self.trait_thresholds, self.trait_tiers, self._get_weights(), top_n=3,
             diversity=self.scenario_diversity.get(),
             sort_mode=self.scenario_sort_mode,
+            lang=self.lang_var.get(),
         )
         self.recommended_names = {
             name for scenario in scenarios for name in scenario["pick_names"]
@@ -2320,8 +2459,8 @@ class TFTFinderApp:
             w.destroy()
 
         if not scenarios:
-            msg = "Team full!" if len(self.selected) >= team_size else \
-                  "Select champions\nand adjust team size"
+            msg = self._t("msg_team_full") if len(self.selected) >= team_size else \
+                  self._t("msg_select_champions_and_adjust")
             tk.Label(self.rec_frame, text=msg,
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 10)).pack(pady=20)
             return
@@ -2336,24 +2475,24 @@ class TFTFinderApp:
             card.grid(row=0, column=col, sticky="nsew", padx=3, pady=3)
 
             if scenario is None:
-                tk.Label(card, text=f"Scenario {col + 1}", bg="#2a2b2e", fg="#777",
+                tk.Label(card, text=self._t("label_scenario_num", index=col + 1), bg="#2a2b2e", fg="#777",
                          font=("Segoe UI", 10, "bold")).pack(anchor="w")
-                tk.Label(card, text="Indisponible", bg="#2a2b2e", fg="#777",
+                tk.Label(card, text=self._t("label_unavailable"), bg="#2a2b2e", fg="#777",
                          font=("Segoe UI", 9)).pack(anchor="w", pady=(6, 0))
                 continue
 
             header = tk.Frame(card, bg="#2a2b2e")
             header.pack(fill=tk.X)
 
-            tk.Label(header, text=f"Scenario {col + 1}", bg="#2a2b2e", fg="white",
+            tk.Label(header, text=self._t("label_scenario_num", index=col + 1), bg="#2a2b2e", fg="white",
                      font=("Segoe UI", 10, "bold")).pack(side=tk.LEFT)
-            tk.Label(header, text=f"{scenario['score']:.1f}pts", bg="#2a2b2e", fg="#aaa",
+            tk.Label(header, text=self._t("label_score_pts", score=f"{scenario['score']:.1f}"), bg="#2a2b2e", fg="#aaa",
                      font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(8, 0))
-            tk.Label(header, text=f"{int(scenario['avg_odds'] * 100)}% roll", bg="#2a2b2e", fg="#aaa",
+            tk.Label(header, text=self._t("label_roll_pct", pct=int(scenario['avg_odds'] * 100)), bg="#2a2b2e", fg="#aaa",
                      font=("Segoe UI", 8)).pack(side=tk.LEFT, padx=(6, 0))
             tk.Button(
                 header,
-                text="Apply",
+                text=self._t("button_apply"),
                 bg="#3b6f9e",
                 fg="white",
                 activebackground="#4a83b5",
@@ -2366,7 +2505,7 @@ class TFTFinderApp:
 
             reason_label = tk.Label(
                 card,
-                text=f"Pourquoi:\n{scenario['reason']}",
+                text=self._t("label_why_prefix") + "\n" + scenario["reason"],
                 bg="#2a2b2e",
                 fg="#b8b8b8",
                 font=("Segoe UI", 8, "italic"),
@@ -2381,7 +2520,7 @@ class TFTFinderApp:
             reason_label.bind("<Motion>", self._move_tooltip)
             reason_label.bind("<Leave>", self._hide_tooltip)
 
-            picks_title = tk.Label(card, text="Ajouts proposes", bg="#2a2b2e", fg="#9fc7ff",
+            picks_title = tk.Label(card, text=self._t("section_proposed_additions"), bg="#2a2b2e", fg="#9fc7ff",
                                    font=("Segoe UI", 8, "bold"), anchor="w")
             picks_title.pack(fill=tk.X)
 
@@ -2404,7 +2543,7 @@ class TFTFinderApp:
                 )
                 pick_button.pack(fill=tk.X, pady=1)
 
-            compare_title = tk.Label(card, text="Paliers montes (gain net)",
+            compare_title = tk.Label(card, text=self._t("section_trait_upgrades_net_gain"),
                                      bg="#2a2b2e", fg="#9fc7ff",
                                      font=("Segoe UI", 8, "bold"), anchor="w")
             compare_title.pack(fill=tk.X, pady=(6, 2))
@@ -2415,10 +2554,10 @@ class TFTFinderApp:
                 for delta in scenario["trait_upgrades"][:4]:
                     self._render_trait_delta_row(upgrade_box, delta, is_upgrade=True)
             else:
-                tk.Label(upgrade_box, text="No tier upgrade", bg="#1d1e20", fg="#777",
+                tk.Label(upgrade_box, text=self._t("msg_no_tier_upgrade"), bg="#1d1e20", fg="#777",
                          font=("Segoe UI", 8)).pack(anchor="w", padx=6, pady=2)
 
-            cap_title = tk.Label(card, text="Potentiel cap max",
+            cap_title = tk.Label(card, text=self._t("section_cap_potential"),
                                  bg="#2a2b2e", fg="#9fc7ff",
                                  font=("Segoe UI", 8, "bold"), anchor="w")
             cap_title.pack(fill=tk.X, pady=(6, 2))
@@ -2428,16 +2567,16 @@ class TFTFinderApp:
             if scenario["cap_opportunities"]:
                 for cap in scenario["cap_opportunities"][:3]:
                     txt = (
-                        f"{cap['trait']}: {cap['new_tier_letter'] or '-'} -> "
+                        f"{self._trait_name(cap['trait'])}: {cap['new_tier_letter'] or '-'} -> "
                         f"{cap['potential_tier_letter'] or '-'} (+{cap['future_gain']:.1f})"
                     )
                     tk.Label(cap_box, text=txt, bg="#1d1e20", fg="#8bc5ff",
                              font=("Segoe UI", 8), anchor="w").pack(fill=tk.X, padx=6, pady=1)
             else:
-                tk.Label(cap_box, text="No strong cap opportunity", bg="#1d1e20", fg="#777",
+                tk.Label(cap_box, text=self._t("msg_no_strong_cap_opportunity"), bg="#1d1e20", fg="#777",
                          font=("Segoe UI", 8)).pack(anchor="w", padx=6, pady=2)
 
-            stable_title = tk.Label(card, text="Traits stables",
+            stable_title = tk.Label(card, text=self._t("section_stable_traits"),
                                     bg="#2a2b2e", fg="#9fc7ff",
                                     font=("Segoe UI", 8, "bold"), anchor="w")
             stable_title.pack(fill=tk.X, pady=(6, 2))
@@ -2448,10 +2587,10 @@ class TFTFinderApp:
                 for delta in scenario["stable_traits"][:3]:
                     self._render_trait_delta_row(stable_box, delta, is_upgrade=False)
             else:
-                tk.Label(stable_box, text="No stable active trait", bg="#1d1e20", fg="#777",
+                tk.Label(stable_box, text=self._t("msg_no_stable_active_trait"), bg="#1d1e20", fg="#777",
                          font=("Segoe UI", 8)).pack(anchor="w", padx=6, pady=2)
 
-            final_traits_title = tk.Label(card, text="Traits actifs finaux",
+            final_traits_title = tk.Label(card, text=self._t("section_final_active_traits"),
                                           bg="#2a2b2e", fg="#9fc7ff",
                                           font=("Segoe UI", 8, "bold"), anchor="w")
             final_traits_title.pack(fill=tk.X, pady=(6, 2))

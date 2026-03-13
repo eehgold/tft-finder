@@ -5,8 +5,6 @@ The app now includes:
 - **Unit optimization** (best next champions to add)
 - **Item optimization** (components, craft decisions, and best holders)
 
-![Screenshot](src/data/images/screenshot/app1.png)
-
 ---
 
 ## For End Users
@@ -92,12 +90,16 @@ Version is controlled in:
 
 ### Tab 1: `Opti unites`
 
+![Opti unites tab](src/data/images/screenshot/app_opti_unit.png)
+
 1. View **active traits** with tier colors.
 2. Get **Top 3 scenarios** for best next units.
 3. Recommended champions are highlighted in the grid.
 4. Click `Apply` on a scenario to apply its picks.
 
 ### Tab 2: `Opti items`
+
+![Opti items tab](src/data/images/screenshot/app_opti_items.png)
 
 1. Filter items by **name**, **category**, and **rank**.
 2. Add/remove inventory with item cards:
