@@ -1,7 +1,9 @@
 # TFT Finder
 
 A tool to optimize your team composition in **Teamfight Tactics** (Season 16).
-Select your champions, and the tool recommends the best next unit to buy based on trait synergies, unit tier, and drop probabilities.
+The app now includes:
+- **Unit optimization** (best next champions to add)
+- **Item optimization** (components, craft decisions, and best holders)
 
 ![Screenshot](src/data/images/screenshot/app1.png)
 
@@ -12,7 +14,7 @@ Select your champions, and the tool recommends the best next unit to buy based o
 You can run the app directly with:
 
 ```
-TFT-Finder-v1.0.0.exe
+TFT-Finder-vX.Y.Z.exe
 ```
 
 No Python installation is required for this mode.
@@ -46,7 +48,7 @@ In the terminal, type:
 python src/app.py
 ```
 
-The application opens — you're ready!
+The application opens and loads all data from `src/data/`.
 
 ## Build a Windows `.exe`
 
@@ -80,17 +82,58 @@ Version is controlled in:
 
 ## How it works
 
-1. **Click on champions** to add them to your team
-2. Use the **search bar** to filter by name, cost, or trait
-3. **Sort the grid** by default, cost, or tier using the sort buttons
-4. Check the **active traits** on the right (colored bronze/white/gold/prismatic based on the tier reached)
-5. The tool suggests the **best champions** to complete your team
-   - Traits in **green** are already in your team (direct synergy)
-   - The score breakdown (tier + traits) is shown under each recommendation
-   - Recommended champions are **highlighted in orange** in the grid
-6. Click a **recommendation** to add it directly
-7. Adjust the **team size** to see drop probabilities
-8. **Config**: open the config panel to adjust scoring weights (tier, synergies, odds, multi-synergy) or use a **preset** (Balanced, Max synergy, Brute force, Ignore odds)
+### Global UI
+
+1. **Click champions** to add/remove them from your team.
+2. `My team` is always visible at the top-right and is shared by both tabs.
+3. Use the main **search bar** and **sort buttons** to filter/sort champions.
+4. Adjust **team size** with the slider.
+5. Use **Config** to adjust scoring weights or presets.
+
+### Tab 1: `Opti unites`
+
+1. View **active traits** with tier colors.
+2. Get **Top 3 scenarios** for best next units.
+3. Recommended champions are highlighted in the grid.
+4. Click `Apply` on a scenario to apply its picks.
+
+### Tab 2: `Opti items`
+
+1. Filter items by **name**, **category**, and **rank**.
+2. Add/remove inventory with item cards:
+   - **Left click** = `+1`
+   - **Right click** = `-1`
+3. Inventory panel shows all selected components/items.
+4. `Best holders for completed items`:
+   - Shows holder suggestions for completed items in your inventory
+   - `Equip best` equips directly on the best available unit
+5. `Component decisions (craft vs wait)`:
+   - Compares immediate craft vs waiting for a better component
+   - Shows holder suggestions
+6. `Immediate crafts available`:
+   - Shows all crafts possible with current components
+   - **To craft and equip on a specific champion, click the champion head icon** next to the suggestion
+
+### Holder priority indicators
+
+- Holder heads are ordered from best to less suitable.
+- Each holder head has a badge (`S`, `A`, `B`, `C`, `D`) under it:
+  - `S` = best holder for this item in current team context
+  - lower grades = less optimal alternatives
+
+### Team item slots
+
+- Each champion in `My team` has **3 item slots max**.
+- Equipping from suggestions updates slots directly.
+- Click an equipped item under a champion to **unequip** it (returns to inventory).
+
+## Data files (offline/autonomous)
+
+All item logic is local (no dependency on `src/data/web` at runtime):
+- `src/data/items.json`: item catalog (name, icon, nature, rank, bonus, recipe, recommended units)
+- `src/data/components.json`: component matrix and craft results
+- `src/data/images/items/`: item/component icons
+- `src/data/units.json` and `src/data/traits.json`: champion/trait data
 
 ### Keyboard shortcuts
 
@@ -99,4 +142,4 @@ Version is controlled in:
 
 ## License
 
-This project is licensed under the **MIT License** — you are free to use, modify, and redistribute it as you wish. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - you are free to use, modify, and redistribute it as you wish. See the [LICENSE](LICENSE) file for details.

@@ -1,0 +1,1778 @@
+{
+  "components": [
+    {
+      "slug": "bf-sword",
+      "name": "B.F. Sword",
+      "icon": "images/items/component/bf-sword.png"
+    },
+    {
+      "slug": "chain-vest",
+      "name": "Chain Vest",
+      "icon": "images/items/component/chain-vest.png"
+    },
+    {
+      "slug": "frying_pan",
+      "name": "Frying Pan",
+      "icon": "images/items/component/frying_pan.png"
+    },
+    {
+      "slug": "giants-belt",
+      "name": "Giant's Belt",
+      "icon": "images/items/component/giants-belt.png"
+    },
+    {
+      "slug": "needlessly-large-rod",
+      "name": "Needlessly Large Rod",
+      "icon": "images/items/component/needlessly-large-rod.png"
+    },
+    {
+      "slug": "negatron-cloak",
+      "name": "Negatron Cloak",
+      "icon": "images/items/component/negatron-cloak.png"
+    },
+    {
+      "slug": "recurve-bow",
+      "name": "Recurve Bow",
+      "icon": "images/items/component/recurve-bow.png"
+    },
+    {
+      "slug": "sparring-gloves",
+      "name": "Sparring Gloves",
+      "icon": "images/items/component/sparring-gloves.png"
+    },
+    {
+      "slug": "spatula",
+      "name": "Spatula",
+      "icon": "images/items/component/spatula.png"
+    },
+    {
+      "slug": "tear-of-the-goddess",
+      "name": "Tear of the Goddess",
+      "icon": "images/items/component/tear-of-the-goddess.png"
+    }
+  ],
+  "matrix": {
+    "bf-sword": {
+      "bf-sword": {
+        "slug": "deathblade",
+        "name": "Deathblade",
+        "nature": "normal",
+        "icon": "images/items/normal/deathblade.png"
+      },
+      "chain-vest": {
+        "slug": "edge-of-night",
+        "name": "Edge of Night",
+        "nature": "normal",
+        "icon": "images/items/normal/edge-of-night.png"
+      },
+      "frying_pan": {
+        "slug": "slayer-emblem",
+        "name": "Slayer Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/slayer-emblem.png"
+      },
+      "giants-belt": {
+        "slug": "sterak's-gage",
+        "name": "Sterak's Gage",
+        "nature": "normal",
+        "icon": "images/items/normal/sterak's-gage.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "hextech-gunblade",
+        "name": "Hextech Gunblade",
+        "nature": "normal",
+        "icon": "images/items/normal/hextech-gunblade.png"
+      },
+      "negatron-cloak": {
+        "slug": "bloodthirster",
+        "name": "Bloodthirster",
+        "nature": "normal",
+        "icon": "images/items/normal/bloodthirster.png"
+      },
+      "recurve-bow": {
+        "slug": "giant-slayer",
+        "name": "Giant Slayer",
+        "nature": "normal",
+        "icon": "images/items/normal/giant-slayer.png"
+      },
+      "sparring-gloves": {
+        "slug": "infinity-edge",
+        "name": "Infinity Edge",
+        "nature": "normal",
+        "icon": "images/items/normal/infinity-edge.png"
+      },
+      "spatula": {
+        "slug": "noxus-emblem",
+        "name": "Noxus Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/noxus-emblem.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "spear-of-shojin2",
+        "name": "Spear of Shojin",
+        "nature": "normal",
+        "icon": "images/items/normal/spear-of-shojin2.png"
+      }
+    },
+    "chain-vest": {
+      "bf-sword": {
+        "slug": "edge-of-night",
+        "name": "Edge of Night",
+        "nature": "normal",
+        "icon": "images/items/normal/edge-of-night.png"
+      },
+      "chain-vest": {
+        "slug": "bramble-vest",
+        "name": "Bramble Vest",
+        "nature": "normal",
+        "icon": "images/items/normal/bramble-vest.png"
+      },
+      "frying_pan": {
+        "slug": "defender-emblem",
+        "name": "Defender Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/defender-emblem.png"
+      },
+      "giants-belt": {
+        "slug": "sunfire-cape",
+        "name": "Sunfire Cape",
+        "nature": "normal",
+        "icon": "images/items/normal/sunfire-cape.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "crownguard",
+        "name": "Crownguard",
+        "nature": "normal",
+        "icon": "images/items/normal/crownguard.png"
+      },
+      "negatron-cloak": {
+        "slug": "gargoyle-stoneplate",
+        "name": "Gargoyle Stoneplate",
+        "nature": "normal",
+        "icon": "images/items/normal/gargoyle-stoneplate.png"
+      },
+      "recurve-bow": {
+        "slug": "titans-resolve",
+        "name": "Titan's Resolve",
+        "nature": "normal",
+        "icon": "images/items/normal/titans-resolve.png"
+      },
+      "sparring-gloves": {
+        "slug": "steadfast-hammer",
+        "name": "Steadfast Heart",
+        "nature": "normal",
+        "icon": "images/items/normal/steadfast-hammer.png"
+      },
+      "spatula": {
+        "slug": "demacia-emblem",
+        "name": "Demacia Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/demacia-emblem.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "fimbulwinter",
+        "name": "Protector's Vow",
+        "nature": "normal",
+        "icon": "images/items/normal/fimbulwinter.png"
+      }
+    },
+    "frying_pan": {
+      "bf-sword": {
+        "slug": "slayer-emblem",
+        "name": "Slayer Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/slayer-emblem.png"
+      },
+      "chain-vest": {
+        "slug": "defender-emblem",
+        "name": "Defender Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/defender-emblem.png"
+      },
+      "frying_pan": {
+        "slug": "tacticians_shield",
+        "name": "Tactician's Shield",
+        "nature": "normal",
+        "icon": "images/items/normal/tacticians_shield.png"
+      },
+      "giants-belt": {
+        "slug": "bruiseremblem",
+        "name": "Bruiser Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/bruiseremblem.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "arcanistemblem",
+        "name": "Arcanist Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/arcanistemblem.png"
+      },
+      "negatron-cloak": {
+        "slug": "juggernaut-emblem",
+        "name": "Juggernaut Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/juggernaut-emblem.png"
+      },
+      "recurve-bow": {
+        "slug": "quickstriker-emblem",
+        "name": "Quickstriker Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/quickstriker-emblem.png"
+      },
+      "sparring-gloves": {
+        "slug": "vanquisher-emblem",
+        "name": "Vanquisher Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/vanquisher-emblem.png"
+      },
+      "spatula": {
+        "slug": "tacticians_cape",
+        "name": "Tactician's Cape",
+        "nature": "normal",
+        "icon": "images/items/normal/tacticians_cape.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "invokeremblem",
+        "name": "Invoker Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/invokeremblem.png"
+      }
+    },
+    "giants-belt": {
+      "bf-sword": {
+        "slug": "sterak's-gage",
+        "name": "Sterak's Gage",
+        "nature": "normal",
+        "icon": "images/items/normal/sterak's-gage.png"
+      },
+      "chain-vest": {
+        "slug": "sunfire-cape",
+        "name": "Sunfire Cape",
+        "nature": "normal",
+        "icon": "images/items/normal/sunfire-cape.png"
+      },
+      "frying_pan": {
+        "slug": "bruiseremblem",
+        "name": "Bruiser Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/bruiseremblem.png"
+      },
+      "giants-belt": {
+        "slug": "warmogs-armor",
+        "name": "Warmog's Armor",
+        "nature": "normal",
+        "icon": "images/items/normal/warmogs-armor.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "morellonomicon",
+        "name": "Morellonomicon",
+        "nature": "normal",
+        "icon": "images/items/normal/morellonomicon.png"
+      },
+      "negatron-cloak": {
+        "slug": "evenshroud",
+        "name": "Evenshroud",
+        "nature": "normal",
+        "icon": "images/items/normal/evenshroud.png"
+      },
+      "recurve-bow": {
+        "slug": "nashor's-tooth",
+        "name": "Nashor's Tooth",
+        "nature": "normal",
+        "icon": "images/items/normal/nashor's-tooth.png"
+      },
+      "sparring-gloves": {
+        "slug": "guardbreaker",
+        "name": "Striker's Flail",
+        "nature": "normal",
+        "icon": "images/items/normal/guardbreaker.png"
+      },
+      "spatula": {
+        "slug": "freljord-emblem",
+        "name": "Freljord Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/freljord-emblem.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "spiritvisage",
+        "name": "Spirit Visage",
+        "nature": "normal",
+        "icon": "images/items/normal/spiritvisage.png"
+      }
+    },
+    "needlessly-large-rod": {
+      "bf-sword": {
+        "slug": "hextech-gunblade",
+        "name": "Hextech Gunblade",
+        "nature": "normal",
+        "icon": "images/items/normal/hextech-gunblade.png"
+      },
+      "chain-vest": {
+        "slug": "crownguard",
+        "name": "Crownguard",
+        "nature": "normal",
+        "icon": "images/items/normal/crownguard.png"
+      },
+      "frying_pan": {
+        "slug": "arcanistemblem",
+        "name": "Arcanist Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/arcanistemblem.png"
+      },
+      "giants-belt": {
+        "slug": "morellonomicon",
+        "name": "Morellonomicon",
+        "nature": "normal",
+        "icon": "images/items/normal/morellonomicon.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "rabadons-deathcap",
+        "name": "Rabadon's Deathcap",
+        "nature": "normal",
+        "icon": "images/items/normal/rabadons-deathcap.png"
+      },
+      "negatron-cloak": {
+        "slug": "ionic-spark",
+        "name": "Ionic Spark",
+        "nature": "normal",
+        "icon": "images/items/normal/ionic-spark.png"
+      },
+      "recurve-bow": {
+        "slug": "guinsoos-rageblade",
+        "name": "Guinsoo's Rageblade",
+        "nature": "normal",
+        "icon": "images/items/normal/guinsoos-rageblade.png"
+      },
+      "sparring-gloves": {
+        "slug": "jeweled-gauntlet",
+        "name": "Jeweled Gauntlet",
+        "nature": "normal",
+        "icon": "images/items/normal/jeweled-gauntlet.png"
+      },
+      "spatula": {
+        "slug": "ionia-emblem",
+        "name": "Ionia Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/ionia-emblem.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "archangels-staff",
+        "name": "Archangel's Staff",
+        "nature": "normal",
+        "icon": "images/items/normal/archangels-staff.png"
+      }
+    },
+    "negatron-cloak": {
+      "bf-sword": {
+        "slug": "bloodthirster",
+        "name": "Bloodthirster",
+        "nature": "normal",
+        "icon": "images/items/normal/bloodthirster.png"
+      },
+      "chain-vest": {
+        "slug": "gargoyle-stoneplate",
+        "name": "Gargoyle Stoneplate",
+        "nature": "normal",
+        "icon": "images/items/normal/gargoyle-stoneplate.png"
+      },
+      "frying_pan": {
+        "slug": "juggernaut-emblem",
+        "name": "Juggernaut Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/juggernaut-emblem.png"
+      },
+      "giants-belt": {
+        "slug": "evenshroud",
+        "name": "Evenshroud",
+        "nature": "normal",
+        "icon": "images/items/normal/evenshroud.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "ionic-spark",
+        "name": "Ionic Spark",
+        "nature": "normal",
+        "icon": "images/items/normal/ionic-spark.png"
+      },
+      "negatron-cloak": {
+        "slug": "dragons-claw",
+        "name": "Dragon's Claw",
+        "nature": "normal",
+        "icon": "images/items/normal/dragons-claw.png"
+      },
+      "recurve-bow": {
+        "slug": "krakensfury",
+        "name": "Kraken's Fury",
+        "nature": "normal",
+        "icon": "images/items/normal/krakensfury.png"
+      },
+      "sparring-gloves": {
+        "slug": "quicksilver",
+        "name": "Quicksilver",
+        "nature": "normal",
+        "icon": "images/items/normal/quicksilver.png"
+      },
+      "spatula": {
+        "slug": "yordle-emblem",
+        "name": "Yordle Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/yordle-emblem.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "adaptive-helm",
+        "name": "Adaptive Helm",
+        "nature": "normal",
+        "icon": "images/items/normal/adaptive-helm.png"
+      }
+    },
+    "recurve-bow": {
+      "bf-sword": {
+        "slug": "giant-slayer",
+        "name": "Giant Slayer",
+        "nature": "normal",
+        "icon": "images/items/normal/giant-slayer.png"
+      },
+      "chain-vest": {
+        "slug": "titans-resolve",
+        "name": "Titan's Resolve",
+        "nature": "normal",
+        "icon": "images/items/normal/titans-resolve.png"
+      },
+      "frying_pan": {
+        "slug": "quickstriker-emblem",
+        "name": "Quickstriker Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/quickstriker-emblem.png"
+      },
+      "giants-belt": {
+        "slug": "nashor's-tooth",
+        "name": "Nashor's Tooth",
+        "nature": "normal",
+        "icon": "images/items/normal/nashor's-tooth.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "guinsoos-rageblade",
+        "name": "Guinsoo's Rageblade",
+        "nature": "normal",
+        "icon": "images/items/normal/guinsoos-rageblade.png"
+      },
+      "negatron-cloak": {
+        "slug": "krakensfury",
+        "name": "Kraken's Fury",
+        "nature": "normal",
+        "icon": "images/items/normal/krakensfury.png"
+      },
+      "recurve-bow": {
+        "slug": "redbuff",
+        "name": "Red Buff",
+        "nature": "normal",
+        "icon": "images/items/normal/redbuff.png"
+      },
+      "sparring-gloves": {
+        "slug": "last-whisper",
+        "name": "Last Whisper",
+        "nature": "normal",
+        "icon": "images/items/normal/last-whisper.png"
+      },
+      "spatula": {
+        "slug": "void-emblem",
+        "name": "Void Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/void-emblem.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "voidstaff",
+        "name": "Void Staff",
+        "nature": "normal",
+        "icon": "images/items/normal/voidstaff.png"
+      }
+    },
+    "sparring-gloves": {
+      "bf-sword": {
+        "slug": "infinity-edge",
+        "name": "Infinity Edge",
+        "nature": "normal",
+        "icon": "images/items/normal/infinity-edge.png"
+      },
+      "chain-vest": {
+        "slug": "steadfast-hammer",
+        "name": "Steadfast Heart",
+        "nature": "normal",
+        "icon": "images/items/normal/steadfast-hammer.png"
+      },
+      "frying_pan": {
+        "slug": "vanquisher-emblem",
+        "name": "Vanquisher Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/vanquisher-emblem.png"
+      },
+      "giants-belt": {
+        "slug": "guardbreaker",
+        "name": "Striker's Flail",
+        "nature": "normal",
+        "icon": "images/items/normal/guardbreaker.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "jeweled-gauntlet",
+        "name": "Jeweled Gauntlet",
+        "nature": "normal",
+        "icon": "images/items/normal/jeweled-gauntlet.png"
+      },
+      "negatron-cloak": {
+        "slug": "quicksilver",
+        "name": "Quicksilver",
+        "nature": "normal",
+        "icon": "images/items/normal/quicksilver.png"
+      },
+      "recurve-bow": {
+        "slug": "last-whisper",
+        "name": "Last Whisper",
+        "nature": "normal",
+        "icon": "images/items/normal/last-whisper.png"
+      },
+      "sparring-gloves": {
+        "slug": "thiefs-gloves",
+        "name": "Thief's Gloves",
+        "nature": "normal",
+        "icon": "images/items/normal/thiefs-gloves.png"
+      },
+      "spatula": {
+        "slug": "zaun-emblem",
+        "name": "Zaun Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/zaun-emblem.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "hand-of-justice",
+        "name": "Hand of Justice",
+        "nature": "normal",
+        "icon": "images/items/normal/hand-of-justice.png"
+      }
+    },
+    "spatula": {
+      "bf-sword": {
+        "slug": "noxus-emblem",
+        "name": "Noxus Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/noxus-emblem.png"
+      },
+      "chain-vest": {
+        "slug": "demacia-emblem",
+        "name": "Demacia Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/demacia-emblem.png"
+      },
+      "frying_pan": {
+        "slug": "tacticians_cape",
+        "name": "Tactician's Cape",
+        "nature": "normal",
+        "icon": "images/items/normal/tacticians_cape.png"
+      },
+      "giants-belt": {
+        "slug": "freljord-emblem",
+        "name": "Freljord Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/freljord-emblem.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "ionia-emblem",
+        "name": "Ionia Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/ionia-emblem.png"
+      },
+      "negatron-cloak": {
+        "slug": "yordle-emblem",
+        "name": "Yordle Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/yordle-emblem.png"
+      },
+      "recurve-bow": {
+        "slug": "void-emblem",
+        "name": "Void Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/void-emblem.png"
+      },
+      "sparring-gloves": {
+        "slug": "zaun-emblem",
+        "name": "Zaun Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/zaun-emblem.png"
+      },
+      "spatula": {
+        "slug": "tacticians-crown",
+        "name": "Tactician's Crown",
+        "nature": "normal",
+        "icon": "images/items/normal/tacticians-crown.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "bilgewater-emblem",
+        "name": "Bilgewater Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/bilgewater-emblem.png"
+      }
+    },
+    "tear-of-the-goddess": {
+      "bf-sword": {
+        "slug": "spear-of-shojin2",
+        "name": "Spear of Shojin",
+        "nature": "normal",
+        "icon": "images/items/normal/spear-of-shojin2.png"
+      },
+      "chain-vest": {
+        "slug": "fimbulwinter",
+        "name": "Protector's Vow",
+        "nature": "normal",
+        "icon": "images/items/normal/fimbulwinter.png"
+      },
+      "frying_pan": {
+        "slug": "invokeremblem",
+        "name": "Invoker Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/invokeremblem.png"
+      },
+      "giants-belt": {
+        "slug": "spiritvisage",
+        "name": "Spirit Visage",
+        "nature": "normal",
+        "icon": "images/items/normal/spiritvisage.png"
+      },
+      "needlessly-large-rod": {
+        "slug": "archangels-staff",
+        "name": "Archangel's Staff",
+        "nature": "normal",
+        "icon": "images/items/normal/archangels-staff.png"
+      },
+      "negatron-cloak": {
+        "slug": "adaptive-helm",
+        "name": "Adaptive Helm",
+        "nature": "normal",
+        "icon": "images/items/normal/adaptive-helm.png"
+      },
+      "recurve-bow": {
+        "slug": "voidstaff",
+        "name": "Void Staff",
+        "nature": "normal",
+        "icon": "images/items/normal/voidstaff.png"
+      },
+      "sparring-gloves": {
+        "slug": "hand-of-justice",
+        "name": "Hand of Justice",
+        "nature": "normal",
+        "icon": "images/items/normal/hand-of-justice.png"
+      },
+      "spatula": {
+        "slug": "bilgewater-emblem",
+        "name": "Bilgewater Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/bilgewater-emblem.png"
+      },
+      "tear-of-the-goddess": {
+        "slug": "blue-buff2",
+        "name": "Blue Buff",
+        "nature": "normal",
+        "icon": "images/items/normal/blue-buff2.png"
+      }
+    }
+  },
+  "recipes": [
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        }
+      ],
+      "result": {
+        "slug": "deathblade",
+        "name": "Deathblade",
+        "nature": "normal",
+        "icon": "images/items/normal/deathblade.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        }
+      ],
+      "result": {
+        "slug": "edge-of-night",
+        "name": "Edge of Night",
+        "nature": "normal",
+        "icon": "images/items/normal/edge-of-night.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        }
+      ],
+      "result": {
+        "slug": "slayer-emblem",
+        "name": "Slayer Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/slayer-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        }
+      ],
+      "result": {
+        "slug": "sterak's-gage",
+        "name": "Sterak's Gage",
+        "nature": "normal",
+        "icon": "images/items/normal/sterak's-gage.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        }
+      ],
+      "result": {
+        "slug": "hextech-gunblade",
+        "name": "Hextech Gunblade",
+        "nature": "normal",
+        "icon": "images/items/normal/hextech-gunblade.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        }
+      ],
+      "result": {
+        "slug": "bloodthirster",
+        "name": "Bloodthirster",
+        "nature": "normal",
+        "icon": "images/items/normal/bloodthirster.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        }
+      ],
+      "result": {
+        "slug": "giant-slayer",
+        "name": "Giant Slayer",
+        "nature": "normal",
+        "icon": "images/items/normal/giant-slayer.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        }
+      ],
+      "result": {
+        "slug": "infinity-edge",
+        "name": "Infinity Edge",
+        "nature": "normal",
+        "icon": "images/items/normal/infinity-edge.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "noxus-emblem",
+        "name": "Noxus Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/noxus-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "bf-sword",
+          "name": "B.F. Sword",
+          "icon": "images/items/component/bf-sword.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "spear-of-shojin2",
+        "name": "Spear of Shojin",
+        "nature": "normal",
+        "icon": "images/items/normal/spear-of-shojin2.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        }
+      ],
+      "result": {
+        "slug": "bramble-vest",
+        "name": "Bramble Vest",
+        "nature": "normal",
+        "icon": "images/items/normal/bramble-vest.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        }
+      ],
+      "result": {
+        "slug": "defender-emblem",
+        "name": "Defender Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/defender-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        }
+      ],
+      "result": {
+        "slug": "sunfire-cape",
+        "name": "Sunfire Cape",
+        "nature": "normal",
+        "icon": "images/items/normal/sunfire-cape.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        }
+      ],
+      "result": {
+        "slug": "crownguard",
+        "name": "Crownguard",
+        "nature": "normal",
+        "icon": "images/items/normal/crownguard.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        }
+      ],
+      "result": {
+        "slug": "gargoyle-stoneplate",
+        "name": "Gargoyle Stoneplate",
+        "nature": "normal",
+        "icon": "images/items/normal/gargoyle-stoneplate.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        }
+      ],
+      "result": {
+        "slug": "titans-resolve",
+        "name": "Titan's Resolve",
+        "nature": "normal",
+        "icon": "images/items/normal/titans-resolve.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        }
+      ],
+      "result": {
+        "slug": "steadfast-hammer",
+        "name": "Steadfast Heart",
+        "nature": "normal",
+        "icon": "images/items/normal/steadfast-hammer.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "demacia-emblem",
+        "name": "Demacia Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/demacia-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "chain-vest",
+          "name": "Chain Vest",
+          "icon": "images/items/component/chain-vest.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "fimbulwinter",
+        "name": "Protector's Vow",
+        "nature": "normal",
+        "icon": "images/items/normal/fimbulwinter.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        },
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        }
+      ],
+      "result": {
+        "slug": "tacticians_shield",
+        "name": "Tactician's Shield",
+        "nature": "normal",
+        "icon": "images/items/normal/tacticians_shield.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        },
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        }
+      ],
+      "result": {
+        "slug": "bruiseremblem",
+        "name": "Bruiser Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/bruiseremblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        },
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        }
+      ],
+      "result": {
+        "slug": "arcanistemblem",
+        "name": "Arcanist Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/arcanistemblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        },
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        }
+      ],
+      "result": {
+        "slug": "juggernaut-emblem",
+        "name": "Juggernaut Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/juggernaut-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        },
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        }
+      ],
+      "result": {
+        "slug": "quickstriker-emblem",
+        "name": "Quickstriker Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/quickstriker-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        },
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        }
+      ],
+      "result": {
+        "slug": "vanquisher-emblem",
+        "name": "Vanquisher Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/vanquisher-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "tacticians_cape",
+        "name": "Tactician's Cape",
+        "nature": "normal",
+        "icon": "images/items/normal/tacticians_cape.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "frying_pan",
+          "name": "Frying Pan",
+          "icon": "images/items/component/frying_pan.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "invokeremblem",
+        "name": "Invoker Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/invokeremblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        },
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        }
+      ],
+      "result": {
+        "slug": "warmogs-armor",
+        "name": "Warmog's Armor",
+        "nature": "normal",
+        "icon": "images/items/normal/warmogs-armor.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        },
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        }
+      ],
+      "result": {
+        "slug": "morellonomicon",
+        "name": "Morellonomicon",
+        "nature": "normal",
+        "icon": "images/items/normal/morellonomicon.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        },
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        }
+      ],
+      "result": {
+        "slug": "evenshroud",
+        "name": "Evenshroud",
+        "nature": "normal",
+        "icon": "images/items/normal/evenshroud.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        },
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        }
+      ],
+      "result": {
+        "slug": "nashor's-tooth",
+        "name": "Nashor's Tooth",
+        "nature": "normal",
+        "icon": "images/items/normal/nashor's-tooth.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        },
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        }
+      ],
+      "result": {
+        "slug": "guardbreaker",
+        "name": "Striker's Flail",
+        "nature": "normal",
+        "icon": "images/items/normal/guardbreaker.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "freljord-emblem",
+        "name": "Freljord Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/freljord-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "giants-belt",
+          "name": "Giant's Belt",
+          "icon": "images/items/component/giants-belt.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "spiritvisage",
+        "name": "Spirit Visage",
+        "nature": "normal",
+        "icon": "images/items/normal/spiritvisage.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        },
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        }
+      ],
+      "result": {
+        "slug": "rabadons-deathcap",
+        "name": "Rabadon's Deathcap",
+        "nature": "normal",
+        "icon": "images/items/normal/rabadons-deathcap.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        },
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        }
+      ],
+      "result": {
+        "slug": "ionic-spark",
+        "name": "Ionic Spark",
+        "nature": "normal",
+        "icon": "images/items/normal/ionic-spark.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        },
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        }
+      ],
+      "result": {
+        "slug": "guinsoos-rageblade",
+        "name": "Guinsoo's Rageblade",
+        "nature": "normal",
+        "icon": "images/items/normal/guinsoos-rageblade.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        },
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        }
+      ],
+      "result": {
+        "slug": "jeweled-gauntlet",
+        "name": "Jeweled Gauntlet",
+        "nature": "normal",
+        "icon": "images/items/normal/jeweled-gauntlet.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "ionia-emblem",
+        "name": "Ionia Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/ionia-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "needlessly-large-rod",
+          "name": "Needlessly Large Rod",
+          "icon": "images/items/component/needlessly-large-rod.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "archangels-staff",
+        "name": "Archangel's Staff",
+        "nature": "normal",
+        "icon": "images/items/normal/archangels-staff.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        },
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        }
+      ],
+      "result": {
+        "slug": "dragons-claw",
+        "name": "Dragon's Claw",
+        "nature": "normal",
+        "icon": "images/items/normal/dragons-claw.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        },
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        }
+      ],
+      "result": {
+        "slug": "krakensfury",
+        "name": "Kraken's Fury",
+        "nature": "normal",
+        "icon": "images/items/normal/krakensfury.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        },
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        }
+      ],
+      "result": {
+        "slug": "quicksilver",
+        "name": "Quicksilver",
+        "nature": "normal",
+        "icon": "images/items/normal/quicksilver.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "yordle-emblem",
+        "name": "Yordle Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/yordle-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "negatron-cloak",
+          "name": "Negatron Cloak",
+          "icon": "images/items/component/negatron-cloak.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "adaptive-helm",
+        "name": "Adaptive Helm",
+        "nature": "normal",
+        "icon": "images/items/normal/adaptive-helm.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        },
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        }
+      ],
+      "result": {
+        "slug": "redbuff",
+        "name": "Red Buff",
+        "nature": "normal",
+        "icon": "images/items/normal/redbuff.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        },
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        }
+      ],
+      "result": {
+        "slug": "last-whisper",
+        "name": "Last Whisper",
+        "nature": "normal",
+        "icon": "images/items/normal/last-whisper.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "void-emblem",
+        "name": "Void Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/void-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "recurve-bow",
+          "name": "Recurve Bow",
+          "icon": "images/items/component/recurve-bow.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "voidstaff",
+        "name": "Void Staff",
+        "nature": "normal",
+        "icon": "images/items/normal/voidstaff.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        },
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        }
+      ],
+      "result": {
+        "slug": "thiefs-gloves",
+        "name": "Thief's Gloves",
+        "nature": "normal",
+        "icon": "images/items/normal/thiefs-gloves.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "zaun-emblem",
+        "name": "Zaun Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/zaun-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "sparring-gloves",
+          "name": "Sparring Gloves",
+          "icon": "images/items/component/sparring-gloves.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "hand-of-justice",
+        "name": "Hand of Justice",
+        "nature": "normal",
+        "icon": "images/items/normal/hand-of-justice.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        },
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        }
+      ],
+      "result": {
+        "slug": "tacticians-crown",
+        "name": "Tactician's Crown",
+        "nature": "normal",
+        "icon": "images/items/normal/tacticians-crown.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "spatula",
+          "name": "Spatula",
+          "icon": "images/items/component/spatula.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "bilgewater-emblem",
+        "name": "Bilgewater Emblem",
+        "nature": "emblem",
+        "icon": "images/items/emblem/bilgewater-emblem.png"
+      }
+    },
+    {
+      "components": [
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        },
+        {
+          "slug": "tear-of-the-goddess",
+          "name": "Tear of the Goddess",
+          "icon": "images/items/component/tear-of-the-goddess.png"
+        }
+      ],
+      "result": {
+        "slug": "blue-buff2",
+        "name": "Blue Buff",
+        "nature": "normal",
+        "icon": "images/items/normal/blue-buff2.png"
+      }
+    }
+  ]
+}

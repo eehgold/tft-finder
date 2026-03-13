@@ -4,8 +4,9 @@ from PIL import Image, ImageTk
 import json
 import os
 import sys
+from collections import defaultdict
 
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.2.0"
 
 
 def _get_base_dir():
@@ -23,12 +24,27 @@ IMG_SIZE = 48
 TEAM_IMG_SIZE = 56
 TRAIT_ICON_SIZE = 20
 REC_PICK_ICON_SIZE = 20
+ITEM_IMG_SIZE = 42
+ITEM_INV_ICON_SIZE = 24
+TEAM_ITEM_ICON_SIZE = 18
 GRID_COLS = 10
 LOCKED_GRID_COLS = 8
+ITEM_GRID_COLS = 6
+MAX_ITEMS_PER_UNIT = 3
 TIER_SCORES = {"S": 10, "A": 7, "B": 5, "C": 3, "D": 1}
 TIER_COLORS = {"S": "#ff7f7f", "A": "#ffbf7f", "B": "#ffdf7f", "C": "#7fbfff", "D": "#aaaaaa"}
 # Trait threshold tier colors: bronze, silver, gold, prismatic
 TRAIT_TIER_COLORS = ["#cd7f32", "#ffffff", "#ffd700", "#e45fff"]
+RANK_BADGE_COLORS = {"S": "#ff7f7f", "A": "#ffbf7f", "B": "#ffdf7f", "C": "#7fbfff", "D": "#aaaaaa", "?": "#888888"}
+ITEM_NATURE_ORDER = {"component": 0, "normal": 1, "radiant": 2, "artifact": 3, "emblem": 4, "trait": 5}
+ITEM_RANK_FALLBACK = {
+    "radiant": 8.0,
+    "artifact": 6.0,
+    "emblem": 5.0,
+    "trait": 3.0,
+    "normal": 4.0,
+    "component": 0.0,
+}
 # Cost border colors (like in-game): 1g gray, 2g green, 3g blue, 4g purple, 5g+ gold
 COST_COLORS = {1: "#888888", 2: "#11b288", 3: "#207ac7", 4: "#c440da", 5: "#ffb93b",
                6: "#ffb93b", 7: "#ffb93b"}
@@ -70,6 +86,18 @@ def load_data():
     for k in trait_thresholds:
         trait_thresholds[k] = sorted(set(trait_thresholds[k]))
     return units, trait_thresholds, trait_icons, trait_tiers
+
+
+def load_items_data():
+    with open(os.path.join(DATA_DIR, "items.json"), encoding="utf-8") as f:
+        items = json.load(f)
+    with open(os.path.join(DATA_DIR, "components.json"), encoding="utf-8") as f:
+        components_payload = json.load(f)
+
+    items_map = {item["slug"]: item for item in items}
+    component_order = [c["slug"] for c in components_payload.get("components", [])]
+    component_matrix = components_payload.get("matrix", {})
+    return items, items_map, component_order, component_matrix
 
 
 def _count_available_for_trait(trait_name, selected_names, unlocked_names, units):
@@ -689,10 +717,14 @@ class TFTFinderApp:
         self.root.configure(bg="#1d1e20")
 
         self.units, self.trait_thresholds, self.trait_icon_paths, self.trait_tiers = load_data()
+        self.items, self.items_map, self.component_slugs, self.component_matrix = load_items_data()
         self.units_map = {u["name"]: u for u in self.units}
         self.normal_units = [u for u in self.units if not u["locked"]]
         self.locked_units = [u for u in self.units if u["locked"]]
         self.selected = set()
+        self.inventory_counts = {}
+        self.equipped_items = {}
+        self.item_action_message = ""
         self.unlocked = set()
         self.unlock_vars = {}
         self.unit_images = {}
@@ -700,6 +732,10 @@ class TFTFinderApp:
         self.rec_pick_images = {}
         self.trait_images = {}
         self.unit_widgets = {}
+        self.item_images = {}
+        self.item_inv_images = {}
+        self.team_item_images = {}
+        self.item_widgets = {}
         self.recommended_names = set()
         self.history = []  # undo history: list of previous selected sets
         self.sort_mode = "default"  # default, cost, tier
@@ -744,6 +780,26 @@ class TFTFinderApp:
                 if os.path.exists(full):
                     img = Image.open(full).resize((TRAIT_ICON_SIZE, TRAIT_ICON_SIZE), Image.LANCZOS)
                     self.trait_images[trait_name] = ImageTk.PhotoImage(img)
+        for item in self.items:
+            icon_path = item.get("icon")
+            if not icon_path:
+                continue
+            full_icon = os.path.join(DATA_DIR, icon_path)
+            if not os.path.exists(full_icon):
+                continue
+            try:
+                src = Image.open(full_icon)
+                self.item_images[item["slug"]] = ImageTk.PhotoImage(
+                    src.resize((ITEM_IMG_SIZE, ITEM_IMG_SIZE), Image.LANCZOS)
+                )
+                self.item_inv_images[item["slug"]] = ImageTk.PhotoImage(
+                    src.resize((ITEM_INV_ICON_SIZE, ITEM_INV_ICON_SIZE), Image.LANCZOS)
+                )
+                self.team_item_images[item["slug"]] = ImageTk.PhotoImage(
+                    src.resize((TEAM_ITEM_ICON_SIZE, TEAM_ITEM_ICON_SIZE), Image.LANCZOS)
+                )
+            except Exception:
+                continue
 
     def _set_app_icon(self):
         if os.name == "nt" and os.path.exists(APP_ICON_ICO):
@@ -975,7 +1031,7 @@ class TFTFinderApp:
 
         self._build_locked_grid()
 
-        # Right panel: team + traits + recommendations
+        # Right panel: team + tabs (unit optimization / item optimization)
         right_panel = tk.Frame(main, bg="#1d1e20", width=620)
         main.add(right_panel, stretch="never")
 
@@ -988,20 +1044,27 @@ class TFTFinderApp:
         self.team_frame = tk.Frame(team_section, bg="#1d1e20")
         self.team_frame.pack(fill=tk.X)
 
-        # -- Traits actifs --
-        traits_section = tk.LabelFrame(right_panel, text="Active traits", bg="#1d1e20", fg="white",
-                                        font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
-                                        labelanchor="n", padx=4, pady=4)
-        traits_section.pack(fill=tk.X, padx=4, pady=2)
+        self.tabs = ttk.Notebook(right_panel)
+        self.tabs.pack(fill=tk.BOTH, expand=True, padx=4, pady=(2, 4))
+
+        unit_tab = tk.Frame(self.tabs, bg="#1d1e20")
+        item_tab = tk.Frame(self.tabs, bg="#1d1e20")
+        self.tabs.add(unit_tab, text="Opti unites")
+        self.tabs.add(item_tab, text="Opti items")
+
+        # -- Unit tab: traits + recommendations --
+        traits_section = tk.LabelFrame(unit_tab, text="Active traits", bg="#1d1e20", fg="white",
+                                       font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
+                                       labelanchor="n", padx=4, pady=4)
+        traits_section.pack(fill=tk.X, padx=0, pady=0)
 
         self.traits_frame = tk.Frame(traits_section, bg="#1d1e20")
         self.traits_frame.pack(fill=tk.X)
 
-        # -- Recommandations --
-        rec_section = tk.LabelFrame(right_panel, text="Top 3 scenarios", bg="#1d1e20", fg="white",
-                                     font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
-                                     labelanchor="n", padx=4, pady=4)
-        rec_section.pack(fill=tk.BOTH, expand=True, padx=4, pady=(2, 4))
+        rec_section = tk.LabelFrame(unit_tab, text="Top 3 scenarios", bg="#1d1e20", fg="white",
+                                    font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
+                                    labelanchor="n", padx=4, pady=4)
+        rec_section.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
 
         rec_container = tk.Frame(rec_section, bg="#1d1e20")
         rec_container.pack(fill=tk.BOTH, expand=True)
@@ -1017,6 +1080,9 @@ class TFTFinderApp:
 
         rec_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         rec_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # -- Item tab --
+        self._build_items_tab(item_tab)
 
     def _build_champion_grid(self, unit_list, parent, cols):
         for i, u in enumerate(unit_list):
@@ -1070,6 +1136,807 @@ class TFTFinderApp:
 
             for widget in (lbl_img, lbl_name):
                 widget.bind("<Button-1>", lambda e, name=u["name"]: self._toggle_locked(name))
+
+    def _build_items_tab(self, parent):
+        filters = tk.Frame(parent, bg="#1d1e20", pady=4)
+        filters.pack(fill=tk.X)
+
+        tk.Label(filters, text="Search item:", bg="#1d1e20", fg="white",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT)
+        self.item_search_var = tk.StringVar()
+        self.item_search_var.trace_add("write", lambda *_: self._refresh_item_grid_filter())
+        tk.Entry(filters, textvariable=self.item_search_var, bg="#333", fg="white",
+                 insertbackground="white", relief=tk.FLAT, width=18,
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT, padx=(6, 10))
+
+        tk.Label(filters, text="Category:", bg="#1d1e20", fg="#ccc",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT)
+        self.item_nature_var = tk.StringVar(value="all")
+        nature_values = ["all", "component", "normal", "radiant", "artifact", "emblem", "trait"]
+        nature_box = ttk.Combobox(filters, state="readonly", width=10,
+                                  textvariable=self.item_nature_var, values=nature_values)
+        nature_box.pack(side=tk.LEFT, padx=(6, 10))
+        nature_box.bind("<<ComboboxSelected>>", lambda *_: self._refresh_item_grid_filter())
+
+        tk.Label(filters, text="Rank:", bg="#1d1e20", fg="#ccc",
+                 font=("Segoe UI", 9)).pack(side=tk.LEFT)
+        self.item_rank_var = tk.StringVar(value="all")
+        rank_box = ttk.Combobox(filters, state="readonly", width=9,
+                                textvariable=self.item_rank_var,
+                                values=["all", "S", "A", "B", "C", "D", "unranked"])
+        rank_box.pack(side=tk.LEFT, padx=(6, 10))
+        rank_box.bind("<<ComboboxSelected>>", lambda *_: self._refresh_item_grid_filter())
+
+        tk.Button(filters, text="Reset items", bg="#444", fg="white",
+                  relief=tk.FLAT, padx=8, pady=1,
+                  command=self._reset_inventory).pack(side=tk.RIGHT)
+        tk.Label(filters, text="Left click = +1, right click = -1",
+                 bg="#1d1e20", fg="#777", font=("Segoe UI", 8, "italic")).pack(side=tk.RIGHT, padx=(0, 10))
+
+        tab_main = tk.PanedWindow(parent, orient=tk.HORIZONTAL, bg="#1d1e20",
+                                  sashwidth=3, sashrelief=tk.FLAT)
+        tab_main.pack(fill=tk.BOTH, expand=True)
+
+        selector = tk.Frame(tab_main, bg="#1d1e20")
+        insights = tk.Frame(tab_main, bg="#1d1e20", width=290)
+        tab_main.add(selector, stretch="always")
+        tab_main.add(insights, stretch="never")
+
+        selector_canvas = tk.Canvas(selector, bg="#1d1e20", highlightthickness=0)
+        selector_scroll = ttk.Scrollbar(selector, orient=tk.VERTICAL, command=selector_canvas.yview)
+        self.item_grid_frame = tk.Frame(selector_canvas, bg="#1d1e20")
+
+        self.item_grid_frame.bind(
+            "<Configure>", lambda e: selector_canvas.configure(scrollregion=selector_canvas.bbox("all"))
+        )
+        selector_canvas.create_window((0, 0), window=self.item_grid_frame, anchor="nw")
+        selector_canvas.configure(yscrollcommand=selector_scroll.set)
+        selector_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        selector_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        insight_canvas = tk.Canvas(insights, bg="#1d1e20", highlightthickness=0)
+        insight_scroll = ttk.Scrollbar(insights, orient=tk.VERTICAL, command=insight_canvas.yview)
+        self.item_insight_frame = tk.Frame(insight_canvas, bg="#1d1e20")
+
+        self.item_insight_frame.bind(
+            "<Configure>", lambda e: insight_canvas.configure(scrollregion=insight_canvas.bbox("all"))
+        )
+        insight_canvas.create_window((0, 0), window=self.item_insight_frame, anchor="nw")
+        insight_canvas.configure(yscrollcommand=insight_scroll.set)
+        insight_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        insight_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self._build_item_grid()
+        self._refresh_item_grid_filter()
+        self._refresh_items_tab()
+
+    def _build_item_grid(self):
+        ordered = sorted(
+            self.items,
+            key=lambda i: (ITEM_NATURE_ORDER.get(i.get("nature"), 99), i.get("name", "")),
+        )
+        self.item_display_slugs = [item["slug"] for item in ordered]
+
+        for idx, item in enumerate(ordered):
+            row, col = divmod(idx, ITEM_GRID_COLS)
+            slug = item["slug"]
+            rank = (item.get("rank") or "?").upper()
+            rank_color = RANK_BADGE_COLORS.get(rank, RANK_BADGE_COLORS["?"])
+
+            card = tk.Frame(self.item_grid_frame, bg="#2a2b2e", padx=2, pady=2, bd=2, relief=tk.FLAT, cursor="hand2")
+            card.grid(row=row, column=col, padx=2, pady=2, sticky="n")
+
+            rank_lbl = tk.Label(card, text=rank, bg=rank_color, fg="black",
+                                font=("Segoe UI", 7, "bold"), width=3)
+            rank_lbl.pack(fill=tk.X)
+
+            icon = self.item_images.get(slug)
+            icon_lbl = tk.Label(card, image=icon, bg="#333")
+            icon_lbl.pack()
+
+            name_lbl = tk.Label(card, text=item["name"], bg="#1d1e20", fg="white",
+                                font=("Segoe UI", 7), wraplength=ITEM_IMG_SIZE + 18, justify=tk.CENTER)
+            name_lbl.pack(fill=tk.X)
+
+            meta_lbl = tk.Label(card, text=item.get("nature", ""), bg="#2a2b2e", fg="#9aa7b8",
+                                font=("Segoe UI", 6, "italic"))
+            meta_lbl.pack(fill=tk.X)
+
+            count_lbl = tk.Label(card, text="", bg="#2a2b2e", fg="#ffd27f",
+                                 font=("Segoe UI", 7, "bold"))
+            count_lbl.pack(fill=tk.X)
+
+            self.item_widgets[slug] = (card, rank_lbl, icon_lbl, name_lbl, meta_lbl, count_lbl)
+
+            for widget in (card, rank_lbl, icon_lbl, name_lbl, meta_lbl, count_lbl):
+                widget.bind("<Button-1>", lambda e, s=slug: self._toggle_item(s, +1))
+                widget.bind("<Button-3>", lambda e, s=slug: self._toggle_item(s, -1))
+
+    def _item_rank_score(self, item):
+        rank = (item.get("rank") or "").upper()
+        if rank in TIER_SCORES:
+            return float(TIER_SCORES[rank])
+        return ITEM_RANK_FALLBACK.get(item.get("nature"), 4.0)
+
+    def _win_rate_value(self, unit_name):
+        raw = str(self.units_map[unit_name].get("win_rate", "")).replace("%", "").strip()
+        if not raw:
+            return 0.0
+        try:
+            return float(raw)
+        except ValueError:
+            return 0.0
+
+    def _unit_strength(self, unit_name):
+        unit = self.units_map[unit_name]
+        tier_score = TIER_SCORES.get((unit.get("tier") or "C").upper(), 3)
+        cost = float(unit.get("cost", 1))
+        win_rate = self._win_rate_value(unit_name)
+        return (tier_score * 1.3) + (cost * 0.9) + (win_rate * 0.08)
+
+    def _item_holder_candidates(self, item, team_names):
+        candidates = []
+        recommended_set = set(item.get("recommended_units", []))
+        emblem_trait = None
+        if item.get("nature") == "emblem" and item["name"].endswith(" Emblem"):
+            emblem_trait = item["name"].replace(" Emblem", "")
+
+        for unit_name in team_names:
+            base = self._unit_strength(unit_name)
+            is_recommended = unit_name in recommended_set
+            if is_recommended:
+                base += 18.0
+            if emblem_trait:
+                if emblem_trait in self.units_map[unit_name]["traits"]:
+                    base -= 2.0
+                else:
+                    base += 4.0
+            candidates.append({"name": unit_name, "score": base, "recommended": is_recommended})
+
+        candidates.sort(key=lambda x: (-x["score"], x["name"]))
+        return candidates
+
+    def _item_team_score(self, item, team_names):
+        rank_score = self._item_rank_score(item)
+        holders = self._item_holder_candidates(item, team_names)
+        holder_score = holders[0]["score"] if holders else 0.0
+        direct_bonus = 10.0 if holders and holders[0]["recommended"] else 0.0
+        return (rank_score * 6.0) + holder_score + direct_bonus, holders
+
+    def _sync_equipped_with_team(self):
+        selected_now = set(self.selected)
+        for unit_name in list(self.equipped_items.keys()):
+            equipped = self.equipped_items.get(unit_name, [])
+            if unit_name not in selected_now:
+                for item_slug in equipped:
+                    self.inventory_counts[item_slug] = self.inventory_counts.get(item_slug, 0) + 1
+                self.equipped_items.pop(unit_name, None)
+                continue
+            if len(equipped) > MAX_ITEMS_PER_UNIT:
+                overflow = equipped[MAX_ITEMS_PER_UNIT:]
+                self.equipped_items[unit_name] = equipped[:MAX_ITEMS_PER_UNIT]
+                for item_slug in overflow:
+                    self.inventory_counts[item_slug] = self.inventory_counts.get(item_slug, 0) + 1
+
+    def _holders_to_names(self, holders):
+        names = []
+        for holder in holders or []:
+            if isinstance(holder, dict):
+                name = holder.get("name")
+            else:
+                name = holder
+            if name and name in self.selected and name not in names:
+                names.append(name)
+        return names
+
+    def _holders_with_grades(self, holders, max_icons=3):
+        suggestions = []
+        seen = set()
+        for holder in holders or []:
+            if isinstance(holder, dict):
+                name = holder.get("name")
+                score = holder.get("score")
+            else:
+                name = holder
+                score = None
+            if not name or name not in self.selected or name in seen:
+                continue
+            seen.add(name)
+            try:
+                score = float(score) if score is not None else None
+            except (TypeError, ValueError):
+                score = None
+            suggestions.append({"name": name, "score": score})
+            if len(suggestions) >= max_icons:
+                break
+
+        if not suggestions:
+            return []
+
+        top_score = suggestions[0]["score"]
+        for idx, entry in enumerate(suggestions):
+            if idx == 0:
+                grade = "S"
+            else:
+                score = entry["score"]
+                gap = (top_score - score) if (top_score is not None and score is not None) else None
+                if idx == 1:
+                    grade = "A" if (gap is None or gap <= 5.0) else "B"
+                elif idx == 2:
+                    grade = "B" if (gap is None or gap <= 5.0) else "C"
+                else:
+                    grade = "D"
+            entry["grade"] = grade
+        return suggestions
+
+    def _find_holder_with_slot(self, item, preferred_holders=None):
+        team_names = sorted(self.selected)
+        if not team_names:
+            return None
+
+        preferred = self._holders_to_names(preferred_holders)
+        for name in preferred:
+            if len(self.equipped_items.get(name, [])) < MAX_ITEMS_PER_UNIT:
+                return name
+
+        for cand in self._item_holder_candidates(item, team_names):
+            unit_name = cand["name"]
+            if len(self.equipped_items.get(unit_name, [])) < MAX_ITEMS_PER_UNIT:
+                return unit_name
+        return None
+
+    def _equip_from_inventory(self, item_slug, preferred_holders=None):
+        item = self.items_map.get(item_slug)
+        if not item:
+            return False
+        if self.inventory_counts.get(item_slug, 0) <= 0:
+            return False
+        holder = self._find_holder_with_slot(item, preferred_holders)
+        if not holder:
+            self.item_action_message = f"Aucun slot item libre dans l'equipe pour {item['name']}."
+            return False
+        self.inventory_counts[item_slug] -= 1
+        if self.inventory_counts[item_slug] <= 0:
+            self.inventory_counts.pop(item_slug, None)
+        self.equipped_items.setdefault(holder, []).append(item_slug)
+        self.item_action_message = f"{item['name']} equipe sur {holder}."
+        return True
+
+    def _craft_from_components(self, comp_a, comp_b, preferred_holders=None):
+        if not self._can_craft_now(comp_a, comp_b):
+            return False
+        result = self.component_matrix.get(comp_a, {}).get(comp_b)
+        if not result:
+            result = self.component_matrix.get(comp_b, {}).get(comp_a)
+        if not result:
+            return False
+        result_slug = result.get("slug")
+        item = self.items_map.get(result_slug)
+        if not item:
+            return False
+
+        self.inventory_counts[comp_a] -= 1
+        if self.inventory_counts[comp_a] <= 0:
+            self.inventory_counts.pop(comp_a, None)
+        self.inventory_counts[comp_b] -= 1
+        if self.inventory_counts[comp_b] <= 0:
+            self.inventory_counts.pop(comp_b, None)
+
+        holder = self._find_holder_with_slot(item, preferred_holders)
+        if holder:
+            self.equipped_items.setdefault(holder, []).append(result_slug)
+            self.item_action_message = f"Craft {item['name']} puis equipe sur {holder}."
+        else:
+            self.inventory_counts[result_slug] = self.inventory_counts.get(result_slug, 0) + 1
+            self.item_action_message = f"Craft {item['name']} (ajoute a l'inventaire, aucun slot libre)."
+        return True
+
+    def _craft_option(self, option):
+        preferred = option.get("holders", [])
+        crafted = self._craft_from_components(option["a"], option["b"], preferred)
+        if not crafted:
+            self.item_action_message = "Craft impossible avec l'inventaire actuel."
+        self._refresh()
+
+    def _craft_option_for_holder(self, option, holder_name):
+        if holder_name not in self.selected:
+            self.item_action_message = f"{holder_name} n'est pas dans l'equipe."
+            self._refresh()
+            return
+        if len(self.equipped_items.get(holder_name, [])) >= MAX_ITEMS_PER_UNIT:
+            self.item_action_message = f"{holder_name} a deja {MAX_ITEMS_PER_UNIT} items."
+            self._refresh()
+            return
+        crafted = self._craft_from_components(option["a"], option["b"], [holder_name])
+        if not crafted:
+            self.item_action_message = "Craft impossible avec l'inventaire actuel."
+        self._refresh()
+
+    def _equip_option(self, item_slug, holders=None):
+        if not self.selected:
+            self.item_action_message = "Selectionne une equipe avant d'equiper un item."
+            self._refresh()
+            return
+        if not self._equip_from_inventory(item_slug, holders):
+            if not self.item_action_message:
+                self.item_action_message = "Equipement impossible."
+        self._refresh()
+
+    def _unequip_item(self, unit_name, slot_idx):
+        equipped = self.equipped_items.get(unit_name, [])
+        if slot_idx < 0 or slot_idx >= len(equipped):
+            return
+        item_slug = equipped.pop(slot_idx)
+        if not equipped:
+            self.equipped_items.pop(unit_name, None)
+        self.inventory_counts[item_slug] = self.inventory_counts.get(item_slug, 0) + 1
+        item_name = self.items_map.get(item_slug, {}).get("name", item_slug)
+        self.item_action_message = f"{item_name} retire de {unit_name}."
+        self._refresh()
+
+    def _on_team_item_click(self, unit_name, slot_idx):
+        self._unequip_item(unit_name, slot_idx)
+        return "break"
+
+    def _render_holder_icons(self, parent, holders, max_icons=3, on_click=None):
+        holder_entries = self._holders_with_grades(holders, max_icons=max_icons)
+        if not holder_entries:
+            return
+        bg = parent.cget("bg") if hasattr(parent, "cget") else "#1d1e20"
+        icons_box = tk.Frame(parent, bg=bg)
+        icons_box.pack(side=tk.RIGHT, padx=(4, 0))
+        for entry in holder_entries:
+            name = entry["name"]
+            grade = entry.get("grade", "?")
+            slot = tk.Frame(icons_box, bg=bg)
+            slot.pack(side=tk.LEFT, padx=1)
+
+            icon = self.rec_pick_images.get(name)
+            icon_lbl = tk.Label(
+                slot,
+                image=icon,
+                text="" if icon else name[:1].upper(),
+                bg=bg,
+                fg="white",
+                cursor="hand2" if on_click else "arrow",
+                font=("Segoe UI", 7, "bold"),
+            )
+            icon_lbl.pack()
+
+            badge_bg = RANK_BADGE_COLORS.get(grade, RANK_BADGE_COLORS["?"])
+            grade_lbl = tk.Label(
+                slot,
+                text=grade,
+                bg=badge_bg,
+                fg="black",
+                font=("Segoe UI", 6, "bold"),
+                width=2,
+            )
+            grade_lbl.pack(pady=(1, 0))
+
+            if on_click:
+                icon_lbl.bind("<Button-1>", lambda e, n=name: (on_click(n), "break")[1])
+                grade_lbl.bind("<Button-1>", lambda e, n=name: (on_click(n), "break")[1])
+
+    def _can_craft_now(self, comp_a, comp_b):
+        count_a = self.inventory_counts.get(comp_a, 0)
+        count_b = self.inventory_counts.get(comp_b, 0)
+        if comp_a == comp_b:
+            return count_a >= 2
+        return count_a >= 1 and count_b >= 1
+
+    def _current_craft_options(self, team_names):
+        options = []
+        for i, comp_a in enumerate(self.component_slugs):
+            row = self.component_matrix.get(comp_a, {})
+            for comp_b in self.component_slugs[i:]:
+                result = row.get(comp_b)
+                if not result:
+                    continue
+                if not self._can_craft_now(comp_a, comp_b):
+                    continue
+                result_item = self.items_map.get(result["slug"])
+                if not result_item:
+                    continue
+                score, holders = self._item_team_score(result_item, team_names)
+                craft_count = (
+                    self.inventory_counts.get(comp_a, 0) // 2
+                    if comp_a == comp_b
+                    else min(self.inventory_counts.get(comp_a, 0), self.inventory_counts.get(comp_b, 0))
+                )
+                options.append({
+                    "a": comp_a,
+                    "b": comp_b,
+                    "result": result_item,
+                    "score": score,
+                    "holders": holders[:3],
+                    "craft_count": max(1, craft_count),
+                })
+        options.sort(key=lambda x: (-x["score"], x["result"]["name"]))
+        return options
+
+    def _matches_item_filter(self, item, query, nature_filter, rank_filter):
+        if nature_filter != "all" and item.get("nature") != nature_filter:
+            return False
+        item_rank = (item.get("rank") or "").upper()
+        if rank_filter != "all":
+            if rank_filter == "unranked":
+                if item_rank in TIER_SCORES:
+                    return False
+            elif item_rank != rank_filter:
+                return False
+
+        if not query:
+            return True
+
+        q = query.lower()
+        if q in item["name"].lower():
+            return True
+        if q in item["slug"].lower():
+            return True
+        if q in (item.get("nature") or "").lower():
+            return True
+        if q == (item.get("rank") or "").lower():
+            return True
+        for unit_name in item.get("recommended_units", []):
+            if q in unit_name.lower():
+                return True
+        return False
+
+    def _refresh_item_grid_filter(self):
+        if not hasattr(self, "item_display_slugs"):
+            return
+        query = (self.item_search_var.get() if hasattr(self, "item_search_var") else "").strip()
+        nature_filter = self.item_nature_var.get() if hasattr(self, "item_nature_var") else "all"
+        rank_filter = self.item_rank_var.get() if hasattr(self, "item_rank_var") else "all"
+        rank_filter = rank_filter.upper() if rank_filter not in ("all", "unranked") else rank_filter
+
+        visible = []
+        for slug in self.item_display_slugs:
+            item = self.items_map[slug]
+            frame = self.item_widgets[slug][0]
+            if self._matches_item_filter(item, query, nature_filter, rank_filter):
+                visible.append(slug)
+            else:
+                frame.grid_remove()
+
+        for idx, slug in enumerate(visible):
+            row, col = divmod(idx, ITEM_GRID_COLS)
+            self.item_widgets[slug][0].grid(row=row, column=col, padx=2, pady=2, sticky="n")
+
+        self._refresh_item_widget_styles()
+
+    def _refresh_item_widget_styles(self):
+        for slug in self.item_display_slugs:
+            count = self.inventory_counts.get(slug, 0)
+            card, _, _, _, meta_lbl, count_lbl = self.item_widgets[slug]
+            if count > 0:
+                card.config(bg="#3a5a36", relief=tk.RIDGE)
+                meta_lbl.config(bg="#3a5a36")
+                count_lbl.config(bg="#3a5a36", text=f"x{count}")
+            else:
+                card.config(bg="#2a2b2e", relief=tk.FLAT)
+                meta_lbl.config(bg="#2a2b2e")
+                count_lbl.config(bg="#2a2b2e", text="")
+
+    def _toggle_item(self, slug, delta):
+        current = self.inventory_counts.get(slug, 0)
+        updated = max(0, current + delta)
+        if updated <= 0:
+            self.inventory_counts.pop(slug, None)
+        else:
+            self.inventory_counts[slug] = updated
+        self.item_action_message = ""
+        self._refresh_items_tab()
+
+    def _reset_inventory(self):
+        self.inventory_counts.clear()
+        self.equipped_items.clear()
+        self.item_action_message = "Inventaire et equipements reinitialises."
+        self._refresh()
+
+    def _refresh_items_tab(self):
+        if not hasattr(self, "item_insight_frame"):
+            return
+        self._refresh_item_grid_filter()
+
+        for w in self.item_insight_frame.winfo_children():
+            w.destroy()
+
+        if self.item_action_message:
+            tk.Label(
+                self.item_insight_frame,
+                text=self.item_action_message,
+                bg="#2b3d2e",
+                fg="#b9f4c1",
+                font=("Segoe UI", 8, "bold"),
+                anchor="w",
+                padx=6,
+                pady=3,
+                wraplength=285,
+                justify=tk.LEFT,
+            ).pack(fill=tk.X, pady=(0, 4))
+            self.item_action_message = ""
+
+        selected_items = [
+            self.items_map[slug]
+            for slug, count in self.inventory_counts.items()
+            if count > 0 and slug in self.items_map
+        ]
+        selected_items.sort(key=lambda i: (ITEM_NATURE_ORDER.get(i.get("nature"), 99), i["name"]))
+        team_names = sorted(self.selected)
+
+        tk.Label(
+            self.item_insight_frame,
+            text="Pertinence porteur: ordre + badge sous la tete (S meilleur -> D plus faible).",
+            bg="#1d1e20",
+            fg="#9fc7ff",
+            font=("Segoe UI", 8, "italic"),
+            anchor="w",
+            justify=tk.LEFT,
+            wraplength=285,
+        ).pack(fill=tk.X, pady=(0, 4))
+
+        inv_section = tk.LabelFrame(self.item_insight_frame, text="Inventory", bg="#1d1e20", fg="white",
+                                    font=("Segoe UI", 9, "bold"), bd=1, relief=tk.GROOVE, padx=4, pady=4)
+        inv_section.pack(fill=tk.X, pady=(0, 4))
+
+        if not selected_items:
+            tk.Label(inv_section, text="Click items/components to add them.",
+                     bg="#1d1e20", fg="#888", font=("Segoe UI", 8)).pack(anchor="w")
+        else:
+            for item in selected_items:
+                slug = item["slug"]
+                row = tk.Frame(inv_section, bg="#1d1e20")
+                row.pack(fill=tk.X, pady=1)
+                icon = self.item_inv_images.get(slug)
+                tk.Label(row, image=icon, bg="#1d1e20").pack(side=tk.LEFT, padx=(0, 4))
+                tk.Label(row, text=f"x{self.inventory_counts[slug]}  {item['name']}",
+                         bg="#1d1e20", fg="white", font=("Segoe UI", 8)).pack(side=tk.LEFT)
+                tk.Button(row, text="-", bg="#444", fg="white", relief=tk.FLAT, width=2,
+                          command=lambda s=slug: self._toggle_item(s, -1)).pack(side=tk.RIGHT, padx=(2, 0))
+                tk.Button(row, text="+", bg="#444", fg="white", relief=tk.FLAT, width=2,
+                          command=lambda s=slug: self._toggle_item(s, +1)).pack(side=tk.RIGHT)
+
+        equip_section = tk.LabelFrame(self.item_insight_frame, text="Best holders for completed items",
+                                      bg="#1d1e20", fg="white", font=("Segoe UI", 9, "bold"),
+                                      bd=1, relief=tk.GROOVE, padx=4, pady=4)
+        equip_section.pack(fill=tk.X, pady=(0, 4))
+
+        completed = [i for i in selected_items if i.get("nature") != "component"]
+        if not completed:
+            tk.Label(equip_section, text="No completed item selected.",
+                     bg="#1d1e20", fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
+        elif not team_names:
+            tk.Label(equip_section, text="Select champions in your team to get holder advice.",
+                     bg="#1d1e20", fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
+        else:
+            completed_scores = []
+            for item in completed:
+                score, holders = self._item_team_score(item, team_names)
+                completed_scores.append((score, item, holders))
+            completed_scores.sort(key=lambda x: (-x[0], x[1]["name"]))
+            for _, item, holders in completed_scores:
+                slug = item["slug"]
+                qty = self.inventory_counts.get(slug, 0)
+                row = tk.Frame(equip_section, bg="#1d1e20")
+                row.pack(fill=tk.X, pady=1)
+
+                tk.Button(
+                    row,
+                    text="Equip best",
+                    bg="#3b6f9e",
+                    fg="white",
+                    activebackground="#4a83b5",
+                    activeforeground="white",
+                    relief=tk.FLAT,
+                    padx=6,
+                    pady=1,
+                    state=tk.NORMAL if qty > 0 else tk.DISABLED,
+                    command=lambda s=slug, h=holders: self._equip_option(s, h),
+                ).pack(side=tk.RIGHT, padx=(4, 0))
+
+                content = tk.Frame(row, bg="#1d1e20")
+                content.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                icon_lbl = tk.Label(content, image=self.item_inv_images.get(slug), bg="#1d1e20", cursor="hand2")
+                icon_lbl.pack(side=tk.LEFT, padx=(0, 4))
+                text_col = tk.Frame(content, bg="#1d1e20")
+                text_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                rank = (item.get("rank") or "?").upper()
+                title_lbl = tk.Label(
+                    text_col,
+                    text=f"x{qty} {item['name']} ({rank})",
+                    bg="#1d1e20",
+                    fg="white",
+                    font=("Segoe UI", 8, "bold"),
+                )
+                title_lbl.pack(anchor="w")
+                if holders:
+                    top = ", ".join(h["name"] for h in holders[:3])
+                    holder_row = tk.Frame(text_col, bg="#1d1e20")
+                    holder_row.pack(fill=tk.X)
+                    tk.Label(
+                        holder_row,
+                        text=f"  -> {top}",
+                        bg="#1d1e20",
+                        fg="#9fc7ff",
+                        font=("Segoe UI", 8),
+                        anchor="w",
+                    ).pack(side=tk.LEFT, fill=tk.X, expand=True)
+                    self._render_holder_icons(holder_row, holders)
+                else:
+                    tk.Label(
+                        text_col,
+                        text="  -> No holder suggestion",
+                        bg="#1d1e20",
+                        fg="#777",
+                        font=("Segoe UI", 8),
+                    ).pack(anchor="w")
+
+                for widget in (icon_lbl, title_lbl):
+                    widget.bind("<Button-1>", lambda e, s=slug, h=holders: self._equip_option(s, h))
+
+        component_section = tk.LabelFrame(self.item_insight_frame, text="Component decisions (craft vs wait)",
+                                          bg="#1d1e20", fg="white", font=("Segoe UI", 9, "bold"),
+                                          bd=1, relief=tk.GROOVE, padx=4, pady=4)
+        component_section.pack(fill=tk.X, pady=(0, 4))
+
+        owned_components = [
+            self.items_map[slug]
+            for slug in self.component_slugs
+            if self.inventory_counts.get(slug, 0) > 0 and slug in self.items_map
+        ]
+        component_best = {}
+        if not owned_components:
+            tk.Label(component_section, text="No component selected.", bg="#1d1e20",
+                     fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
+        else:
+            for comp in owned_components:
+                comp_slug = comp["slug"]
+                options = []
+                matrix_row = self.component_matrix.get(comp_slug, {})
+                for partner_slug in self.component_slugs:
+                    result = matrix_row.get(partner_slug)
+                    if not result:
+                        continue
+                    result_item = self.items_map.get(result["slug"])
+                    if not result_item:
+                        continue
+                    score, holders = self._item_team_score(result_item, team_names)
+                    need_now = 2 if partner_slug == comp_slug else 1
+                    can_now = self.inventory_counts.get(partner_slug, 0) >= need_now
+                    options.append({
+                        "partner_slug": partner_slug,
+                        "result_item": result_item,
+                        "score": score,
+                        "holders": holders,
+                        "craft_now": can_now,
+                    })
+                if not options:
+                    continue
+                options.sort(key=lambda x: (-x["score"], x["result_item"]["name"]))
+                best_overall = options[0]
+                best_now = next((o for o in options if o["craft_now"]), None)
+                component_best[comp_slug] = best_overall
+
+                block = tk.Frame(component_section, bg="#1d1e20")
+                block.pack(fill=tk.X, pady=2)
+                tk.Label(block, image=self.item_inv_images.get(comp_slug), bg="#1d1e20").pack(side=tk.LEFT, padx=(0, 4))
+                qty = self.inventory_counts.get(comp_slug, 0)
+                tk.Label(block, text=f"{comp['name']} x{qty}", bg="#1d1e20", fg="white",
+                         font=("Segoe UI", 8, "bold")).pack(anchor="w")
+
+                if best_now:
+                    partner_name = self.items_map[best_now["partner_slug"]]["name"]
+                    rank = (best_now["result_item"].get("rank") or "?").upper()
+                    result_slug = best_now["result_item"]["slug"]
+                    now_row = tk.Frame(block, bg="#1d1e20")
+                    now_row.pack(fill=tk.X)
+                    now_option = {"a": comp_slug, "b": best_now["partner_slug"], "holders": best_now["holders"]}
+                    now_icon = tk.Label(
+                        now_row,
+                        image=self.item_inv_images.get(result_slug),
+                        bg="#1d1e20",
+                    )
+                    now_icon.pack(side=tk.LEFT, padx=(0, 4))
+                    now_text = tk.Label(
+                        now_row,
+                        text=f"  Craft now with {partner_name}: {best_now['result_item']['name']} ({rank})  [click holder icon]",
+                        bg="#1d1e20",
+                        fg="#9fc7ff",
+                        font=("Segoe UI", 8),
+                        wraplength=240,
+                        justify=tk.LEFT,
+                        anchor="w",
+                    )
+                    now_text.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                    self._render_holder_icons(
+                        now_row,
+                        best_now["holders"],
+                        on_click=lambda holder, o=now_option: self._craft_option_for_holder(o, holder),
+                    )
+                else:
+                    tk.Label(block, text="  No immediate craft from current inventory.",
+                             bg="#1d1e20", fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
+
+                if (not best_overall["craft_now"]) or (best_now and best_overall["score"] > best_now["score"] + 8):
+                    partner_name = self.items_map[best_overall["partner_slug"]]["name"]
+                    rank = (best_overall["result_item"].get("rank") or "?").upper()
+                    wait_row = tk.Frame(block, bg="#1d1e20")
+                    wait_row.pack(fill=tk.X)
+                    tk.Label(
+                        wait_row,
+                        text=f"  Better to wait for {partner_name}: {best_overall['result_item']['name']} ({rank})",
+                        bg="#1d1e20",
+                        fg="#e8a33c",
+                        font=("Segoe UI", 8),
+                        wraplength=250,
+                        justify=tk.LEFT,
+                        anchor="w",
+                    ).pack(side=tk.LEFT, fill=tk.X, expand=True)
+                    self._render_holder_icons(wait_row, best_overall["holders"])
+
+        craft_section = tk.LabelFrame(self.item_insight_frame, text="Immediate crafts available",
+                                      bg="#1d1e20", fg="white", font=("Segoe UI", 9, "bold"),
+                                      bd=1, relief=tk.GROOVE, padx=4, pady=4)
+        craft_section.pack(fill=tk.X, pady=(0, 4))
+
+        craft_options = self._current_craft_options(team_names)
+        if not craft_options:
+            tk.Label(craft_section, text="No craft possible with current components.",
+                     bg="#1d1e20", fg="#777", font=("Segoe UI", 8)).pack(anchor="w")
+        else:
+            for opt in craft_options[:10]:
+                res = opt["result"]
+                rank = (res.get("rank") or "?").upper()
+                comp_a_name = self.items_map[opt["a"]]["name"]
+                comp_b_name = self.items_map[opt["b"]]["name"]
+
+                row = tk.Frame(craft_section, bg="#1d1e20")
+                row.pack(fill=tk.X, pady=1)
+
+                content = tk.Frame(row, bg="#1d1e20")
+                content.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                icon_lbl = tk.Label(content, image=self.item_inv_images.get(res["slug"]), bg="#1d1e20")
+                icon_lbl.pack(side=tk.LEFT, padx=(0, 4))
+                text_col = tk.Frame(content, bg="#1d1e20")
+                text_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                title_row = tk.Frame(text_col, bg="#1d1e20")
+                title_row.pack(fill=tk.X)
+                title_lbl = tk.Label(
+                    title_row,
+                    text=f"{res['name']} ({rank}) | {comp_a_name} + {comp_b_name} | x{opt['craft_count']}  [click holder icon]",
+                    bg="#1d1e20",
+                    fg="white",
+                    font=("Segoe UI", 8),
+                    wraplength=238,
+                    justify=tk.LEFT,
+                    anchor="w",
+                )
+                title_lbl.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                self._render_holder_icons(
+                    title_row,
+                    opt["holders"],
+                    on_click=lambda holder, o=opt: self._craft_option_for_holder(o, holder),
+                )
+
+                best_a = component_best.get(opt["a"])
+                best_b = component_best.get(opt["b"])
+                better_wait = False
+                if best_a and (not best_a["craft_now"]) and best_a["score"] > opt["score"] + 8:
+                    better_wait = True
+                if best_b and (not best_b["craft_now"]) and best_b["score"] > opt["score"] + 8:
+                    better_wait = True
+                if rank in ("D", "C") or better_wait:
+                    tk.Label(
+                        text_col,
+                        text="  Attention: low value now, waiting for a better component can be stronger.",
+                        bg="#1d1e20",
+                        fg="#e8a33c",
+                        font=("Segoe UI", 8, "italic"),
+                        wraplength=230,
+                        justify=tk.LEFT,
+                    ).pack(anchor="w")
 
     def _toggle_config(self):
         self.config_visible = not self.config_visible
@@ -1286,7 +2153,7 @@ class TFTFinderApp:
         row_frame = tk.Frame(self.team_frame, bg="#1d1e20")
         row_frame.pack(pady=4)
 
-        for name in self.selected:
+        for name in sorted(self.selected):
             u = self.units_map[name]
             slot = tk.Frame(row_frame, bg="#1d1e20", padx=2, cursor="hand2")
             slot.pack(side=tk.LEFT, padx=2)
@@ -1299,6 +2166,20 @@ class TFTFinderApp:
             lbl_name = tk.Label(slot, text=name, bg="#1d1e20", fg="white",
                                 font=("Segoe UI", 7), wraplength=TEAM_IMG_SIZE + 10)
             lbl_name.pack()
+
+            equipped_row = tk.Frame(slot, bg="#1d1e20")
+            equipped_row.pack(pady=(2, 0))
+            equipped = self.equipped_items.get(name, [])
+            for idx in range(MAX_ITEMS_PER_UNIT):
+                if idx < len(equipped):
+                    item_slug = equipped[idx]
+                    icon = self.team_item_images.get(item_slug)
+                    item_lbl = tk.Label(equipped_row, image=icon, bg="#1d1e20", cursor="hand2")
+                    item_lbl.pack(side=tk.LEFT, padx=1)
+                    item_lbl.bind("<Button-1>", lambda e, n=name, i=idx: self._on_team_item_click(n, i))
+                else:
+                    tk.Label(equipped_row, text="", bg="#333", width=2, height=1,
+                             relief=tk.SUNKEN, bd=1).pack(side=tk.LEFT, padx=1)
 
             for w in (slot, lbl_img, lbl_name):
                 w.bind("<Button-1>", lambda e, n=name: self._toggle(n))
@@ -1375,6 +2256,7 @@ class TFTFinderApp:
 
         while len(self.selected) > team_size:
             self.selected.pop()
+        self._sync_equipped_with_team()
 
         self.selection_count_label.config(
             text=f"{len(self.selected)} / {team_size} selected")
@@ -1431,6 +2313,7 @@ class TFTFinderApp:
 
         self._refresh_team()
         self._refresh_traits()
+        self._refresh_items_tab()
         self._hide_tooltip()
 
         for w in self.rec_frame.winfo_children():

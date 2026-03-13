@@ -1,0 +1,5049 @@
+[
+  {
+    "id": 1,
+    "slug": "bf-sword",
+    "name": "B.F. Sword",
+    "icon": "images/items/component/bf-sword.png",
+    "nature": "component",
+    "rank": "S",
+    "bonus": {
+      "description": "+10.0% Attack Damage",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "10"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 0,
+    "slug": "frying_pan",
+    "name": "Frying Pan",
+    "icon": "images/items/component/frying_pan.png",
+    "nature": "component",
+    "rank": "S",
+    "bonus": {
+      "description": "...why else would it be here?",
+      "stats": []
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 3,
+    "slug": "giants-belt",
+    "name": "Giant's Belt",
+    "icon": "images/items/component/giants-belt.png",
+    "nature": "component",
+    "rank": "S",
+    "bonus": {
+      "description": "+150 Health",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 4,
+    "slug": "needlessly-large-rod",
+    "name": "Needlessly Large Rod",
+    "icon": "images/items/component/needlessly-large-rod.png",
+    "nature": "component",
+    "rank": "S",
+    "bonus": {
+      "description": "+10 Ability Power",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "10"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 6,
+    "slug": "recurve-bow",
+    "name": "Recurve Bow",
+    "icon": "images/items/component/recurve-bow.png",
+    "nature": "component",
+    "rank": "S",
+    "bonus": {
+      "description": "+10% Attack Speed",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "10"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 9,
+    "slug": "spatula",
+    "name": "Spatula",
+    "icon": "images/items/component/spatula.png",
+    "nature": "component",
+    "rank": "S",
+    "bonus": {
+      "description": "It must do something...",
+      "stats": []
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 2,
+    "slug": "chain-vest",
+    "name": "Chain Vest",
+    "icon": "images/items/component/chain-vest.png",
+    "nature": "component",
+    "rank": "A",
+    "bonus": {
+      "description": "+20 Armor",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 5,
+    "slug": "negatron-cloak",
+    "name": "Negatron Cloak",
+    "icon": "images/items/component/negatron-cloak.png",
+    "nature": "component",
+    "rank": "A",
+    "bonus": {
+      "description": "+20 Magic Resist",
+      "stats": [
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 8,
+    "slug": "tear-of-the-goddess",
+    "name": "Tear of the Goddess",
+    "icon": "images/items/component/tear-of-the-goddess.png",
+    "nature": "component",
+    "rank": "A",
+    "bonus": {
+      "description": "+1 Mana Regen",
+      "stats": [
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 7,
+    "slug": "sparring-gloves",
+    "name": "Sparring Gloves",
+    "icon": "images/items/component/sparring-gloves.png",
+    "nature": "component",
+    "rank": "B",
+    "bonus": {
+      "description": "+20 Critical Strike Chance",
+      "stats": [
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 34,
+    "slug": "bloodthirster",
+    "name": "Bloodthirster",
+    "icon": "images/items/normal/bloodthirster.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Once per combat at 40% Health, gain a 25% max Health Shield that lasts up to 5 seconds.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "15"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "15"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      },
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      }
+    ],
+    "recommended_units": [
+      "Shyvana",
+      "Thresh",
+      "Warwick",
+      "Yone",
+      "Aatrox",
+      "Briar",
+      "Brock",
+      "Ekko",
+      "Gangplank",
+      "Qiyana",
+      "RekSai",
+      "Renekton",
+      "Singed",
+      "Tryndamere",
+      "Vi",
+      "Viego",
+      "Volibear",
+      "XinZhao",
+      "Sylas"
+    ]
+  },
+  {
+    "id": 250,
+    "slug": "blue-buff2",
+    "name": "Blue Buff",
+    "icon": "images/items/normal/blue-buff2.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Gain 10.0% additional Attack Damage and Ability Power from all sources.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "15"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "15"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "5"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      },
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      }
+    ],
+    "recommended_units": [
+      "Ahri",
+      "Annie",
+      "Malzahar",
+      "Teemo"
+    ]
+  },
+  {
+    "id": 26,
+    "slug": "crownguard",
+    "name": "Crownguard",
+    "icon": "images/items/normal/crownguard.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Combat Start: Gain a 25% max Health Shield for 8 seconds. When the Shield expires, gain 25% Ability Power.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "100"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      },
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      }
+    ],
+    "recommended_units": [
+      "Neeko",
+      "Rumble"
+    ]
+  },
+  {
+    "id": 32,
+    "slug": "edge-of-night",
+    "name": "Edge of Night",
+    "icon": "images/items/normal/edge-of-night.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "At 60% Health, briefly become untargetable, shed negative effects, and heal 30.0% missing health.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "10"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "10"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "15"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      },
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      }
+    ],
+    "recommended_units": [
+      "Ambessa",
+      "Nidalee",
+      "Viego",
+      "Volibear",
+      "Warwick",
+      "Yone",
+      "Zaahen"
+    ]
+  },
+  {
+    "id": 42,
+    "slug": "gargoyle-stoneplate",
+    "name": "Gargoyle Stoneplate",
+    "icon": "images/items/normal/gargoyle-stoneplate.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Gain 10 Armor and 10 Magic Resist for each enemy targeting the holder.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "30"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "100"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "30"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      },
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      }
+    ],
+    "recommended_units": [
+      "Kennen",
+      "Leona",
+      "Swain",
+      "Wukong",
+      "AnnieTibbers",
+      "Blitzcrank",
+      "Darius",
+      "Garen",
+      "Illaoi",
+      "Loris",
+      "Neeko",
+      "Ornn",
+      "RiftHerald",
+      "Rumble",
+      "Skarner",
+      "Taric"
+    ]
+  },
+  {
+    "id": 35,
+    "slug": "giant-slayer",
+    "name": "Giant Slayer",
+    "icon": "images/items/normal/giant-slayer.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Gain 15.0% additional Damage Amp against Tanks.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "15"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "15"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "15"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      },
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      }
+    ],
+    "recommended_units": [
+      "Aphelios",
+      "Azir",
+      "BelVeth",
+      "Graves",
+      "Jhin",
+      "Jinx",
+      "Kalista",
+      "Kindred",
+      "Malzahar",
+      "Mel",
+      "Sett",
+      "Vayne",
+      "Xerath"
+    ]
+  },
+  {
+    "id": 29,
+    "slug": "guinsoos-rageblade",
+    "name": "Guinsoo's Rageblade",
+    "icon": "images/items/normal/guinsoos-rageblade.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Gain 7% stacking Attack Speed every second.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "10"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "10"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      },
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      }
+    ],
+    "recommended_units": [
+      "Draven",
+      "Jinx",
+      "Kaisa",
+      "Kindred",
+      "Yone",
+      "Aatrox",
+      "Aphelios",
+      "Ashe",
+      "Azir",
+      "Jhin",
+      "KogMaw",
+      "Tristana",
+      "Tryndamere",
+      "TwistedFate",
+      "Vayne",
+      "Yunara"
+    ]
+  },
+  {
+    "id": 16,
+    "slug": "jeweled-gauntlet",
+    "name": "Jeweled Gauntlet",
+    "icon": "images/items/normal/jeweled-gauntlet.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Abilities can critically strike. If the holder's abilities can already critically strike, gain 10.0% Critical Strike Damage instead.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "35"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "35"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "Ahri",
+      "Lux",
+      "Malzahar",
+      "Mel",
+      "Sylas",
+      "AurelionSol",
+      "Bard",
+      "Diana",
+      "Ekko",
+      "Fizz",
+      "Gwen",
+      "Kaisa",
+      "Leblanc",
+      "Lissandra",
+      "Lulu",
+      "Nidalee",
+      "Seraphine",
+      "Sett",
+      "Xerath",
+      "Ziggs",
+      "Zoe"
+    ]
+  },
+  {
+    "id": 38,
+    "slug": "krakensfury",
+    "name": "Kraken's Fury",
+    "icon": "images/items/normal/krakensfury.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Attacks grant 3.5% stacking Attack Damage, up to 15 attacks. After 15 attacks, gain 15.0% Attack Speed.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "10"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "10"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      },
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      }
+    ],
+    "recommended_units": [
+      "Aphelios",
+      "Ashe",
+      "BelVeth",
+      "Draven",
+      "Jinx",
+      "Kindred"
+    ]
+  },
+  {
+    "id": 15,
+    "slug": "last-whisper",
+    "name": "Last Whisper",
+    "icon": "images/items/normal/last-whisper.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Damage from attacks and Abilities 30% Sunder the target for 3 seconds. This effect does not stack. Sunder: Reduce Armor",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "15"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "Ashe",
+      "Lucian",
+      "Tristana"
+    ]
+  },
+  {
+    "id": 37,
+    "slug": "nashor's-tooth",
+    "name": "Nashor's Tooth",
+    "icon": "images/items/normal/nashor's-tooth.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Attacks grant 2 bonus Mana, increased to 4 if they critically strike.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "18"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "10"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Anivia",
+      "Bard",
+      "Gwen",
+      "Mel",
+      "Orianna",
+      "Seraphine",
+      "Zoe"
+    ]
+  },
+  {
+    "id": 45,
+    "slug": "redbuff",
+    "name": "Red Buff",
+    "icon": "images/items/normal/redbuff.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Attacks and Abilities 1% Burn and 33% Wound enemies for 5 seconds. Burn: Deals a percent of the target's max Health as true damage every second Wound: Reduces healing received",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "45"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      },
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      }
+    ],
+    "recommended_units": [
+      "Zilean"
+    ]
+  },
+  {
+    "id": 18,
+    "slug": "spear-of-shojin2",
+    "name": "Spear of Shojin",
+    "icon": "images/items/normal/spear-of-shojin2.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Attacks grant 5 bonus Mana.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "15"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "15"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      },
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      }
+    ],
+    "recommended_units": [
+      "Annie",
+      "Kalista",
+      "Veigar",
+      "Anivia",
+      "AurelionSol",
+      "Bard",
+      "Caitlyn",
+      "KogMaw",
+      "Leblanc",
+      "Lucian",
+      "Lulu",
+      "Lux",
+      "Milio",
+      "MissFortune",
+      "Orianna",
+      "Ryze",
+      "Xerath",
+      "Ziggs",
+      "Zilean",
+      "Mel",
+      "Zoe"
+    ]
+  },
+  {
+    "id": 20,
+    "slug": "spiritvisage",
+    "name": "Spirit Visage",
+    "icon": "images/items/normal/spiritvisage.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Regenerate 2.5% of missing Health each second.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Swain",
+      "Wukong",
+      "ChoGath",
+      "Darius",
+      "DrMundo",
+      "Garen",
+      "JarvanIV",
+      "Loris",
+      "Neeko",
+      "RiftHerald",
+      "Rumble",
+      "Shen",
+      "Yorick",
+      "Braum",
+      "Kennen",
+      "Taric"
+    ]
+  },
+  {
+    "id": 11,
+    "slug": "steadfast-hammer",
+    "name": "Steadfast Heart",
+    "icon": "images/items/normal/steadfast-hammer.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Gain 10.0% Durability. While above 50% Health, instead gain 18.0% Durability.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "250"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "DrMundo",
+      "Galio",
+      "Poppy",
+      "Sion",
+      "Skarner"
+    ]
+  },
+  {
+    "id": 13,
+    "slug": "guardbreaker",
+    "name": "Striker's Flail",
+    "icon": "images/items/normal/guardbreaker.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Critical Strikes grant 5.0% Damage Amp for 5 seconds, stacking up to 4 times.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "10"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "Kaisa",
+      "Lux",
+      "Seraphine",
+      "THex",
+      "Teemo",
+      "Yunara",
+      "Zoe"
+    ]
+  },
+  {
+    "id": 39,
+    "slug": "sunfire-cape",
+    "name": "Sunfire Cape",
+    "icon": "images/items/normal/sunfire-cape.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Gain 8.0% max Health. Every 2 seconds, deal 1% Burn and 33% Wound to an enemy within 2 hexes for 10 seconds. Burn: Deals a percent of the target's max Health as true damage every second Wound: Reduces healing received",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Kennen",
+      "Sion",
+      "Swain",
+      "AnnieTibbers",
+      "ChoGath",
+      "Garen",
+      "Illaoi",
+      "JarvanIV",
+      "Leona",
+      "Nasus",
+      "Ornn",
+      "Poppy",
+      "Yorick",
+      "Braum",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 231,
+    "slug": "tacticians_cape",
+    "name": "Tactician's Cape",
+    "icon": "images/items/normal/tacticians_cape.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Your team gains +1 max team size. 10% chance to drop 1 gold after 10 seconds of combat. \"...and a bit of Luck.\"",
+      "stats": []
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 54,
+    "slug": "tacticians-crown",
+    "name": "Tactician's Crown",
+    "icon": "images/items/normal/tacticians-crown.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Your team gains +1 max team size. 10% chance to drop 1 gold when you win combat. \"...the Heart of a hero...\"",
+      "stats": []
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 246,
+    "slug": "tacticians_shield",
+    "name": "Tactician's Shield",
+    "icon": "images/items/normal/tacticians_shield.png",
+    "nature": "normal",
+    "rank": "S",
+    "bonus": {
+      "description": "Your team gains +1 max team size. 10% chance to drop 1 gold when the holder dies. \"Imbued with a Philosopher's wisdom...\"",
+      "stats": []
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 43,
+    "slug": "bramble-vest",
+    "name": "Bramble Vest",
+    "icon": "images/items/normal/bramble-vest.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Gain 9.0% max health. Take 5.0% reduced damage from attacks. When struck by any attack, deal 100 magic damage to all adjacent enemies. Cooldown: 2 seconds",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "65"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      },
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      }
+    ],
+    "recommended_units": [
+      "Braum",
+      "Taric",
+      "Nautilus",
+      "Shen",
+      "Skarner",
+      "TahmKench",
+      "AnnieTibbers",
+      "Swain",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 31,
+    "slug": "deathblade",
+    "name": "Deathblade",
+    "icon": "images/items/normal/deathblade.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Perfect peace and calm for the holder - and all who face it.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "55"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      },
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      }
+    ],
+    "recommended_units": [
+      "Caitlyn",
+      "Draven",
+      "THex"
+    ]
+  },
+  {
+    "id": 44,
+    "slug": "dragons-claw",
+    "name": "Dragon's Claw",
+    "icon": "images/items/normal/dragons-claw.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Gain 9.0% max health. Every 2 seconds, heal 2.5% max Health.",
+      "stats": [
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "75"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      },
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      }
+    ],
+    "recommended_units": [
+      "Braum",
+      "Taric",
+      "Galio",
+      "Illaoi",
+      "Nasus",
+      "Nautilus",
+      "Sejuani",
+      "Shen",
+      "TahmKench",
+      "Kennen",
+      "Swain",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 17,
+    "slug": "hand-of-justice",
+    "name": "Hand of Justice",
+    "icon": "images/items/normal/hand-of-justice.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Gain 2 effects:15.0% Attack Damage and 15% Ability Power.12.0% Omnivamp. While above 50% health, double the Attack Damage and Ability Power. While below 50% Health, double the Omnivamp.",
+      "stats": [
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "Ambessa",
+      "Fizz",
+      "Sylas",
+      "BaronNashor",
+      "Diana",
+      "Ekko",
+      "Fiddlesticks",
+      "Gangplank",
+      "Gwen",
+      "Nidalee",
+      "Thresh",
+      "XinZhao",
+      "Yasuo",
+      "Zaahen",
+      "Sett",
+      "Warwick"
+    ]
+  },
+  {
+    "id": 25,
+    "slug": "hextech-gunblade",
+    "name": "Hextech Gunblade",
+    "icon": "images/items/normal/hextech-gunblade.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Heal the lowest percent Health ally for 20.0% of damage dealt. Ally Healing:",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      },
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      }
+    ],
+    "recommended_units": [
+      "Graves",
+      "Sona",
+      "Sylas",
+      "TwistedFate"
+    ]
+  },
+  {
+    "id": 10,
+    "slug": "infinity-edge",
+    "name": "Infinity Edge",
+    "icon": "images/items/normal/infinity-edge.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Abilities can critically strike. If the holder's abilities can already critically strike, gain 10.0% Critical Strike Damage instead.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "35"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "35"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "Lucian",
+      "MissFortune",
+      "Yunara",
+      "BaronNashor",
+      "Briar",
+      "Caitlyn",
+      "Jhin",
+      "Kalista",
+      "Qiyana",
+      "Shyvana",
+      "THex",
+      "Tristana",
+      "Vayne",
+      "XinZhao",
+      "Yasuo",
+      "Zaahen",
+      "Aphelios",
+      "Kindred"
+    ]
+  },
+  {
+    "id": 28,
+    "slug": "ionic-spark",
+    "name": "Ionic Spark",
+    "icon": "images/items/normal/ionic-spark.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "30% Shred enemies within 2 hexes. When enemies cast an Ability, deal magic damage equal to 150% of the Mana spent Shred: Reduce Magic Resist",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "15"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "250"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "35"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      },
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      }
+    ],
+    "recommended_units": [
+      "Blitzcrank",
+      "ChoGath",
+      "Sejuani",
+      "Sett"
+    ]
+  },
+  {
+    "id": 27,
+    "slug": "morellonomicon",
+    "name": "Morellonomicon",
+    "icon": "images/items/normal/morellonomicon.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Attacks and Abilities deal 1% Burn and 33% Wound to enemies for 10 seconds. Burn: Deals a percent of the target's max Health as true damage every second Wound: Reduces healing received",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Anivia",
+      "Fiddlesticks",
+      "Lissandra",
+      "Ryze",
+      "Singed"
+    ]
+  },
+  {
+    "id": 131,
+    "slug": "fimbulwinter",
+    "name": "Protector's Vow",
+    "icon": "images/items/normal/fimbulwinter.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Combat Start: Gain 20 Mana. At 40% Health, gain 15 Mana and a Shield equal to 20% max Health.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "25"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "25"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      },
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      }
+    ],
+    "recommended_units": [
+      "JarvanIV",
+      "Kobuko"
+    ]
+  },
+  {
+    "id": 30,
+    "slug": "rabadons-deathcap",
+    "name": "Rabadon's Deathcap",
+    "icon": "images/items/normal/rabadons-deathcap.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "This humble hat can help you make, or unmake, the world itself.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "50"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      },
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      }
+    ],
+    "recommended_units": [
+      "Fiddlesticks",
+      "Fizz",
+      "TahmKench",
+      "Veigar",
+      "Ziggs"
+    ]
+  },
+  {
+    "id": 33,
+    "slug": "sterak's-gage",
+    "name": "Sterak's Gage",
+    "icon": "images/items/normal/sterak's-gage.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "At 60% Health, gain a Shield equal to 50% of the wearer's maximum Health that rapidly decays over 4 seconds.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "40"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Ambessa",
+      "BaronNashor",
+      "Briar",
+      "Brock",
+      "RekSai",
+      "Renekton",
+      "Shyvana",
+      "Vi",
+      "Warwick"
+    ]
+  },
+  {
+    "id": 12,
+    "slug": "thiefs-gloves",
+    "name": "Thief's Gloves",
+    "icon": "images/items/normal/thiefs-gloves.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Each round: Equip 2 random items. [Consumes 3 item slots.]",
+      "stats": [
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "Sett",
+      "Shyvana",
+      "Swain",
+      "Sylas",
+      "Taric"
+    ]
+  },
+  {
+    "id": 36,
+    "slug": "titans-resolve",
+    "name": "Titan's Resolve",
+    "icon": "images/items/normal/titans-resolve.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Gain 2.0% Attack Damage and 2% Ability Power when attacking or taking damage, stacking up to 25 times. At full stacks, gain 10.0% Damage Amp and gain immunity to crowd control.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "10"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      },
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      }
+    ],
+    "recommended_units": [
+      "Aatrox",
+      "Brock",
+      "Diana",
+      "Gangplank",
+      "Qiyana",
+      "RekSai",
+      "Renekton",
+      "Vi",
+      "Viego"
+    ]
+  },
+  {
+    "id": 22,
+    "slug": "voidstaff",
+    "name": "Void Staff",
+    "icon": "images/items/normal/voidstaff.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Damage from attacks and Abilities 30% Shred the target for 5 seconds. This effect does not stack. Shred: Reduce Magic Resist",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "35"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "15"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      },
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      }
+    ],
+    "recommended_units": [
+      "Annie",
+      "Azir",
+      "Leblanc",
+      "Lulu",
+      "Milio",
+      "Ryze",
+      "Teemo",
+      "Thresh",
+      "Zilean"
+    ]
+  },
+  {
+    "id": 40,
+    "slug": "warmogs-armor",
+    "name": "Warmog's Armor",
+    "icon": "images/items/normal/warmogs-armor.png",
+    "nature": "normal",
+    "rank": "A",
+    "bonus": {
+      "description": "Gain 18.0% max Health.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "500"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Braum",
+      "Kennen",
+      "Taric",
+      "Wukong",
+      "AnnieTibbers",
+      "Blitzcrank",
+      "Darius",
+      "DrMundo",
+      "Galio",
+      "Kobuko",
+      "Leona",
+      "Loris",
+      "Nasus",
+      "Nautilus",
+      "Ornn",
+      "Poppy",
+      "RiftHerald",
+      "Sion",
+      "Yorick",
+      "Swain"
+    ]
+  },
+  {
+    "id": 21,
+    "slug": "adaptive-helm",
+    "name": "Adaptive Helm",
+    "icon": "images/items/normal/adaptive-helm.png",
+    "nature": "normal",
+    "rank": "B",
+    "bonus": {
+      "description": "Gain an additional 15.0% Mana from all sources. The holder gains an additional bonus based on their Role: Tanks and Fighters: Gain 45 Armor and Magic Resistance. Other Roles: Gain 10% Attack Damage and Ability Power.",
+      "stats": [
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "3"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      },
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      }
+    ],
+    "recommended_units": [
+      "Kobuko",
+      "Lissandra",
+      "Milio",
+      "Orianna"
+    ]
+  },
+  {
+    "id": 23,
+    "slug": "archangels-staff",
+    "name": "Archangel's Staff",
+    "icon": "images/items/normal/archangels-staff.png",
+    "nature": "normal",
+    "rank": "B",
+    "bonus": {
+      "description": "Combat start: Gain 20% Ability Power every 5 seconds in combat.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "30"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      },
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      }
+    ],
+    "recommended_units": [
+      "Ahri",
+      "AurelionSol",
+      "KogMaw",
+      "Singed",
+      "Sona"
+    ]
+  },
+  {
+    "id": 41,
+    "slug": "evenshroud",
+    "name": "Evenshroud",
+    "icon": "images/items/normal/evenshroud.png",
+    "nature": "normal",
+    "rank": "B",
+    "bonus": {
+      "description": "30% Sunder enemies within 2 hexes. Gain 25 Armor and Magic Resist for the first 15 seconds of combat. Sunder: Reduce Armor",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "250"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Sejuani"
+    ]
+  },
+  {
+    "id": 14,
+    "slug": "quicksilver",
+    "name": "Quicksilver",
+    "icon": "images/items/normal/quicksilver.png",
+    "nature": "normal",
+    "rank": "B",
+    "bonus": {
+      "description": "Combat Start: Gain immunity to crowd control for 18 seconds. Gain 3.0% stacking Attack Speed every second.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "15"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      },
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      }
+    ],
+    "recommended_units": [
+      "BelVeth",
+      "Graves",
+      "Tryndamere",
+      "Volibear",
+      "Yasuo"
+    ]
+  },
+  {
+    "id": 97,
+    "slug": "radiant-giant-slayer",
+    "name": "Radiant Giant Slayer",
+    "icon": "images/items/radiant/radiant-giant-slayer.png",
+    "nature": "radiant",
+    "rank": "S",
+    "bonus": {
+      "description": "Gain 30.0% additional Damage Amp against Tanks.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "30"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "30"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "30"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Brock",
+      "Jinx",
+      "Kalista",
+      "Kindred",
+      "Sylas"
+    ]
+  },
+  {
+    "id": 100,
+    "slug": "radiant-hextech-gunblade",
+    "name": "Radiant Hextech Gunblade",
+    "icon": "images/items/radiant/radiant-hextech-gunblade.png",
+    "nature": "radiant",
+    "rank": "S",
+    "bonus": {
+      "description": "Heal the lowest percent Health ally for 40.0% of damage dealt. Ally Healing:",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "40"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "40"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Lux",
+      "Mel",
+      "Sylas",
+      "Veigar",
+      "Zoe"
+    ]
+  },
+  {
+    "id": 53,
+    "slug": "radiant-krakens-fury",
+    "name": "Radiant Kraken's Fury",
+    "icon": "images/items/radiant/radiant-krakens-fury.png",
+    "nature": "radiant",
+    "rank": "S",
+    "bonus": {
+      "description": "Attacks grant 7.0% stacking Attack Damage, up to 15 attacks. After 15 attacks, gain 30.0% Attack Speed.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "40"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Aphelios",
+      "Draven",
+      "Jinx",
+      "Kindred",
+      "Yunara"
+    ]
+  },
+  {
+    "id": 245,
+    "slug": "nashors'-tooth-radiant",
+    "name": "Radiant Nashor's Tooth",
+    "icon": "images/items/radiant/nashors'-tooth-radiant.png",
+    "nature": "radiant",
+    "rank": "S",
+    "bonus": {
+      "description": "Attacks grant 4 bonus Mana, increased to 8 if they critically strike.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "35"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "40"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ahri",
+      "Lux",
+      "Malzahar",
+      "Mel",
+      "Ryze"
+    ]
+  },
+  {
+    "id": 108,
+    "slug": "radiant-rabadons-deathcap",
+    "name": "Radiant Rabadon's Deathcap",
+    "icon": "images/items/radiant/radiant-rabadons-deathcap.png",
+    "nature": "radiant",
+    "rank": "S",
+    "bonus": {
+      "description": "It's witnessed - and unleashed - miracles and calamities both.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "100"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Lux",
+      "Mel",
+      "Ryze",
+      "Sylas",
+      "Veigar"
+    ]
+  },
+  {
+    "id": 109,
+    "slug": "redbuff_radiant",
+    "name": "Radiant Red Buff",
+    "icon": "images/items/radiant/redbuff_radiant.png",
+    "nature": "radiant",
+    "rank": "S",
+    "bonus": {
+      "description": "Attacks and Abilities 2% Burn and 33% Wound enemies for 5 seconds. Burn: Deals a percent of the target's max Health as true damage every second Wound: Reduces healing received",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "90"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Azir",
+      "Jinx",
+      "Lucian",
+      "Mel",
+      "Ryze"
+    ]
+  },
+  {
+    "id": 90,
+    "slug": "radiant-blue-buff",
+    "name": "Radiant Blue Buff",
+    "icon": "images/items/radiant/radiant-blue-buff.png",
+    "nature": "radiant",
+    "rank": "A",
+    "bonus": {
+      "description": "Gain 20.0% additional Attack Damage and Ability Power from all sources.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "30"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "30"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "10"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Annie",
+      "Kalista",
+      "Mel",
+      "Ryze",
+      "Veigar"
+    ]
+  },
+  {
+    "id": 104,
+    "slug": "radiant-last-whisper",
+    "name": "Radiant Last Whisper",
+    "icon": "images/items/radiant/radiant-last-whisper.png",
+    "nature": "radiant",
+    "rank": "A",
+    "bonus": {
+      "description": "Damage from attacks and Abilities 30% Sunder the target for the rest of combat. This effect does not stack. Sunder: Reduce Armor",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "45"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "40"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "40"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Brock",
+      "Jinx",
+      "Kalista",
+      "Kindred",
+      "Lucian"
+    ]
+  },
+  {
+    "id": 112,
+    "slug": "radiant-spear-of-shojin",
+    "name": "Radiant Spear of Shojin",
+    "icon": "images/items/radiant/radiant-spear-of-shojin.png",
+    "nature": "radiant",
+    "rank": "A",
+    "bonus": {
+      "description": "Attacks grant 10 bonus Mana.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "30"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "30"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Annie",
+      "Kalista",
+      "Mel",
+      "Ryze",
+      "Veigar"
+    ]
+  },
+  {
+    "id": 51,
+    "slug": "radiant-spirit-visage",
+    "name": "Radiant Spirit Visage",
+    "icon": "images/items/radiant/radiant-spirit-visage.png",
+    "nature": "radiant",
+    "rank": "A",
+    "bonus": {
+      "description": "Regenerate 5.0% of missing Health each second.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "700"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "4"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Braum",
+      "Leona",
+      "Swain",
+      "Taric",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 115,
+    "slug": "radiant-thiefs-gloves",
+    "name": "Radiant Thiefs Gloves",
+    "icon": "images/items/radiant/radiant-thiefs-gloves.png",
+    "nature": "radiant",
+    "rank": "A",
+    "bonus": {
+      "description": "Each round: Equip 2 random Radiant items. [Consumes 3 item slots.]",
+      "stats": [
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Brock",
+      "Fizz",
+      "Sett",
+      "Shyvana",
+      "Sylas"
+    ]
+  },
+  {
+    "id": 93,
+    "slug": "radiant-deathblade",
+    "name": "Radiant Deathblade",
+    "icon": "images/items/radiant/radiant-deathblade.png",
+    "nature": "radiant",
+    "rank": "B",
+    "bonus": {
+      "description": "It glows in the presence of enemies. Or friends. Or anything alive, really.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ambessa",
+      "Brock",
+      "Jinx",
+      "Kalista",
+      "Kindred"
+    ]
+  },
+  {
+    "id": 116,
+    "slug": "radiant-titans-resolve",
+    "name": "Radiant Titan's Resolve",
+    "icon": "images/items/radiant/radiant-titans-resolve.png",
+    "nature": "radiant",
+    "rank": "B",
+    "bonus": {
+      "description": "Gain 4.0% Attack Damage and 4% Ability Power when attacking or taking damage, stacking up to 25 times. At full stacks, gain 20.0% Damage Amp and gain immunity to crowd control.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "40"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Brock",
+      "Darius",
+      "Sylas",
+      "Warwick",
+      "Yone"
+    ]
+  },
+  {
+    "id": 244,
+    "slug": "jak'sho-the-protean",
+    "name": "Radiant Adaptive Helm",
+    "icon": "images/items/radiant/jak'sho-the-protean.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain an additional 30.0% Mana from all sources. The wearer gains an additional bonus based on their Role: Tank/Fighter: Gain 100 Armor and Magic Resistance. Marksman/Caster: Gain 25% Attack Damage and Ability Power.",
+      "stats": [
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "40"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "6"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 88,
+    "slug": "radiant-archangels-staff",
+    "name": "Radiant Archangel's Staff",
+    "icon": "images/items/radiant/radiant-archangels-staff.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Combat start: Gain 40% Ability Power every 5 seconds in combat.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "60"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 89,
+    "slug": "radiant-bloodthirster",
+    "name": "Radiant Bloodthirster",
+    "icon": "images/items/radiant/radiant-bloodthirster.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Once per combat: At 40% Health, gain a 50% max Health Shield that lasts up to 5 seconds.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "30"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "30"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "40"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 91,
+    "slug": "radiant-bramble-vest",
+    "name": "Radiant Bramble Vest",
+    "icon": "images/items/radiant/radiant-bramble-vest.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 18.0% max health. Take 10.0% reduced damage from attacks. When struck by any attack, deal 200 magic damage to all adjacent enemies. Cooldown: 2 seconds",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "130"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 248,
+    "slug": "royal-crownshield",
+    "name": "Radiant Crownguard",
+    "icon": "images/items/radiant/royal-crownshield.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Combat Start: Gain a 50% max Health Shield for 8 seconds. When the Shield expires, gain 50% Ability Power.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "40"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "40"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "200"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 82,
+    "slug": "radiant-dragons-claw",
+    "name": "Radiant Dragon's Claw",
+    "icon": "images/items/radiant/radiant-dragons-claw.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 22.0% max health. Every 2 seconds, heal 5% max Health.",
+      "stats": [
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 98,
+    "slug": "radiant-edge-of-night",
+    "name": "Radiant Edge of Night",
+    "icon": "images/items/radiant/radiant-edge-of-night.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "At 60% Health, briefly become untargetable, shed negative effects, and heal all missing health.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "30"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "30"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "30"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "40"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 247,
+    "slug": "equinox",
+    "name": "Radiant Evenshroud",
+    "icon": "images/items/radiant/equinox.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "30% Sunder enemies within 3 hexes. Gain 50 Armor and Magic Resist for the first 20 seconds of combat. Sunder: Reduce Armor",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "500"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "40"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 136,
+    "slug": "radiant-gargoyle-stoneplate",
+    "name": "Radiant Gargoyle's Stoneplate",
+    "icon": "images/items/radiant/radiant-gargoyle-stoneplate.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 25 Armor and 25 Magic Resist for each enemy targeting the holder.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "60"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "60"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 123,
+    "slug": "radiant-guinsoos-rageblade",
+    "name": "Radiant Guinsoo's Rageblade",
+    "icon": "images/items/radiant/radiant-guinsoos-rageblade.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 14% stacking Attack Speed every second.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 99,
+    "slug": "radiant-hand-of-justice",
+    "name": "Radiant Hand of Justice",
+    "icon": "images/items/radiant/radiant-hand-of-justice.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 2 effects:30.0% Attack Damage and 30% Ability Power.24.0% Omnivamp. While above 50% health, double the Attack Damage and Ability Power. While below 50% Health, double the Omnivamp.",
+      "stats": [
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "40"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 101,
+    "slug": "radiant-infinity-edge",
+    "name": "Radiant Infinity Edge",
+    "icon": "images/items/radiant/radiant-infinity-edge.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Abilities can critically strike. If the holder's abilities can already critically strike, gain 10.0% Critical Strike Damage instead.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "75"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "75"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 102,
+    "slug": "radiant-ionic-spark",
+    "name": "Radiant Ionic Spark",
+    "icon": "images/items/radiant/radiant-ionic-spark.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "30% Shred enemies within 2 hexes. When enemies cast an Ability, deal magic damage equal to 300% of the Mana spent. [Direct damage item] Shred: Reduce Magic Resist",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "30"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "500"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "70"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 103,
+    "slug": "radiant-jeweled-gauntlet",
+    "name": "Radiant Jeweled Gauntlet",
+    "icon": "images/items/radiant/radiant-jeweled-gauntlet.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Abilities can critically strike. If the holder's abilities can already critically strike, gain 10.0% Critical Strike Damage instead.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "75"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "75"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 106,
+    "slug": "radiant-morellonomicon",
+    "name": "Radiant Morellonomicon",
+    "icon": "images/items/radiant/radiant-morellonomicon.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Attacks and Abilities deal 2% Burn and 33% Wound to enemies for 10 seconds. Burn: Deals a percent of the target's max Health as true damage every second Wound: Reduces healing received",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "40"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 135,
+    "slug": "radiant-protectors-vow",
+    "name": "Radiant Protector's Vow",
+    "icon": "images/items/radiant/radiant-protectors-vow.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Combat Start: Gain 40 Mana. At 40% Health, gain 30 Mana and a Shield equal to 40% max Health.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "50"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "50"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 107,
+    "slug": "radiant-quicksilver",
+    "name": "Radiant Quicksilver",
+    "icon": "images/items/radiant/radiant-quicksilver.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Combat Start: Gain immunity to crowd control for 45 seconds. Gain 6.0% stacking Attack Speed every second.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "30"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "40"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "40"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 251,
+    "slug": "legacy-of-the-colossus",
+    "name": "Radiant Steadfast Heart",
+    "icon": "images/items/radiant/legacy-of-the-colossus.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 20.0% durability. While above 50% Health, instead gain 36.0% Durability.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "40"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "40"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "600"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 236,
+    "slug": "sterak's-megashield",
+    "name": "Radiant Sterak's Gage",
+    "icon": "images/items/radiant/sterak's-megashield.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "At 60% Health, gain a Shield equal to 100% of the wearer's maximum Health that rapidly decays over 6 seconds.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "80"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "600"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 227,
+    "slug": "stride-breaker",
+    "name": "Radiant Striker's Flail",
+    "icon": "images/items/radiant/stride-breaker.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Critical Strikes grant 10.0% Damage Amp for 5 seconds, stacking up to 4 times.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "40"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 114,
+    "slug": "radiant-sunfire-cape",
+    "name": "Radiant Sunfire Cape",
+    "icon": "images/items/radiant/radiant-sunfire-cape.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 16.0% max Health. Every 2 seconds, deal 2% Burn and 33% Wound to an enemy within 2 hexes for 10 seconds. Burn: Deals a percent of the target's max Health as true damage every second Wound: reduces healing received",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "40"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 87,
+    "slug": "radiant-void-staff",
+    "name": "Radiant Void Staff",
+    "icon": "images/items/radiant/radiant-void-staff.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Damage from attacks and Abilities 30% Shred the target for the rest of combat. This effect does not stack. Shred: Reduce Magic Resist",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "75"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "30"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 118,
+    "slug": "radiant-warmogs-armor",
+    "name": "Radiant Warmog's Armor",
+    "icon": "images/items/radiant/radiant-warmogs-armor.png",
+    "nature": "radiant",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 36.0% max Health.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "1200"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 79,
+    "slug": "deaths-defiance",
+    "name": "Death's Defiance",
+    "icon": "images/items/artifact/deaths-defiance.png",
+    "nature": "artifact",
+    "rank": "S",
+    "bonus": {
+      "description": "50% of the damage the holder receives is instead dealt over 4 seconds as non-lethal damage. [Unique - only 1 per champion]",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "25"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "15"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "40"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ornn",
+      "Shyvana",
+      "Thresh",
+      "Warwick",
+      "Yone"
+    ]
+  },
+  {
+    "id": 81,
+    "slug": "gold-collector",
+    "name": "Gold Collector",
+    "icon": "images/items/artifact/gold-collector.png",
+    "nature": "artifact",
+    "rank": "S",
+    "bonus": {
+      "description": "Attacks and Abilities execute enemies below 12% of their maximum Health. Executions have a 33% chance to drop 1 gold. Gold Collected: g [Unique - only 1 per champion]",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "40"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Jinx",
+      "Kalista",
+      "Kindred",
+      "Lucian",
+      "MissFortune"
+    ]
+  },
+  {
+    "id": 215,
+    "slug": "indomitable-gauntlet",
+    "name": "Indomitable Gauntlet",
+    "icon": "images/items/artifact/indomitable-gauntlet.png",
+    "nature": "artifact",
+    "rank": "S",
+    "bonus": {
+      "description": "The holder's Move Speed is drastically reduced. Gain 15.0% max Health, stun immunity, and pull the current target into melee range.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "500"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Braum",
+      "Ornn",
+      "Swain",
+      "Taric",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 74,
+    "slug": "infinity-force",
+    "name": "Infinity Force",
+    "icon": "images/items/artifact/infinity-force.png",
+    "nature": "artifact",
+    "rank": "S",
+    "bonus": {
+      "description": "Tons of EVERYTHING!",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "30"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "30"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "30"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "30"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "30"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ornn",
+      "Shyvana",
+      "Sylas",
+      "Warwick",
+      "Yone"
+    ]
+  },
+  {
+    "id": 64,
+    "slug": "zhonyas-paradox",
+    "name": "Zhonya's Paradox",
+    "icon": "images/items/artifact/zhonyas-paradox.png",
+    "nature": "artifact",
+    "rank": "S",
+    "bonus": {
+      "description": "Once per combat at 40% Health, become invulnerable and untargetable for 3 seconds. [Unique - only 1 per champion]",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "25"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "25"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "25"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Fiddlesticks",
+      "Ornn",
+      "Swain",
+      "Sylas",
+      "Thresh"
+    ]
+  },
+  {
+    "id": 175,
+    "slug": "fishbones1",
+    "name": "Fishbones",
+    "icon": "images/items/artifact/fishbones1.png",
+    "nature": "artifact",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder's attacks target random enemies.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "50"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "50"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Jinx",
+      "Kalista",
+      "Kindred",
+      "Lucian",
+      "Ornn"
+    ]
+  },
+  {
+    "id": 205,
+    "slug": "hellfire-hatchet",
+    "name": "Hellfire Hatchet",
+    "icon": "images/items/artifact/hellfire-hatchet.png",
+    "nature": "artifact",
+    "rank": "A",
+    "bonus": {
+      "description": "Attacks deal 2.0% of the holder's max Health as bonus physical damage. For every 1.0% missing Health, gain 1.0% Attack Speed.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ambessa",
+      "Ornn",
+      "Shyvana",
+      "Volibear",
+      "Warwick"
+    ]
+  },
+  {
+    "id": 180,
+    "slug": "lich-bane1",
+    "name": "Lich Bane",
+    "icon": "images/items/artifact/lich-bane1.png",
+    "nature": "artifact",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder's first attack after each Ability cast deals bonus magic damage. Damage increases based on Stage.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "55"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "10"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ahri",
+      "Azir",
+      "Fizz",
+      "Seraphine",
+      "Sylas"
+    ]
+  },
+  {
+    "id": 166,
+    "slug": "lightshield-crest1",
+    "name": "Lightshield Crest",
+    "icon": "images/items/artifact/lightshield-crest1.png",
+    "nature": "artifact",
+    "rank": "A",
+    "bonus": {
+      "description": "Every 3 seconds, Shields the lowest percent Health ally for 70% of the holder's combined Armor and Magic Resist for 5 seconds. On death grants this shield to all allies.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "55"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "55"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Braum",
+      "Ornn",
+      "Swain",
+      "Taric",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 171,
+    "slug": "mittens1",
+    "name": "Mittens",
+    "icon": "images/items/artifact/mittens1.png",
+    "nature": "artifact",
+    "rank": "A",
+    "bonus": {
+      "description": "Shrinks the holder, granting them increased movement speed and immunity to Chill, Burn, and Wound. Chill: reduce Attack Speed Burn: Deals a percent of the target's max Health as true damage every second Wound: Reduces healing received",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "65"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ornn",
+      "Shyvana",
+      "Volibear",
+      "Warwick",
+      "Yone"
+    ]
+  },
+  {
+    "id": 202,
+    "slug": "the-darkin-staff",
+    "name": "The Darkin Staff",
+    "icon": "images/items/artifact/the-darkin-staff.png",
+    "nature": "artifact",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Darkin trait. For every 20 Mana spent, launch a tendril at enemies near the current target, dealing magic damage. Damage increases based on Stage",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "35"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "3"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ahri",
+      "Leblanc",
+      "Lux",
+      "Mel",
+      "Seraphine"
+    ]
+  },
+  {
+    "id": 76,
+    "slug": "titanic-hydra",
+    "name": "Titanic Hydra",
+    "icon": "images/items/artifact/titanic-hydra.png",
+    "nature": "artifact",
+    "rank": "A",
+    "bonus": {
+      "description": "Attacks deal 3% of the holder's max Health plus 8% of their Attack Damage as bonus physical damage to the target and adjacent enemies.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Ornn",
+      "Shyvana",
+      "Sion",
+      "Volibear",
+      "Warwick"
+    ]
+  },
+  {
+    "id": 182,
+    "slug": "wits-end1",
+    "name": "Wit's End",
+    "icon": "images/items/artifact/wits-end1.png",
+    "nature": "artifact",
+    "rank": "A",
+    "bonus": {
+      "description": "Attacks deal bonus magic damage. Heals the holder for 30% of all magic damage dealt. Damage increases based on Stage.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "25"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "400"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Fizz",
+      "Ornn",
+      "Sylas",
+      "Thresh",
+      "Yone"
+    ]
+  },
+  {
+    "id": 228,
+    "slug": "aegis-of-dawn",
+    "name": "Aegis of Dawn",
+    "icon": "images/items/artifact/aegis-of-dawn.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Every 2.5 seconds, steal 5 Armor from enemies within 1-hex and heal % of the holder's Armor. If Aegis of Dusk is also equipped, trigger this item's effect every 1.25 seconds instead. Healing increases based on Stage.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "50"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 212,
+    "slug": "aegis-of-dusk",
+    "name": "Aegis of Dusk",
+    "icon": "images/items/artifact/aegis-of-dusk.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Every 2.5 seconds, steal 5 Magic Resist from enemies within 1 hex and deal % of the holder's Magic Resist as magic damage. If Aegis of Dawn is also equipped, trigger this item's effect every 1.25 seconds instead. Damage increases based on Stage.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "70"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 179,
+    "slug": "blighting-jewel1",
+    "name": "Blighting Jewel",
+    "icon": "images/items/artifact/blighting-jewel1.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Dealing magic damage reduces the target's Magic Resist by 2. If their Magic Resist is 0, grant the holder 2 Mana instead. Ability damage can only trigger on each enemy once every 0.5 seconds.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "60"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 204,
+    "slug": "cappa-juice",
+    "name": "Cappa Juice",
+    "icon": "images/items/artifact/cappa-juice.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "The holder dons a Hat on each takedown. The holder gains 1% Attack Damage and Ability Power per Hat. On death lose 20.0% of all Hats. (Hats: )",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "25"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "25"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 203,
+    "slug": "crown-of-demacia",
+    "name": "Crown of Demacia",
+    "icon": "images/items/artifact/crown-of-demacia.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "If the holder is a Tank, regenerate 3-21% maximum Health every 2 seconds (based on stage). Otherwise, gain 10% Attack Damage and Ability Power every 2 seconds instead. If the holder of this item dies, you instantly lose the fight. You can remove this item by benching the holder.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "30"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 95,
+    "slug": "dawncore",
+    "name": "Dawncore",
+    "icon": "images/items/artifact/dawncore.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Reduce the holder's max Mana by 10. Subsequent spellcasts reduce max Mana by 10.0%, to a minimum of 10.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "15"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "15"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 147,
+    "slug": "eternal-pact",
+    "name": "Eternal Pact",
+    "icon": "images/items/artifact/eternal-pact.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Combat start: Form a pact with the highest Health allied champion, if they die, gain 10 Mana regen and 40% Ability Power. When the ally uses their ability, gain 6 Mana. Every 6 seconds, shield your ally for 150% of the holder's Ability Power.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "40"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "1"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 213,
+    "slug": "flickerblade",
+    "name": "Flickerblade",
+    "icon": "images/items/artifact/flickerblade.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Attacks grant 5.0% stacking Attack Speed. Every 5 attacks also grant 2.0% Attack Damage and 2% Ability Power.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "10"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "12"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 69,
+    "slug": "gamblers-blade2",
+    "name": "Gambler's Blade",
+    "icon": "images/items/artifact/gamblers-blade2.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Grant 1.0% bonus Attack Speed per gold in your bank (up to 30 gold). Each attack has a 6.0% chance to drop 1 gold. Gold generated this game: [Unique - only 1 per champion]",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "45"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 168,
+    "slug": "horizon-focus1",
+    "name": "Horizon Focus",
+    "icon": "images/items/artifact/horizon-focus1.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Stunning an enemy causes lightning to strike them, dealing 30% of their max Health as magic damage.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "250"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "20"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 195,
+    "slug": "hullcrusher",
+    "name": "Hullcrusher",
+    "icon": "images/items/artifact/hullcrusher.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Combat Start: If there are no adjacent allies, gain 400 Health, 10% Attack Damage, and 10% Ability Power.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "60"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "60"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 181,
+    "slug": "luden's-tempest1",
+    "name": "Luden's Tempest",
+    "icon": "images/items/artifact/luden's-tempest1.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "100% of overkill damage plus 100 is dealt as magic damage to the three enemies nearest the target.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "50"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "50"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 70,
+    "slug": "moguls-mail2",
+    "name": "Mogul's Mail",
+    "icon": "images/items/artifact/moguls-mail2.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Grants 1 Armor, 1 Magic Resist, and 5 Health when taking damage, stacking up to 35 times. At full stacks, grant 1 gold and continue gaining 1 gold every 11 seconds. Gold generated this game: [Unique - only 1 per champion]",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 170,
+    "slug": "prowler's-claw1",
+    "name": "Prowler's Claw",
+    "icon": "images/items/artifact/prowler's-claw1.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "After killing a target, shed negative effects and dash to the farthest target within 4 hexes. The next 2 critical attacks deal 50% bonus Critical Strike Damage.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "35"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "45"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "200"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 173,
+    "slug": "rapid-firecannon1",
+    "name": "Rapid Firecannon",
+    "icon": "images/items/artifact/rapid-firecannon1.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Gain +1 Attack Range, increased by 1 whenever the holder kills an enemy.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "65"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 178,
+    "slug": "seeker's-armguard1",
+    "name": "Seeker's Armguard",
+    "icon": "images/items/artifact/seeker's-armguard1.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Takedowns increase the holder's Armor, Magic Resist, and Ability Power by 20.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "25"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "10"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "10"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 177,
+    "slug": "silvermere-dawn1",
+    "name": "Silvermere Dawn",
+    "icon": "images/items/artifact/silvermere-dawn1.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Grants immunity to Stuns and the holder's attacks Stun the target for 0.8 seconds. The holder's Attack Speed is locked at 0.5.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "1"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "80"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "80"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 196,
+    "slug": "snipers_focus",
+    "name": "Sniper's Focus",
+    "icon": "images/items/artifact/snipers_focus.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Gain 40.0% Damage Amp against targets 4 or more hexes away.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "3"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 77,
+    "slug": "statikk-shiv",
+    "name": "Statikk Shiv",
+    "icon": "images/items/artifact/statikk-shiv.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Every 3rd attack deals 30 + 40.0% of the holder's Ability Power as additional magic damage to 4 enemies.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "15"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "50"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 164,
+    "slug": "talisman-of-ascension1",
+    "name": "Talisman Of Ascension",
+    "icon": "images/items/artifact/talisman-of-ascension1.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "After 22 seconds gain 100% max Health and 120.0% Damage Amp for the rest of combat.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "450"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 199,
+    "slug": "the-darkin-aegis",
+    "name": "The Darkin Aegis",
+    "icon": "images/items/artifact/the-darkin-aegis.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "The holder gains the Darkin trait. Every second, deal 1% of the holder's max Health as magic damage to enemies within 2 hexes. When units die in the area, heal for 2.0% max Health.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "25"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "200"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "25"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 140,
+    "slug": "the-darkin-bow",
+    "name": "The Darkin Bow",
+    "icon": "images/items/artifact/the-darkin-bow.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "The holder gains the Darkin trait. Every 10 attacks, fire an arrow that passes through the current target, dealing 500% Basic Attack Damage as physical damage, reduced by 33.0% per enemy hit.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "10"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "25"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 222,
+    "slug": "the-darkin-scythe",
+    "name": "The Darkin Scythe",
+    "icon": "images/items/artifact/the-darkin-scythe.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "The holder gains the Darkin trait. Every 4 seconds, slash adjacent enemies for 150% Basic Attack Damage as physical damage. On takedown or when the holder dashes, slash again. Dash Cooldown: 1.5 second",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "30"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "250"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 211,
+    "slug": "void-gauntlet",
+    "name": "Void Gauntlet",
+    "icon": "images/items/artifact/void-gauntlet.png",
+    "nature": "artifact",
+    "rank": null,
+    "bonus": {
+      "description": "Combat start: Store 30.0% max Health and 2.5% more every second. On death, unleash the stored Health as magic damage split between enemies within 4-hexes. [Unique - only 1 per champion]",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 186,
+    "slug": "ixtal-emblem",
+    "name": "Ixtal Emblem",
+    "icon": "images/items/emblem/ixtal-emblem.png",
+    "nature": "emblem",
+    "rank": "S",
+    "bonus": {
+      "description": "The holder gains the Ixtal trait.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "250"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 66,
+    "slug": "arcanistemblem",
+    "name": "Arcanist Emblem",
+    "icon": "images/items/emblem/arcanistemblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Arcanist trait. On kill, refund 20.0% of the holder's max Mana.",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "25"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 50,
+    "slug": "bruiseremblem",
+    "name": "Bruiser Emblem",
+    "icon": "images/items/emblem/bruiseremblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Bruiser trait. Every second, deal 2.0% of the holder's max Health as magic damage in a 1-hex radius.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Braum",
+      "Kennen",
+      "Nautilus",
+      "Swain",
+      "Taric"
+    ]
+  },
+  {
+    "id": 232,
+    "slug": "demacia-emblem",
+    "name": "Demacia Emblem",
+    "icon": "images/items/emblem/demacia-emblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Demacia trait.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "15"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "15"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "3"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 46,
+    "slug": "ionia-emblem",
+    "name": "Ionia Emblem",
+    "icon": "images/items/emblem/ionia-emblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Ionia trait.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "25"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "25"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Needlessly Large Rod",
+        "slug": "needlessly-large-rod"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 19,
+    "slug": "juggernaut-emblem",
+    "name": "Juggernaut Emblem",
+    "icon": "images/items/emblem/juggernaut-emblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Juggernaut trait and 10.0% of other Juggernaut's max Health when they die.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "25"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "25"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      }
+    ],
+    "recommended_units": [
+      "Garen",
+      "Kennen",
+      "RiftHerald",
+      "Taric",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 61,
+    "slug": "noxus-emblem",
+    "name": "Noxus Emblem",
+    "icon": "images/items/emblem/noxus-emblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Noxus trait.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "25"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "25"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      }
+    ],
+    "recommended_units": [
+      "Azir",
+      "Fiddlesticks",
+      "Kindred",
+      "Kobuko",
+      "Shyvana"
+    ]
+  },
+  {
+    "id": 197,
+    "slug": "piltoveremblem1",
+    "name": "Piltover Emblem",
+    "icon": "images/items/emblem/piltoveremblem1.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Piltover trait.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 94,
+    "slug": "quickstriker-emblem",
+    "name": "Quickstriker Emblem",
+    "icon": "images/items/emblem/quickstriker-emblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Quickstriker trait. On takedown, dash to the nearest target and heal for 10.0% maximum Health.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "25"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      }
+    ],
+    "recommended_units": [
+      "Ambessa",
+      "Jinx",
+      "Lucian",
+      "Shyvana",
+      "Volibear"
+    ]
+  },
+  {
+    "id": 63,
+    "slug": "vanquisher-emblem",
+    "name": "Vanquisher Emblem",
+    "icon": "images/items/emblem/vanquisher-emblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Vanquisher trait and a 3% chance to drop 1 gold on critical strikes. Cooldown: 0.75 seconds Gold generated this game:",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "15"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "15"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "BelVeth",
+      "Mel",
+      "MissFortune",
+      "Seraphine",
+      "Thresh"
+    ]
+  },
+  {
+    "id": 48,
+    "slug": "void-emblem",
+    "name": "Void Emblem",
+    "icon": "images/items/emblem/void-emblem.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Void trait.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "10"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "10"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Recurve Bow",
+        "slug": "recurve-bow"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 201,
+    "slug": "warden",
+    "name": "Warden emblem",
+    "icon": "images/items/emblem/warden.png",
+    "nature": "emblem",
+    "rank": "A",
+    "bonus": {
+      "description": "The holder gains the Warden trait. When a Shield on the holder breaks, heal them for 30.0% of the Shield's initial value.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "250"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Sejuani",
+      "Swain",
+      "TahmKench",
+      "Taric",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 59,
+    "slug": "bilgewater-emblem",
+    "name": "Bilgewater Emblem",
+    "icon": "images/items/emblem/bilgewater-emblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Bilgewater trait.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "10"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "10"
+        },
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "2"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 160,
+    "slug": "defender-emblem",
+    "name": "Defender Emblem",
+    "icon": "images/items/emblem/defender-emblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Defender trait. Combat Start: Gain 35.0% more Armor OR Magic Resist from all sources, depending on whichever is higher.",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "30"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "30"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "Chain Vest",
+        "slug": "chain-vest"
+      }
+    ],
+    "recommended_units": [
+      "Braum",
+      "Loris",
+      "Swain",
+      "Taric",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 198,
+    "slug": "disruptor-emblem",
+    "name": "Disruptor Emblem",
+    "icon": "images/items/emblem/disruptor-emblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Disruptor trait. Abilities deal 20.0% bonus magic damage over 3 seconds.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Fiddlesticks",
+      "Leblanc",
+      "Lissandra",
+      "Ryze",
+      "Zoe"
+    ]
+  },
+  {
+    "id": 65,
+    "slug": "freljord-emblem",
+    "name": "Freljord Emblem",
+    "icon": "images/items/emblem/freljord-emblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Freljord trait.",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "400"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Giant's Belt",
+        "slug": "giants-belt"
+      }
+    ],
+    "recommended_units": [
+      "Loris",
+      "Ornn",
+      "Swain",
+      "Taric",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 190,
+    "slug": "gunslinger-emblem",
+    "name": "Gunslinger Emblem",
+    "icon": "images/items/emblem/gunslinger-emblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Gunslinger trait. Dealing physical damage to an enemy reduces their Armor by 2.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Draven",
+      "Gangplank",
+      "Kindred",
+      "Shyvana",
+      "Warwick"
+    ]
+  },
+  {
+    "id": 230,
+    "slug": "invokeremblem",
+    "name": "Invoker Emblem",
+    "icon": "images/items/emblem/invokeremblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Invoker trait. On cast, gain Ability Power equal to 10.0% of Mana spent.",
+      "stats": [
+        {
+          "name": "Mana",
+          "slug": "mana",
+          "value": "3"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "Tear of the Goddess",
+        "slug": "tear-of-the-goddess"
+      }
+    ],
+    "recommended_units": [
+      "Annie",
+      "Lux",
+      "Mel",
+      "Ryze",
+      "Seraphine"
+    ]
+  },
+  {
+    "id": 58,
+    "slug": "slayer-emblem",
+    "name": "Slayer Emblem",
+    "icon": "images/items/emblem/slayer-emblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Slayer trait. Upon dropping below 25% max Health, Gain 20 Mana and a 30.0% max Health Shield.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Frying Pan",
+        "slug": "frying_pan"
+      },
+      {
+        "name": "B.F. Sword",
+        "slug": "bf-sword"
+      }
+    ],
+    "recommended_units": []
+  },
+  {
+    "id": 47,
+    "slug": "yordle-emblem",
+    "name": "Yordle Emblem",
+    "icon": "images/items/emblem/yordle-emblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Yordle trait.",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        },
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "30"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "30"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Negatron Cloak",
+        "slug": "negatron-cloak"
+      }
+    ],
+    "recommended_units": [
+      "Shyvana",
+      "Swain",
+      "Sylas",
+      "Volibear",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 56,
+    "slug": "zaun-emblem",
+    "name": "Zaun Emblem",
+    "icon": "images/items/emblem/zaun-emblem.png",
+    "nature": "emblem",
+    "rank": "B",
+    "bonus": {
+      "description": "The holder gains the Zaun trait.",
+      "stats": [
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "350"
+        }
+      ]
+    },
+    "recipe": [
+      {
+        "name": "Spatula",
+        "slug": "spatula"
+      },
+      {
+        "name": "Sparring Gloves",
+        "slug": "sparring-gloves"
+      }
+    ],
+    "recommended_units": [
+      "Kindred",
+      "Lucian",
+      "Shyvana",
+      "Swain",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 161,
+    "slug": "longshot-emblem",
+    "name": "Longshot Emblem",
+    "icon": "images/items/emblem/longshot-emblem.png",
+    "nature": "emblem",
+    "rank": "C",
+    "bonus": {
+      "description": "The holder gains the Longshot trait and +1 Attack Range.",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "150"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": []
+  },
+  {
+    "id": 224,
+    "slug": "barknuckles",
+    "name": "Barknuckles",
+    "icon": "images/items/trait/barknuckles.png",
+    "nature": "trait",
+    "rank": "C",
+    "bonus": {
+      "description": "While above 50% Health, double the Armor and Magic Resist bonuses from this item. Every 4 seconds, deal magic damage equal to 50% of current total Armor and Magic Resist to the 2 nearest enemies. Recommended holder: Nautilus",
+      "stats": [
+        {
+          "name": "Armor",
+          "slug": "armor",
+          "value": "35"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "300"
+        },
+        {
+          "name": "MR",
+          "slug": "magic-resist",
+          "value": "35"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Nautilus",
+      "Illaoi",
+      "Ornn",
+      "TahmKench",
+      "Wukong"
+    ]
+  },
+  {
+    "id": 210,
+    "slug": "blackmarket-explosives",
+    "name": "Blackmarket Explosives",
+    "icon": "images/items/trait/blackmarket-explosives.png",
+    "nature": "trait",
+    "rank": "C",
+    "bonus": {
+      "description": "Every 5 seconds, deal 15 + 12.0% of damage dealt within the last 5 seconds as magic damage to current target and 2 nearest enemies. Recommended holder: Fizz",
+      "stats": [
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        },
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "10"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Fizz",
+      "MissFortune",
+      "Ryze",
+      "TahmKench",
+      "TwistedFate"
+    ]
+  },
+  {
+    "id": 249,
+    "slug": "captains-brew",
+    "name": "Captain's Brew",
+    "icon": "images/items/trait/captains-brew.png",
+    "nature": "trait",
+    "rank": "C",
+    "bonus": {
+      "description": "Attacks and Abilities Burn and Chill enemies for 2 seconds. Recommended holder: Twisted Fate",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "10"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "10"
+        },
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "100"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "TwistedFate",
+      "Fizz",
+      "Gangplank",
+      "MissFortune",
+      "TahmKench"
+    ]
+  },
+  {
+    "id": 221,
+    "slug": "cutthroats-cutlass",
+    "name": "Cutthroat's Cutlass",
+    "icon": "images/items/trait/cutthroats-cutlass.png",
+    "nature": "trait",
+    "rank": "C",
+    "bonus": {
+      "description": "Damaging enemies causes them to Bleed, dealing an additional 35.0% damage over 4 seconds. Recommended holder: Gangplank",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Gangplank",
+      "Fizz",
+      "MissFortune",
+      "Ryze",
+      "TwistedFate"
+    ]
+  },
+  {
+    "id": 243,
+    "slug": "dead-mans-dagger",
+    "name": "Dead Man's Dagger",
+    "icon": "images/items/trait/dead-mans-dagger.png",
+    "nature": "trait",
+    "rank": "C",
+    "bonus": {
+      "description": "Attacks and Abilities execute enemies below 12.0% Health. On kill, gain 10.0% Attack Damage and 10% Ability Power. Recommended holder: Graves",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "20"
+        },
+        {
+          "name": "AP",
+          "slug": "spell-damage",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Graves",
+      "Fizz",
+      "MissFortune",
+      "Ryze",
+      "TwistedFate"
+    ]
+  },
+  {
+    "id": 238,
+    "slug": "first-mates-flintlock",
+    "name": "First Mate's Flintlock",
+    "icon": "images/items/trait/first-mates-flintlock.png",
+    "nature": "trait",
+    "rank": "C",
+    "bonus": {
+      "description": "Every second during combat, gain 3.0% Attack Damage and 3.0% Attack Speed. Recommended holder: Miss Fortune",
+      "stats": [
+        {
+          "name": "AD",
+          "slug": "attack-damage",
+          "value": "10"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "MissFortune",
+      "Fizz",
+      "Kindred",
+      "Lucian",
+      "TwistedFate"
+    ]
+  },
+  {
+    "id": 229,
+    "slug": "lucky-doubloon",
+    "name": "Lucky Doubloon",
+    "icon": "images/items/trait/lucky-doubloon.png",
+    "nature": "trait",
+    "rank": "C",
+    "bonus": {
+      "description": "On takedown, generate an additional 1. (Earned: ) Recommended holder: Gangplank",
+      "stats": [
+        {
+          "name": "Attack Speed",
+          "slug": "attack-speed",
+          "value": "20"
+        },
+        {
+          "name": "Crit Chance",
+          "slug": "crit",
+          "value": "20"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Gangplank",
+      "Fizz",
+      "Graves",
+      "MissFortune",
+      "TwistedFate"
+    ]
+  },
+  {
+    "id": 209,
+    "slug": "pile-o-citrus",
+    "name": "Pile O' Citrus",
+    "icon": "images/items/trait/pile-o-citrus.png",
+    "nature": "trait",
+    "rank": "C",
+    "bonus": {
+      "description": "Every 7 seconds, heal 15% max Health and shed all negative effects. After 15 seconds, gain 10. Recommended holder: Illaoi",
+      "stats": [
+        {
+          "name": "HP",
+          "slug": "health",
+          "value": "600"
+        }
+      ]
+    },
+    "recipe": [],
+    "recommended_units": [
+      "Illaoi",
+      "Fizz",
+      "Nautilus",
+      "Ornn",
+      "TahmKench"
+    ]
+  }
+]
