@@ -5,8 +5,9 @@ import json
 import os
 import sys
 from collections import defaultdict
+from itertools import combinations
 
-APP_VERSION = "1.2.2"
+APP_VERSION = "1.2.10"
 
 
 def _get_base_dir():
@@ -69,6 +70,92 @@ ROLL_ODDS = {
     11: {1: 0.01, 2: 0.02, 3: 0.12, 4: 0.50, 5: 0.35},
 }
 
+# Unit relationship rules used by recommendation and selection logic.
+# Tibbers can only be played when Annie is already in the team.
+UNIT_DEPENDENCIES = {
+    "AnnieTibbers": {"Annie"},
+}
+# Tibbers becomes available as soon as Annie is in the team.
+AUTO_UNLOCK_DEPENDENCIES = {
+    "AnnieTibbers": {"Annie"},
+}
+# Explicit board-slot overrides for special units.
+# Galio is modeled as a passive joker unit (0 board slot).
+UNIT_SLOT_COST_OVERRIDES = {
+    "Galio": 0,
+    "Annie": 1,
+    "AnnieTibbers": 1,
+}
+UNIT_CATEGORY_OVERRIDES = {
+    "Galio": "joker",
+}
+
+
+def _unit_slot_cost(unit_name):
+    return int(UNIT_SLOT_COST_OVERRIDES.get(unit_name, 1))
+
+
+def _unit_category(unit_name):
+    if unit_name in UNIT_CATEGORY_OVERRIDES:
+        return UNIT_CATEGORY_OVERRIDES[unit_name]
+    if _unit_slot_cost(unit_name) == 0:
+        return "joker"
+    return "normal"
+
+
+def _team_slots_used(team_names):
+    return sum(_unit_slot_cost(name) for name in set(team_names))
+
+
+def _unit_dependencies_met(unit_name, team_names):
+    deps = UNIT_DEPENDENCIES.get(unit_name)
+    if not deps:
+        return True
+    team_set = set(team_names)
+    return set(deps).issubset(team_set)
+
+
+def _team_dependencies_valid(team_names):
+    team_set = set(team_names)
+    for unit_name in team_set:
+        if not _unit_dependencies_met(unit_name, team_set):
+            return False
+    return True
+
+
+def _normalize_team_by_dependencies(team_names):
+    normalized = set(team_names)
+    changed = True
+    while changed:
+        changed = False
+        for unit_name in list(normalized):
+            if not _unit_dependencies_met(unit_name, normalized):
+                normalized.remove(unit_name)
+                changed = True
+    return normalized
+
+
+def _is_unit_auto_unlocked(unit_name, team_names):
+    deps = AUTO_UNLOCK_DEPENDENCIES.get(unit_name)
+    if not deps:
+        return False
+    team_set = set(team_names)
+    return set(deps).issubset(team_set)
+
+
+def _is_unit_unlocked_for_team(unit, unlocked_names, team_names):
+    if not unit.get("locked"):
+        return True
+    if unit["name"] in unlocked_names:
+        return True
+    return _is_unit_auto_unlocked(unit["name"], team_names)
+
+
+def _can_add_unit_to_team(unit_name, team_names):
+    prospective = set(team_names)
+    prospective.add(unit_name)
+    return _team_dependencies_valid(prospective)
+
 
 def load_data():
     with open(os.path.join(DATA_DIR, "units.json"), encoding="utf-8") as f:
@@ -104,11 +191,15 @@ def load_items_data():
 
 def _count_available_for_trait(trait_name, selected_names, unlocked_names, units):
     """Count how many more units with this trait are available to pick."""
+    team_set = set(selected_names)
     count = 0
     for u in units:
-        if u["name"] in selected_names:
+        name = u["name"]
+        if name in team_set:
             continue
-        if u["locked"] and u["name"] not in unlocked_names:
+        if not _is_unit_unlocked_for_team(u, unlocked_names, team_set):
+            continue
+        if not _can_add_unit_to_team(name, team_set):
             continue
         if trait_name in u["traits"]:
             count += 1
@@ -140,7 +231,14 @@ def _trait_quality_value(trait_name, count, thresholds, trait_tiers):
     letter = _trait_quality_letter(trait_name, reached_value, reached_index, thresholds, trait_tiers)
     if not letter:
         return 0.0, None, reached_value, reached_index
-    return TRAIT_QUALITY_SCORES.get(letter, 0.0), letter, reached_value, reached_index
+    base_quality = TRAIT_QUALITY_SCORES.get(letter, 0.0)
+    if reached_value <= 1:
+        breakpoint_multiplier = 1.0
+    else:
+        # Same tier letter is worth more when the breakpoint requires more units.
+        # Example: an S at 11 should outscore an S at 1.
+        breakpoint_multiplier = 1.0 + ((reached_value - 1) / (reached_value + 4))
+    return base_quality * breakpoint_multiplier, letter, reached_value, reached_index
 
 
 DEFAULT_WEIGHTS = {
@@ -152,6 +250,9 @@ DEFAULT_WEIGHTS = {
     "bridge": 1.0,
 }
 DEFAULT_PLANNING_EXTRA_SLOTS = 2
+DEFAULT_MAX_SWAP_REPLACEMENTS = 2
+SWAP_SEED_LIMIT = 6
+SWAP_SCENARIO_BUDGET_PER_TOP_RESULT = 20
 SCENARIO_SORT_MODES = [
     ("score", "scenario_sort_score"),
     ("roll", "scenario_sort_roll"),
@@ -241,7 +342,7 @@ def compute_trait_score(candidate, selected_units, all_units_map, trait_threshol
     used_after_pick.add(candidate["name"])
     slots_left_after_pick = None
     if team_size is not None:
-        slots_left_after_pick = max(0, team_size - len(used_after_pick))
+        slots_left_after_pick = max(0, team_size - _team_slots_used(used_after_pick))
 
     for t in candidate["traits"]:
         current = selected_traits.get(t, 0)
@@ -390,6 +491,34 @@ def _compute_team_traits(team_names, all_units_map):
     return traits
 
 
+def _compute_team_power_score(team_names, all_units_map, trait_thresholds, trait_tiers=None, weights=None):
+    """Estimate current board power from unit tiers + active trait quality."""
+    w = weights or DEFAULT_WEIGHTS
+    tier_w = w.get("tier", 1.0)
+    quality_w = w.get("traits", 1.0)
+    multi_w = w.get("multi_synergy", 1.0)
+
+    team_set = set(team_names)
+    tier_score = 0.0
+    for name in team_set:
+        unit = all_units_map.get(name)
+        if unit:
+            tier_score += TIER_SCORES.get(unit.get("tier"), 0)
+
+    trait_counts = _compute_team_traits(team_set, all_units_map)
+    trait_score = 0.0
+    active_trait_count = 0
+    for trait_name, count in trait_counts.items():
+        thresholds = trait_thresholds.get(trait_name, [])
+        quality_value, _, _, _ = _trait_quality_value(trait_name, count, thresholds, trait_tiers)
+        if quality_value > 0:
+            active_trait_count += 1
+            trait_score += quality_value
+
+    multi_bonus = max(0, active_trait_count - 1) * 0.35
+    return (tier_score * tier_w) + (trait_score * quality_w) + (multi_bonus * multi_w)
+
+
 def _get_trait_tier_state(count, thresholds):
     reached_tier = -1
     reached_value = 0
@@ -490,8 +619,15 @@ def _short_list(items, limit=3):
     return ", ".join(items[:limit]) + f" +{len(items) - limit}"
 
 
-def _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities, lang=DEFAULT_LANGUAGE):
+def _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities,
+                           swap_out_names=None, lang=DEFAULT_LANGUAGE):
     reasons = []
+    swap_out_names = swap_out_names or []
+
+    if swap_out_names and picks:
+        out_list = ", ".join(swap_out_names)
+        in_list = ", ".join(p["name"] for p in picks)
+        reasons.append(tr(lang, "reason_swap", out=out_list, in_=in_list))
 
     if trait_upgrades:
         labels = [f"{tr_trait(lang, t['name'])} ({t['after_tier_letter'] or '?'} @ {t['after_reached']})" for t in trait_upgrades]
@@ -525,7 +661,9 @@ def _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportuniti
 
 
 def _build_reason_tooltip(picks, trait_upgrades, stable_traits, cap_opportunities,
-                          score, avg_odds, avg_cost, spike_score, lang=DEFAULT_LANGUAGE):
+                          score, avg_odds, avg_cost, spike_score, swap_out_names=None,
+                          lang=DEFAULT_LANGUAGE):
+    swap_out_names = swap_out_names or []
     lines = [
         tr(lang, "tooltip_total_scenario", score=f"{score:.2f}"),
         tr(lang, "tooltip_avg_odds", pct=f"{avg_odds * 100:.1f}"),
@@ -534,6 +672,9 @@ def _build_reason_tooltip(picks, trait_upgrades, stable_traits, cap_opportunitie
         "",
         tr(lang, "tooltip_details_per_unit"),
     ]
+    if swap_out_names and picks:
+        lines.insert(4, tr(lang, "reason_swap", out=", ".join(swap_out_names), in_=", ".join(p["name"] for p in picks)))
+        lines.insert(5, "")
     for pick in picks:
         lines.append(
             f"- {pick['name']}: total={pick['score']:.2f} "
@@ -597,31 +738,58 @@ def summarize_trait_entries(entries, limit=6):
 def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, units,
                                      trait_thresholds, trait_tiers=None, weights=None, top_n=3,
                                      diversity=0.5, sort_mode="score", lang=DEFAULT_LANGUAGE,
-                                     planning_extra_slots=0, emblem_potential_by_trait=None):
+                                     planning_extra_slots=0, emblem_potential_by_trait=None,
+                                     max_swap_replacements=DEFAULT_MAX_SWAP_REPLACEMENTS):
     w = weights or DEFAULT_WEIGHTS
     all_units_map = {u["name"]: u for u in units}
+    selected_names = _normalize_team_by_dependencies(selected_names)
     level = team_size
-    slots = team_size - len(selected_names)
-    if slots <= 0:
-        return []
+    slots = team_size - _team_slots_used(selected_names)
 
     tier_w = w.get("tier", 1.0)
     odds_w = w.get("odds", 1.0)
+    score_cache = {}
+    seed_scores_cache = {}
 
     def _score_unit(u, team):
+        team_key = team if isinstance(team, frozenset) else frozenset(team)
+        cache_key = (team_key, u["name"])
+        if cache_key in score_cache:
+            return score_cache[cache_key]
+        if u["name"] in team_key:
+            score_cache[cache_key] = None
+            return None
+        if not _is_unit_unlocked_for_team(u, unlocked_names, team_key):
+            score_cache[cache_key] = None
+            return None
+        if not _can_add_unit_to_team(u["name"], team_key):
+            score_cache[cache_key] = None
+            return None
+        free_slots = max(0, team_size - _team_slots_used(team_key))
+        candidate_slot_cost = _unit_slot_cost(u["name"])
+        if candidate_slot_cost > free_slots:
+            score_cache[cache_key] = None
+            return None
+        # Keep joker units for "team full" situations to avoid under-filling normal slots.
+        if candidate_slot_cost == 0 and free_slots > 0:
+            score_cache[cache_key] = None
+            return None
         odds = get_roll_odds(level, u["cost"])
         if odds <= 0:
+            score_cache[cache_key] = None
             return None
         tier_score = TIER_SCORES.get(u["tier"], 0) * tier_w
         trait_score, matching, trait_details = compute_trait_score(
-            u, team, all_units_map, trait_thresholds, trait_tiers, unlocked_names, units, w, team_size,
+            u, team_key, all_units_map, trait_thresholds, trait_tiers, unlocked_names, units, w, team_size,
             planning_extra_slots=planning_extra_slots,
             emblem_potential_by_trait=emblem_potential_by_trait,
         )
         raw_score = tier_score + trait_score
         # odds_w controls how much drop rate matters: 0=ignore odds, 1=full weight
         total = raw_score * (odds ** odds_w) if odds_w > 0 else raw_score
-        return (total, tier_score, trait_score, odds, matching, trait_details, u)
+        entry = (total, tier_score, trait_score, odds, matching, trait_details, u)
+        score_cache[cache_key] = entry
+        return entry
 
     def _to_pick(entry):
         total, tier_score, trait_score, odds, matching, trait_details, unit = entry
@@ -640,39 +808,59 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             "trait_details": trait_details,
         }
 
-    available_units = []
-    first_pass_scores = []
-    for u in units:
-        if u["name"] in selected_names:
-            continue
-        if u["locked"] and u["name"] not in unlocked_names:
-            continue
-        available_units.append(u)
-        entry = _score_unit(u, selected_names)
-        if entry:
-            first_pass_scores.append(entry)
-
-    if not available_units or not first_pass_scores:
-        return []
-
+    current_team_score = _compute_team_power_score(
+        selected_names, all_units_map, trait_thresholds, trait_tiers, w
+    )
     before_traits = _compute_team_traits(selected_names, all_units_map)
 
-    def _build_scenario(seed_name=None):
-        used = set(selected_names)
+    def _collect_seed_scores(team):
+        team_key = team if isinstance(team, frozenset) else frozenset(team)
+        cached = seed_scores_cache.get(team_key)
+        if cached is not None:
+            return cached
+        scores = []
+        for unit in units:
+            entry = _score_unit(unit, team_key)
+            if entry:
+                scores.append(entry)
+        scores.sort(key=lambda x: -x[0])
+        seed_scores_cache[team_key] = scores
+        return scores
+
+    seed_scores_now = _collect_seed_scores(selected_names)
+    can_add_without_swap = bool(seed_scores_now)
+    swap_mode = slots <= 0 and not can_add_without_swap
+    slots_to_fill = 1 if (slots <= 0) else slots
+    max_swaps = max(1, int(max_swap_replacements or 1))
+    normal_seed_limit = max(12, top_n * 6)
+    swap_seed_limit = max(4, min(SWAP_SEED_LIMIT, top_n * 2 + 2))
+    if slots_to_fill <= 0:
+        return []
+
+    def _build_scenario(base_team, slots_target, seed_name=None, swap_out_names=None):
+        used = set(base_team)
         picks = []
+        swap_out_names = sorted(set(swap_out_names or []))
+        blocked_names = set(swap_out_names)
 
         if seed_name is not None:
-            seed_unit = all_units_map[seed_name]
+            if seed_name in blocked_names:
+                return None
+            seed_unit = all_units_map.get(seed_name)
+            if seed_unit is None:
+                return None
             seed_entry = _score_unit(seed_unit, used)
             if not seed_entry:
                 return None
             picks.append(_to_pick(seed_entry))
             used.add(seed_name)
 
-        while len(picks) < slots:
+        while len(picks) < slots_target:
             best_entry = None
-            for u in available_units:
+            for u in units:
                 if u["name"] in used:
+                    continue
+                if u["name"] in blocked_names:
                     continue
                 entry = _score_unit(u, used)
                 if entry and (best_entry is None or entry[0] > best_entry[0]):
@@ -683,10 +871,16 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             picks.append(pick)
             used.add(pick["name"])
 
-        if not picks:
+        if len(picks) < slots_target:
+            return None
+        if not _team_dependencies_valid(used):
             return None
 
         after_traits = _compute_team_traits(used, all_units_map)
+        projected_team_score = _compute_team_power_score(
+            used, all_units_map, trait_thresholds, trait_tiers, w
+        )
+        team_score_delta = projected_team_score - current_team_score
         trait_deltas, trait_upgrades, stable_traits, new_active_traits = _analyze_trait_deltas(
             before_traits, after_traits, trait_thresholds, trait_tiers
         )
@@ -717,10 +911,16 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             key=lambda d: (-d["future_gain"], -d["potential_count"], d["trait"])
         )
         pick_names = [p["name"] for p in picks]
-        reason = _build_scenario_reason(picks, trait_upgrades, stable_traits, cap_opportunities, lang=lang)
+        reason = _build_scenario_reason(
+            picks, trait_upgrades, stable_traits, cap_opportunities,
+            swap_out_names=swap_out_names, lang=lang
+        )
 
         return {
             "score": total_score,
+            "current_team_score": current_team_score,
+            "projected_team_score": projected_team_score,
+            "team_score_delta": team_score_delta,
             "avg_odds": avg_odds,
             "avg_cost": avg_cost,
             "total_cost": total_cost,
@@ -729,6 +929,8 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             "spike_score": spike_score,
             "pick_names": pick_names,
             "pick_set": set(pick_names),
+            "swap_out_names": swap_out_names,
+            "swap_out_set": set(swap_out_names),
             "picks": picks,
             "trait_deltas": trait_deltas,
             "active_traits": active_traits,
@@ -739,23 +941,59 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             "reason": reason,
             "reason_tooltip": _build_reason_tooltip(
                 picks, trait_upgrades, stable_traits, cap_opportunities,
-                total_score, avg_odds, avg_cost, spike_score, lang=lang
+                total_score, avg_odds, avg_cost, spike_score,
+                swap_out_names=swap_out_names, lang=lang
             ),
         }
 
-    first_pass_scores.sort(key=lambda x: -x[0])
-    seed_count = min(len(first_pass_scores), max(12, top_n * 6))
-    seed_names = [None] + [entry[6]["name"] for entry in first_pass_scores[:seed_count]]
-
     scenarios = []
-    for seed_name in seed_names:
-        scenario = _build_scenario(seed_name)
-        if scenario:
-            scenarios.append(scenario)
+    seed_limit = swap_seed_limit if swap_mode else normal_seed_limit
+    swap_scenario_budget = max(12, top_n * SWAP_SCENARIO_BUDGET_PER_TOP_RESULT)
+    if swap_mode:
+        selected_sorted = sorted(selected_names)
+        max_swap_count = min(max_swaps, len(selected_sorted))
+        budget_reached = False
+        for swap_count in range(1, max_swap_count + 1):
+            if budget_reached:
+                break
+            for swap_out_tuple in combinations(selected_sorted, swap_count):
+                if budget_reached:
+                    break
+                swap_out_names = list(swap_out_tuple)
+                base_team = set(selected_names) - set(swap_out_names)
+                base_team = _normalize_team_by_dependencies(base_team)
+                if not _team_dependencies_valid(base_team):
+                    continue
+                slots_to_refill = team_size - _team_slots_used(base_team)
+                if slots_to_refill <= 0:
+                    continue
+                if slots_to_refill > max_swaps:
+                    continue
+                seed_scores = _collect_seed_scores(base_team)
+                if not seed_scores:
+                    continue
+                seed_names = [None] + [entry[6]["name"] for entry in seed_scores[:seed_limit]]
+                for seed_name in seed_names:
+                    scenario = _build_scenario(
+                        base_team, slots_to_refill, seed_name, swap_out_names=swap_out_names
+                    )
+                    if scenario:
+                        scenarios.append(scenario)
+                        if len(scenarios) >= swap_scenario_budget:
+                            budget_reached = True
+                            break
+    else:
+        if not seed_scores_now:
+            return []
+        seed_names = [None] + [entry[6]["name"] for entry in seed_scores_now[:seed_limit]]
+        for seed_name in seed_names:
+            scenario = _build_scenario(selected_names, slots_to_fill, seed_name)
+            if scenario:
+                scenarios.append(scenario)
 
     deduped = {}
     for scenario in scenarios:
-        key = tuple(sorted(scenario["pick_names"]))
+        key = (tuple(sorted(scenario["pick_names"])), tuple(sorted(scenario.get("swap_out_names", []))))
         current = deduped.get(key)
         if current is None or scenario["score"] > current["score"]:
             deduped[key] = scenario
@@ -765,10 +1003,11 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
         return []
 
     def _style_value(scenario):
+        swap_penalty = max(0, len(scenario.get("swap_out_names", [])) - 1) * 0.8
         if sort_mode == "roll":
-            return scenario["avg_odds"] * 100 + scenario["future_gain"] * 0.8 + scenario["score"] * 0.04
+            return scenario["avg_odds"] * 100 + scenario["future_gain"] * 0.8 + scenario["score"] * 0.04 - swap_penalty
         if sort_mode == "eco":
-            return (6.0 - scenario["avg_cost"]) * 8 + scenario["avg_odds"] * 20 + scenario["score"] * 0.03
+            return (6.0 - scenario["avg_cost"]) * 8 + scenario["avg_odds"] * 20 + scenario["score"] * 0.03 - swap_penalty
         if sort_mode == "spike":
             return (
                 scenario["spike_score"] * 10
@@ -776,6 +1015,7 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
                 + scenario["future_gain"] * 1.2
                 + len(scenario["trait_upgrades"]) * 2
                 + scenario["score"] * 0.03
+                - swap_penalty
             )
         return (
             scenario["score"]
@@ -783,6 +1023,7 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             + scenario["future_gain"] * 0.9
             + len(scenario["trait_upgrades"]) * 1.2
             + scenario["avg_odds"] * 5
+            - swap_penalty
         )
 
     for scenario in unique_scenarios:
@@ -793,8 +1034,10 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
     penalty_scale = value_span if value_span > 0 else max(1.0, abs(max(values)))
 
     def _overlap_ratio(a, b):
-        inter = len(a["pick_set"] & b["pick_set"])
-        union = len(a["pick_set"] | b["pick_set"])
+        a_tokens = a["pick_set"] | a.get("swap_out_set", set())
+        b_tokens = b["pick_set"] | b.get("swap_out_set", set())
+        inter = len(a_tokens & b_tokens)
+        union = len(a_tokens | b_tokens)
         return inter / union if union else 0.0
 
     remaining = sorted(unique_scenarios, key=lambda s: (-s["style_value"], -s["score"]))
@@ -817,18 +1060,40 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
         selected.append(best)
         remaining.remove(best)
 
+    # Keep variety in swap size: when max swap > 1, keep at least one 1-for-1 option if available.
+    if swap_mode and max_swaps > 1 and selected:
+        has_single_swap = any(len(s.get("swap_out_names", [])) == 1 for s in selected)
+        single_candidates = [s for s in unique_scenarios if len(s.get("swap_out_names", [])) == 1]
+        if single_candidates and not has_single_swap:
+            best_single = max(single_candidates, key=lambda s: (s["style_value"], s["score"]))
+            if best_single not in selected:
+                best_single["style_rank_value"] = best_single.get("style_rank_value", best_single["style_value"])
+                if len(selected) < top_n:
+                    selected.append(best_single)
+                else:
+                    selected.sort(key=lambda s: (s.get("style_rank_value", s["style_value"]), s["score"]))
+                    drop_index = 0
+                    for i, candidate in enumerate(selected):
+                        if len(candidate.get("swap_out_names", [])) > 1:
+                            drop_index = i
+                            break
+                    selected.pop(drop_index)
+                    selected.append(best_single)
+
     selected.sort(key=lambda s: (-s.get("style_rank_value", s["style_value"]), -s["score"]))
     return selected[:top_n]
 
 
 def compute_recommendations(selected_names, team_size, unlocked_names, units,
                             trait_thresholds, trait_tiers=None, weights=None,
-                            planning_extra_slots=0, emblem_potential_by_trait=None):
+                            planning_extra_slots=0, emblem_potential_by_trait=None,
+                            max_swap_replacements=DEFAULT_MAX_SWAP_REPLACEMENTS):
     """Backward-compatible wrapper kept for older UI paths."""
     scenarios = compute_recommendation_scenarios(
         selected_names, team_size, unlocked_names, units, trait_thresholds, trait_tiers, weights, top_n=1,
         planning_extra_slots=planning_extra_slots,
         emblem_potential_by_trait=emblem_potential_by_trait,
+        max_swap_replacements=max_swap_replacements,
     )
     if not scenarios:
         return []
@@ -886,6 +1151,8 @@ class TFTFinderApp:
         self.w_bridge = tk.DoubleVar(value=1.0)
         self.scenario_diversity = tk.DoubleVar(value=0.5)
         self.planning_extra_slots = tk.IntVar(value=DEFAULT_PLANNING_EXTRA_SLOTS)
+        # Max number of champions that can be replaced in one scenario.
+        self.max_swap_replacements = DEFAULT_MAX_SWAP_REPLACEMENTS
         self.scenario_sort_mode = "score"
         self.lang_var = tk.StringVar(value=DEFAULT_LANGUAGE)
         self.scenario_sort_buttons = {}
@@ -1239,62 +1506,17 @@ class TFTFinderApp:
                               sashwidth=4, sashrelief=tk.FLAT)
         main.pack(fill=tk.BOTH, expand=True)
 
-        # Left: champion grids (normal + locked)
+        # Left: contextual panel (champions on unit tab, items on item tab)
         left_frame = tk.Frame(main, bg="#1d1e20")
         main.add(left_frame, stretch="always")
+        self.left_stack = tk.Frame(left_frame, bg="#1d1e20")
+        self.left_stack.pack(fill=tk.BOTH, expand=True)
+        self.left_champion_view = tk.Frame(self.left_stack, bg="#1d1e20")
+        self.left_item_view = tk.Frame(self.left_stack, bg="#1d1e20")
 
-        left_container = tk.Frame(left_frame, bg="#1d1e20")
-        left_container.pack(fill=tk.BOTH, expand=True)
-
-        left_canvas = tk.Canvas(left_container, bg="#1d1e20", highlightthickness=0)
-        left_scrollbar = ttk.Scrollbar(left_container, orient=tk.VERTICAL, command=left_canvas.yview)
-        self.left_scroll_frame = tk.Frame(left_canvas, bg="#1d1e20")
-
-        self.left_scroll_frame.bind("<Configure>",
-                                     lambda e: left_canvas.configure(scrollregion=left_canvas.bbox("all")))
-        left_canvas.create_window((0, 0), window=self.left_scroll_frame, anchor="nw")
-        left_canvas.configure(yscrollcommand=left_scrollbar.set)
-
-        left_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        left_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        def _on_mousewheel(event):
-            left_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-        left_canvas.bind_all("<MouseWheel>", _on_mousewheel)
-
-        # --- Normal champions section ---
-        tk.Label(self.left_scroll_frame, text=self._t("section_champions"), bg="#1d1e20", fg="white",
-                 font=("Segoe UI", 12, "bold"), pady=4).pack(anchor="w", padx=8)
-
-        self.grid_frame = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
-        self.grid_frame.pack(fill=tk.X, padx=4, pady=4)
-
-        self._build_champion_grid(self.normal_units, self.grid_frame, GRID_COLS)
-
-        # --- Locked champions section ---
-        sep = tk.Frame(self.left_scroll_frame, bg="#444", height=2)
-        sep.pack(fill=tk.X, padx=8, pady=(8, 4))
-
-        locked_header = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
-        locked_header.pack(fill=tk.X, padx=8)
-
-        tk.Label(locked_header, text=self._t("section_locked_champions"), bg="#1d1e20", fg="#e8a33c",
-                 font=("Segoe UI", 12, "bold"), pady=4).pack(side=tk.LEFT)
-
-        btn_frame = tk.Frame(locked_header, bg="#1d1e20")
-        btn_frame.pack(side=tk.RIGHT)
-
-        tk.Button(btn_frame, text=self._t("button_unlock_all"), bg="#444", fg="white",
-                  font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
-                  command=self._unlock_all).pack(side=tk.LEFT, padx=2)
-        tk.Button(btn_frame, text=self._t("button_lock_all"), bg="#444", fg="white",
-                  font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
-                  command=self._lock_all).pack(side=tk.LEFT, padx=2)
-
-        self.locked_grid_frame = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
-        self.locked_grid_frame.pack(fill=tk.X, padx=4, pady=4)
-
-        self._build_locked_grid()
+        self._build_left_champion_panel(self.left_champion_view)
+        self._build_item_selector_panel(self.left_item_view)
+        self.left_champion_view.pack(fill=tk.BOTH, expand=True)
 
         # Right panel: team + tabs (unit optimization / item optimization)
         right_panel = tk.Frame(main, bg="#1d1e20", width=620)
@@ -1311,13 +1533,13 @@ class TFTFinderApp:
         self.tabs = ttk.Notebook(right_panel)
         self.tabs.pack(fill=tk.BOTH, expand=True, padx=4, pady=(2, 4))
 
-        unit_tab = tk.Frame(self.tabs, bg="#1d1e20")
-        item_tab = tk.Frame(self.tabs, bg="#1d1e20")
-        self.tabs.add(unit_tab, text=self._t("tab_unit_opt"))
-        self.tabs.add(item_tab, text=self._t("tab_item_opt"))
+        self.unit_tab = tk.Frame(self.tabs, bg="#1d1e20")
+        self.item_tab = tk.Frame(self.tabs, bg="#1d1e20")
+        self.tabs.add(self.unit_tab, text=self._t("tab_unit_opt"))
+        self.tabs.add(self.item_tab, text=self._t("tab_item_opt"))
 
         # -- Unit tab: traits + recommendations --
-        traits_section = tk.LabelFrame(unit_tab, text=self._t("section_active_traits"), bg="#1d1e20", fg="white",
+        traits_section = tk.LabelFrame(self.unit_tab, text=self._t("section_active_traits"), bg="#1d1e20", fg="white",
                                        font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
                                        labelanchor="n", padx=4, pady=4)
         traits_section.pack(fill=tk.X, padx=0, pady=0)
@@ -1325,7 +1547,7 @@ class TFTFinderApp:
         self.traits_frame = tk.Frame(traits_section, bg="#1d1e20")
         self.traits_frame.pack(fill=tk.X)
 
-        rec_section = tk.LabelFrame(unit_tab, text=self._t("section_top3"), bg="#1d1e20", fg="white",
+        rec_section = tk.LabelFrame(self.unit_tab, text=self._t("section_top3"), bg="#1d1e20", fg="white",
                                     font=("Segoe UI", 11, "bold"), bd=1, relief=tk.GROOVE,
                                     labelanchor="n", padx=4, pady=4)
         rec_section.pack(fill=tk.BOTH, expand=True, pady=(2, 0))
@@ -1346,7 +1568,9 @@ class TFTFinderApp:
         rec_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         # -- Item tab --
-        self._build_items_tab(item_tab)
+        self._build_items_tab(self.item_tab)
+        self.tabs.bind("<<NotebookTabChanged>>", self._on_tab_changed)
+        self._on_tab_changed()
 
     def _build_champion_grid(self, unit_list, parent, cols):
         for i, u in enumerate(unit_list):
@@ -1401,7 +1625,61 @@ class TFTFinderApp:
             for widget in (lbl_img, lbl_name):
                 widget.bind("<Button-1>", lambda e, name=u["name"]: self._toggle_locked(name))
 
-    def _build_items_tab(self, parent):
+    def _build_left_champion_panel(self, parent):
+        left_container = tk.Frame(parent, bg="#1d1e20")
+        left_container.pack(fill=tk.BOTH, expand=True)
+
+        left_canvas = tk.Canvas(left_container, bg="#1d1e20", highlightthickness=0)
+        left_scrollbar = ttk.Scrollbar(left_container, orient=tk.VERTICAL, command=left_canvas.yview)
+        self.left_scroll_frame = tk.Frame(left_canvas, bg="#1d1e20")
+
+        self.left_scroll_frame.bind(
+            "<Configure>", lambda e: left_canvas.configure(scrollregion=left_canvas.bbox("all"))
+        )
+        left_canvas.create_window((0, 0), window=self.left_scroll_frame, anchor="nw")
+        left_canvas.configure(yscrollcommand=left_scrollbar.set)
+
+        left_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        left_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # --- Normal champions section ---
+        tk.Label(self.left_scroll_frame, text=self._t("section_champions"), bg="#1d1e20", fg="white",
+                 font=("Segoe UI", 12, "bold"), pady=4).pack(anchor="w", padx=8)
+
+        self.grid_frame = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
+        self.grid_frame.pack(fill=tk.X, padx=4, pady=4)
+        self._build_champion_grid(self.normal_units, self.grid_frame, GRID_COLS)
+
+        # --- Locked champions section ---
+        sep = tk.Frame(self.left_scroll_frame, bg="#444", height=2)
+        sep.pack(fill=tk.X, padx=8, pady=(8, 4))
+
+        locked_header = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
+        locked_header.pack(fill=tk.X, padx=8)
+
+        tk.Label(locked_header, text=self._t("section_locked_champions"), bg="#1d1e20", fg="#e8a33c",
+                 font=("Segoe UI", 12, "bold"), pady=4).pack(side=tk.LEFT)
+
+        btn_frame = tk.Frame(locked_header, bg="#1d1e20")
+        btn_frame.pack(side=tk.RIGHT)
+
+        tk.Button(btn_frame, text=self._t("button_unlock_all"), bg="#444", fg="white",
+                  font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
+                  command=self._unlock_all).pack(side=tk.LEFT, padx=2)
+        tk.Button(btn_frame, text=self._t("button_lock_all"), bg="#444", fg="white",
+                  font=("Segoe UI", 8), relief=tk.FLAT, padx=6, pady=2,
+                  command=self._lock_all).pack(side=tk.LEFT, padx=2)
+
+        self.locked_grid_frame = tk.Frame(self.left_scroll_frame, bg="#1d1e20")
+        self.locked_grid_frame.pack(fill=tk.X, padx=4, pady=4)
+        self._build_locked_grid()
+
+        def _on_mousewheel(event):
+            left_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        left_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+    def _build_item_selector_panel(self, parent):
         filters = tk.Frame(parent, bg="#1d1e20", pady=4)
         filters.pack(fill=tk.X)
 
@@ -1437,15 +1715,8 @@ class TFTFinderApp:
         tk.Label(filters, text=self._t("item_click_hint"),
                  bg="#1d1e20", fg="#777", font=("Segoe UI", 8, "italic")).pack(side=tk.RIGHT, padx=(0, 10))
 
-        tab_main = tk.PanedWindow(parent, orient=tk.HORIZONTAL, bg="#1d1e20",
-                                  sashwidth=3, sashrelief=tk.FLAT)
-        tab_main.pack(fill=tk.BOTH, expand=True)
-
-        selector = tk.Frame(tab_main, bg="#1d1e20")
-        insights = tk.Frame(tab_main, bg="#1d1e20", width=290)
-        tab_main.add(selector, stretch="always")
-        tab_main.add(insights, stretch="never")
-
+        selector = tk.Frame(parent, bg="#1d1e20")
+        selector.pack(fill=tk.BOTH, expand=True)
         selector_canvas = tk.Canvas(selector, bg="#1d1e20", highlightthickness=0)
         selector_scroll = ttk.Scrollbar(selector, orient=tk.VERTICAL, command=selector_canvas.yview)
         self.item_grid_frame = tk.Frame(selector_canvas, bg="#1d1e20")
@@ -1457,6 +1728,13 @@ class TFTFinderApp:
         selector_canvas.configure(yscrollcommand=selector_scroll.set)
         selector_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         selector_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self._build_item_grid()
+        self._refresh_item_grid_filter()
+
+    def _build_items_tab(self, parent):
+        insights = tk.Frame(parent, bg="#1d1e20")
+        insights.pack(fill=tk.BOTH, expand=True)
 
         insight_canvas = tk.Canvas(insights, bg="#1d1e20", highlightthickness=0)
         insight_scroll = ttk.Scrollbar(insights, orient=tk.VERTICAL, command=insight_canvas.yview)
@@ -1470,9 +1748,17 @@ class TFTFinderApp:
         insight_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         insight_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self._build_item_grid()
-        self._refresh_item_grid_filter()
         self._refresh_items_tab()
+
+    def _on_tab_changed(self, _event=None):
+        current_tab = self.tabs.select()
+        if current_tab == str(self.item_tab):
+            self.left_champion_view.pack_forget()
+            self.left_item_view.pack(fill=tk.BOTH, expand=True)
+            self._refresh_item_grid_filter()
+        else:
+            self.left_item_view.pack_forget()
+            self.left_champion_view.pack(fill=tk.BOTH, expand=True)
 
     def _build_item_grid(self):
         ordered = sorted(
@@ -2242,6 +2528,7 @@ class TFTFinderApp:
         self._apply_preset(DEFAULT_WEIGHTS)
         self.scenario_diversity.set(0.5)
         self.planning_extra_slots.set(DEFAULT_PLANNING_EXTRA_SLOTS)
+        self.max_swap_replacements = DEFAULT_MAX_SWAP_REPLACEMENTS
         self._set_scenario_sort("score")
 
     def _get_weights(self):
@@ -2294,12 +2581,43 @@ class TFTFinderApp:
 
         self._refresh_grid_filter()
 
+    def _current_team_slots(self):
+        return _team_slots_used(self.selected)
+
+    def _is_unit_available_for_selection(self, name):
+        unit = self.units_map.get(name)
+        if not unit:
+            return False
+        return _is_unit_unlocked_for_team(unit, self.unlocked, self.selected)
+
+    def _can_add_unit_to_current_team(self, name):
+        if name in self.selected:
+            return True
+        unit = self.units_map.get(name)
+        if not unit:
+            return False
+        if not self._is_unit_available_for_selection(name):
+            return False
+        trial = set(self.selected)
+        trial.add(name)
+        if not _team_dependencies_valid(trial):
+            return False
+        return _team_slots_used(trial) <= self.team_size_var.get()
+
+    def _normalize_selected_team(self, team_size):
+        self.selected = _normalize_team_by_dependencies(self.selected)
+        while _team_slots_used(self.selected) > team_size and self.selected:
+            self.selected.pop()
+            self.selected = _normalize_team_by_dependencies(self.selected)
+
     def _on_unlock_toggle(self, name):
         if self.unlock_vars[name].get():
             self.unlocked.add(name)
         else:
             self.unlocked.discard(name)
-            self.selected.discard(name)
+            if name in self.selected:
+                self.selected.discard(name)
+                self.selected = _normalize_team_by_dependencies(self.selected)
         self._refresh()
 
     def _unlock_all(self):
@@ -2316,7 +2634,9 @@ class TFTFinderApp:
         self._refresh()
 
     def _toggle_locked(self, name):
-        if name not in self.unlocked:
+        if name not in self.selected and not self._can_add_unit_to_current_team(name):
+            return
+        if name not in self.selected and not self._is_unit_available_for_selection(name):
             return
         self._toggle(name)
 
@@ -2359,16 +2679,31 @@ class TFTFinderApp:
         self.history.append(set(self.selected))
         if name in self.selected:
             self.selected.remove(name)
+            self.selected = _normalize_team_by_dependencies(self.selected)
         else:
-            if len(self.selected) < self.team_size_var.get():
+            if self._can_add_unit_to_current_team(name):
                 self.selected.add(name)
         self._refresh()
 
     def _apply_scenario(self, scenario):
         self.history.append(set(self.selected))
         team_size = self.team_size_var.get()
+        for name in scenario.get("swap_out_names", []):
+            self.selected.discard(name)
+        self.selected = _normalize_team_by_dependencies(self.selected)
         for name in scenario["pick_names"]:
-            if len(self.selected) >= team_size:
+            if name in self.selected:
+                continue
+            unit = self.units_map.get(name)
+            if not unit:
+                continue
+            if not _is_unit_unlocked_for_team(unit, self.unlocked, self.selected):
+                continue
+            trial = set(self.selected)
+            trial.add(name)
+            if not _team_dependencies_valid(trial):
+                continue
+            if _team_slots_used(trial) > team_size:
                 break
             self.selected.add(name)
         self._refresh()
@@ -2441,38 +2776,44 @@ class TFTFinderApp:
         row_frame = tk.Frame(self.team_frame, bg="#1d1e20")
         row_frame.pack(pady=4)
 
-        for name in sorted(self.selected):
-            u = self.units_map[name]
-            slot = tk.Frame(row_frame, bg="#1d1e20", padx=2, cursor="hand2")
+        def _render_team_unit(parent, unit_name):
+            unit = self.units_map[unit_name]
+            slot = tk.Frame(parent, bg="#1d1e20", padx=2, cursor="hand2")
             slot.pack(side=tk.LEFT, padx=2)
 
-            img = self.team_images.get(name)
-            tier_color = TIER_COLORS.get(u["tier"], "#333")
+            img = self.team_images.get(unit_name)
+            tier_color = TIER_COLORS.get(unit["tier"], "#333")
             lbl_img = tk.Label(slot, image=img, bg=tier_color, bd=2, relief=tk.RAISED)
             lbl_img.pack()
 
-            lbl_name = tk.Label(slot, text=name, bg="#1d1e20", fg="white",
+            lbl_name = tk.Label(slot, text=unit_name, bg="#1d1e20", fg="white",
                                 font=("Segoe UI", 7), wraplength=TEAM_IMG_SIZE + 10)
             lbl_name.pack()
 
             equipped_row = tk.Frame(slot, bg="#1d1e20")
             equipped_row.pack(pady=(2, 0))
-            equipped = self.equipped_items.get(name, [])
+            equipped = self.equipped_items.get(unit_name, [])
             for idx in range(MAX_ITEMS_PER_UNIT):
                 if idx < len(equipped):
                     item_slug = equipped[idx]
                     icon = self.team_item_images.get(item_slug)
                     item_lbl = tk.Label(equipped_row, image=icon, bg="#1d1e20", cursor="hand2")
                     item_lbl.pack(side=tk.LEFT, padx=1)
-                    item_lbl.bind("<Button-1>", lambda e, n=name, i=idx: self._on_team_item_click(n, i))
+                    item_lbl.bind("<Button-1>", lambda e, n=unit_name, i=idx: self._on_team_item_click(n, i))
                 else:
                     tk.Label(equipped_row, text="", bg="#333", width=2, height=1,
                              relief=tk.SUNKEN, bd=1).pack(side=tk.LEFT, padx=1)
 
             for w in (slot, lbl_img, lbl_name):
-                w.bind("<Button-1>", lambda e, n=name: self._toggle(n))
+                w.bind("<Button-1>", lambda e, n=unit_name: self._toggle(n))
 
-        empty = team_size - len(self.selected)
+        normal_team_units = sorted([name for name in self.selected if _unit_category(name) != "joker"])
+        joker_team_units = sorted([name for name in self.selected if _unit_category(name) == "joker"])
+
+        for name in normal_team_units:
+            _render_team_unit(row_frame, name)
+
+        empty = max(0, team_size - _team_slots_used(self.selected))
         for _ in range(empty):
             slot = tk.Frame(row_frame, bg="#1d1e20", padx=2)
             slot.pack(side=tk.LEFT, padx=2)
@@ -2480,6 +2821,14 @@ class TFTFinderApp:
                      bg="#333", bd=2, relief=tk.SUNKEN).pack()
             tk.Label(slot, text="?", bg="#1d1e20", fg="#555",
                      font=("Segoe UI", 7)).pack()
+
+        if joker_team_units:
+            tk.Label(self.team_frame, text=self._t("label_joker_units"),
+                     bg="#1d1e20", fg="#e8a33c", font=("Segoe UI", 8, "bold")).pack(anchor="w", padx=6, pady=(4, 0))
+            joker_row = tk.Frame(self.team_frame, bg="#1d1e20")
+            joker_row.pack(anchor="w", pady=(2, 0))
+            for name in joker_team_units:
+                _render_team_unit(joker_row, name)
 
     def _refresh_traits(self):
         for w in self.traits_frame.winfo_children():
@@ -2542,22 +2891,23 @@ class TFTFinderApp:
     def _refresh(self):
         team_size = self.team_size_var.get()
 
-        while len(self.selected) > team_size:
-            self.selected.pop()
+        self._normalize_selected_team(team_size)
         self._sync_equipped_with_team()
 
-        self.selection_count_label.config(text=self._t("selection_count", selected=len(self.selected), total=team_size))
+        self.selection_count_label.config(text=self._t("selection_count", selected=self._current_team_slots(), total=team_size))
 
         # Compute recommendation scenarios first (needed for grid highlight)
+        weights = self._get_weights()
         emblem_potential = self._compute_emblem_potential_by_trait()
         scenarios = compute_recommendation_scenarios(
             self.selected, team_size, self.unlocked,
-            self.units, self.trait_thresholds, self.trait_tiers, self._get_weights(), top_n=3,
+            self.units, self.trait_thresholds, self.trait_tiers, weights, top_n=3,
             diversity=self.scenario_diversity.get(),
             sort_mode=self.scenario_sort_mode,
             lang=self.lang_var.get(),
             planning_extra_slots=self.planning_extra_slots.get(),
             emblem_potential_by_trait=emblem_potential,
+            max_swap_replacements=self.max_swap_replacements,
         )
         self.recommended_names = {
             name for scenario in scenarios for name in scenario["pick_names"]
@@ -2584,7 +2934,10 @@ class TFTFinderApp:
         for u in self.locked_units:
             frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
             cost_color = COST_COLORS.get(u["cost"], "#888")
-            is_unlocked = u["name"] in self.unlocked
+            can_be_added = self._can_add_unit_to_current_team(u["name"])
+            is_unlocked = _is_unit_unlocked_for_team(u, self.unlocked, self.selected) and (
+                u["name"] in self.selected or can_be_added
+            )
             if u["name"] in self.selected:
                 lbl_img.config(bg="#555", relief=tk.SUNKEN, bd=0)
                 lbl_name.config(fg="#666")
@@ -2610,8 +2963,19 @@ class TFTFinderApp:
         for w in self.rec_frame.winfo_children():
             w.destroy()
 
+        current_team_score = _compute_team_power_score(
+            self.selected, self.units_map, self.trait_thresholds, self.trait_tiers, weights
+        )
+
         if not scenarios:
-            msg = self._t("msg_team_full") if len(self.selected) >= team_size else \
+            tk.Label(
+                self.rec_frame,
+                text=self._t("label_current_team_score", score=f"{current_team_score:.1f}"),
+                bg="#1d1e20",
+                fg="#9fc7ff",
+                font=("Segoe UI", 9, "bold"),
+            ).pack(pady=(12, 6))
+            msg = self._t("msg_team_full") if self._current_team_slots() >= team_size else \
                   self._t("msg_select_champions_and_adjust")
             tk.Label(self.rec_frame, text=msg,
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 10)).pack(pady=20)
@@ -2620,11 +2984,25 @@ class TFTFinderApp:
         for col in range(3):
             self.rec_frame.grid_columnconfigure(col, weight=1)
 
+        top_delta = max((s.get("team_score_delta", 0.0) for s in scenarios), default=0.0)
+        summary_text = self._t("label_current_team_score", score=f"{current_team_score:.1f}")
+        if top_delta <= 0:
+            summary_text += f"  |  {self._t('msg_current_team_already_best')}"
+        tk.Label(
+            self.rec_frame,
+            text=summary_text,
+            bg="#1d1e20",
+            fg="#9fc7ff" if top_delta > 0 else "#e8a33c",
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+            justify=tk.LEFT,
+        ).grid(row=0, column=0, columnspan=3, sticky="w", padx=6, pady=(4, 8))
+
         for col in range(3):
             scenario = scenarios[col] if col < len(scenarios) else None
 
             card = tk.Frame(self.rec_frame, bg="#2a2b2e", pady=6, padx=8, bd=1, relief=tk.RIDGE)
-            card.grid(row=0, column=col, sticky="nsew", padx=3, pady=3)
+            card.grid(row=1, column=col, sticky="nsew", padx=3, pady=3)
 
             if scenario is None:
                 tk.Label(card, text=self._t("label_scenario_num", index=col + 1), bg="#2a2b2e", fg="#777",
@@ -2655,6 +3033,20 @@ class TFTFinderApp:
                 command=lambda s=scenario: self._apply_scenario(s),
             ).pack(side=tk.RIGHT)
 
+            projected = scenario.get("projected_team_score", current_team_score)
+            delta = scenario.get("team_score_delta", projected - current_team_score)
+            delta_txt = f"+{delta:.1f}" if delta >= 0 else f"{delta:.1f}"
+            delta_color = "#8fd19e" if delta > 0 else ("#d98f8f" if delta < 0 else "#aaa")
+            tk.Label(
+                card,
+                text=self._t("label_projected_team_score", score=f"{projected:.1f}", delta=delta_txt),
+                bg="#2a2b2e",
+                fg=delta_color,
+                font=("Segoe UI", 8, "bold"),
+                anchor="w",
+                justify=tk.LEFT,
+            ).pack(fill=tk.X, pady=(3, 2))
+
             reason_label = tk.Label(
                 card,
                 text=self._t("label_why_prefix") + "\n" + scenario["reason"],
@@ -2671,6 +3063,33 @@ class TFTFinderApp:
             )
             reason_label.bind("<Motion>", self._move_tooltip)
             reason_label.bind("<Leave>", self._hide_tooltip)
+
+            swap_names = scenario.get("swap_out_names", [])
+            if swap_names:
+                swap_title = tk.Label(
+                    card,
+                    text=self._t("section_suggested_remplacement"),
+                    bg="#2a2b2e",
+                    fg="#ff9b9b",
+                    font=("Segoe UI", 8, "bold"),
+                    anchor="w",
+                )
+                swap_title.pack(fill=tk.X, pady=(3, 1))
+                for unit_name in swap_names:
+                    unit_icon = self.rec_pick_images.get(unit_name)
+                    swap_badge = tk.Label(
+                        card,
+                        text=f" {unit_name}",
+                        image=unit_icon,
+                        compound=tk.LEFT,
+                        bg="#7a2f2f",
+                        fg="white",
+                        font=("Segoe UI", 8, "bold"),
+                        padx=4,
+                        pady=2,
+                        anchor="w",
+                    )
+                    swap_badge.pack(fill=tk.X, pady=(1, 2))
 
             picks_title = tk.Label(card, text=self._t("section_proposed_additions"), bg="#2a2b2e", fg="#9fc7ff",
                                    font=("Segoe UI", 8, "bold"), anchor="w")

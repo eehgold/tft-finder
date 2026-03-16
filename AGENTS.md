@@ -1,0 +1,2 @@
+- à chaque modification / implémentation d'une fonctionnalité, je veux que tu incrémente la version dans app.py
+- à chaque modification / implémentation d'une fonctionnalité, je veux que tu écrivres dans le fichier changelogs.md ce que tu viens de faire, trie les elements par date, vulgarise la phrase pour les utilisateurs non techniques (ex: - Ajout d'un bouton "Config")
