@@ -8,7 +8,7 @@ import sys
 from collections import defaultdict
 from itertools import combinations
 
-APP_VERSION = "1.3.0"
+APP_VERSION = "1.3.1"
 
 
 def _get_base_dir():
@@ -2171,6 +2171,7 @@ class TFTFinderApp:
     def _item_holder_candidates(self, item, team_names):
         candidates = []
         recommended_set = set(item.get("recommended_units", []))
+        item_slug = item.get("slug")
         emblem_trait = None
         if item.get("nature") == "emblem" and item["name"].endswith(" Emblem"):
             emblem_trait = item["name"].replace(" Emblem", "")
@@ -2185,7 +2186,21 @@ class TFTFinderApp:
                     base -= 2.0
                 else:
                     base += 4.0
-            candidates.append({"name": unit_name, "score": base, "recommended": is_recommended})
+            same_item_count = 0
+            duplicate_penalty = 0.0
+            if item_slug:
+                same_item_count = self.equipped_items.get(unit_name, []).count(item_slug)
+                if same_item_count > 0:
+                    # Softly discourage double/triple same item on one champion.
+                    duplicate_penalty = 12.0 + ((same_item_count - 1) * 10.0)
+                    base -= duplicate_penalty
+            candidates.append({
+                "name": unit_name,
+                "score": base,
+                "recommended": is_recommended,
+                "same_item_count": same_item_count,
+                "duplicate_penalty": duplicate_penalty,
+            })
 
         candidates.sort(key=lambda x: (-x["score"], x["name"]))
         return candidates
@@ -2230,9 +2245,11 @@ class TFTFinderApp:
             if isinstance(holder, dict):
                 name = holder.get("name")
                 score = holder.get("score")
+                same_item_count = holder.get("same_item_count", 0)
             else:
                 name = holder
                 score = None
+                same_item_count = 0
             if not name or name not in self.selected or name in seen:
                 continue
             seen.add(name)
@@ -2240,7 +2257,11 @@ class TFTFinderApp:
                 score = float(score) if score is not None else None
             except (TypeError, ValueError):
                 score = None
-            suggestions.append({"name": name, "score": score})
+            try:
+                same_item_count = max(0, int(same_item_count))
+            except (TypeError, ValueError):
+                same_item_count = 0
+            suggestions.append({"name": name, "score": score, "same_item_count": same_item_count})
             if len(suggestions) >= max_icons:
                 break
 
@@ -2262,6 +2283,19 @@ class TFTFinderApp:
                     grade = "D"
             entry["grade"] = grade
         return suggestions
+
+    def _holder_summary_text(self, holder):
+        name = holder.get("name", "")
+        if not name:
+            return ""
+        same_item_count = holder.get("same_item_count", 0)
+        try:
+            same_item_count = int(same_item_count)
+        except (TypeError, ValueError):
+            same_item_count = 0
+        if same_item_count > 0:
+            return self._t("label_holder_name_with_duplicate", holder=name, count=same_item_count)
+        return name
 
     def _find_holder_with_slot(self, item, preferred_holders=None):
         team_names = sorted(self.selected)
@@ -2382,6 +2416,7 @@ class TFTFinderApp:
         for entry in holder_entries:
             name = entry["name"]
             grade = entry.get("grade", "?")
+            same_item_count = entry.get("same_item_count", 0)
             slot = tk.Frame(icons_box, bg=bg)
             slot.pack(side=tk.LEFT, padx=1)
 
@@ -2408,9 +2443,65 @@ class TFTFinderApp:
             )
             grade_lbl.pack(pady=(1, 0))
 
+            duplicate_lbl = None
+            if same_item_count > 0:
+                duplicate_lbl = tk.Label(
+                    slot,
+                    text=self._t("label_holder_duplicate_short", count=same_item_count),
+                    bg=bg,
+                    fg="#f39b7f",
+                    font=("Segoe UI", 6, "bold"),
+                )
+                duplicate_lbl.pack(pady=(0, 0))
+
             if on_click:
                 icon_lbl.bind("<Button-1>", lambda e, n=name: (on_click(n), "break")[1])
                 grade_lbl.bind("<Button-1>", lambda e, n=name: (on_click(n), "break")[1])
+                if duplicate_lbl is not None:
+                    duplicate_lbl.bind("<Button-1>", lambda e, n=name: (on_click(n), "break")[1])
+
+    def _compute_team_unit_notes(self):
+        if not self.selected:
+            return {}
+
+        weights = self._get_weights()
+        current_score = _compute_team_power_score(
+            self.selected, self.units_map, self.trait_thresholds, self.trait_tiers, weights
+        )
+
+        impacts = {}
+        for unit_name in sorted(self.selected):
+            trial = set(self.selected)
+            trial.discard(unit_name)
+            trial = _normalize_team_by_dependencies(trial)
+            trial_score = _compute_team_power_score(
+                trial, self.units_map, self.trait_thresholds, self.trait_tiers, weights
+            )
+            impacts[unit_name] = current_score - trial_score
+
+        values = list(impacts.values())
+        min_impact = min(values) if values else 0.0
+        max_impact = max(values) if values else 0.0
+        spread = max_impact - min_impact
+
+        notes = {}
+        for unit_name, impact in impacts.items():
+            if spread <= 1e-6:
+                grade = "B"
+            else:
+                normalized = (impact - min_impact) / spread
+                if normalized >= 0.85:
+                    grade = "S"
+                elif normalized >= 0.65:
+                    grade = "A"
+                elif normalized >= 0.45:
+                    grade = "B"
+                elif normalized >= 0.25:
+                    grade = "C"
+                else:
+                    grade = "D"
+            notes[unit_name] = {"grade": grade, "impact": impact}
+        return notes
 
     def _can_craft_now(self, comp_a, comp_b):
         count_a = self.inventory_counts.get(comp_a, 0)
@@ -2648,7 +2739,7 @@ class TFTFinderApp:
                 )
                 title_lbl.pack(anchor="w")
                 if holders:
-                    top = ", ".join(h["name"] for h in holders[:3])
+                    top = ", ".join(self._holder_summary_text(h) for h in holders[:3])
                     holder_row = tk.Frame(text_col, bg="#1d1e20")
                     holder_row.pack(fill=tk.X)
                     tk.Label(
@@ -2660,6 +2751,30 @@ class TFTFinderApp:
                         anchor="w",
                     ).pack(side=tk.LEFT, fill=tk.X, expand=True)
                     self._render_holder_icons(holder_row, holders)
+
+                    top_same_count = 0
+                    top_holder_name = ""
+                    if holders:
+                        top_holder_name = holders[0].get("name", "")
+                        try:
+                            top_same_count = int(holders[0].get("same_item_count", 0))
+                        except (TypeError, ValueError):
+                            top_same_count = 0
+                    if top_holder_name and top_same_count > 0:
+                        tk.Label(
+                            text_col,
+                            text=self._t(
+                                "msg_holder_duplicate_warning",
+                                holder=top_holder_name,
+                                item=self._item_name(item),
+                                count=top_same_count,
+                            ),
+                            bg="#1d1e20",
+                            fg="#f39b7f",
+                            font=("Segoe UI", 7, "italic"),
+                            anchor="w",
+                            justify=tk.LEFT,
+                        ).pack(fill=tk.X)
                 else:
                     tk.Label(
                         text_col,
@@ -3170,6 +3285,7 @@ class TFTFinderApp:
 
         row_frame = tk.Frame(self.team_frame, bg="#1d1e20")
         row_frame.pack(pady=4)
+        unit_notes = self._compute_team_unit_notes()
 
         def _render_team_unit(parent, unit_name):
             unit = self.units_map[unit_name]
@@ -3185,6 +3301,18 @@ class TFTFinderApp:
                                 font=("Segoe UI", 7), wraplength=TEAM_IMG_SIZE + 10)
             lbl_name.pack()
 
+            note = unit_notes.get(unit_name, {})
+            note_grade = note.get("grade", "?")
+            note_color = RANK_BADGE_COLORS.get(note_grade, RANK_BADGE_COLORS["?"])
+            lbl_note = tk.Label(
+                slot,
+                text=self._t("label_unit_note", grade=note_grade),
+                bg="#1d1e20",
+                fg=note_color,
+                font=("Segoe UI", 7, "bold"),
+            )
+            lbl_note.pack(pady=(0, 1))
+
             equipped_row = tk.Frame(slot, bg="#1d1e20")
             equipped_row.pack(pady=(2, 0))
             equipped = self.equipped_items.get(unit_name, [])
@@ -3199,7 +3327,7 @@ class TFTFinderApp:
                     tk.Label(equipped_row, text="", bg="#333", width=2, height=1,
                              relief=tk.SUNKEN, bd=1).pack(side=tk.LEFT, padx=1)
 
-            for w in (slot, lbl_img, lbl_name):
+            for w in (slot, lbl_img, lbl_name, lbl_note):
                 w.bind("<Button-1>", lambda e, n=unit_name: self._toggle(n))
                 w.bind("<Button-3>", lambda e, n=unit_name: self._show_unit_constraints_menu(e, n))
 

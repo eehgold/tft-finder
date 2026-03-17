@@ -1,6 +1,8 @@
 # Changelogs
 
 ## 2026-03-17
+- Dans "Opti items", si un champion a deja le meme item, l'application l'indique clairement (ex: "deja x1/x2") et previent que c'est souvent un moins bon choix.
+- Dans "Mon equipe", chaque champion affiche maintenant une note (S a D) juste sous son nom pour reperer rapidement les plus forts de ta compo.
 - Suppression du raccourci annulation (Ctrl+Z) pour simplifier l'utilisation.
 - Quand l'equipe depasse la taille autorisee, les retraits sont maintenant stables et coherents (plus de comportement aleatoire).
 - Nettoyage interne du code pour retirer une ancienne logique non utilisee et rendre l'application plus fiable.
