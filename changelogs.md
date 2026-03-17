@@ -1,5 +1,14 @@
 # Changelogs
 
+## 2026-03-17
+- Suppression du raccourci annulation (Ctrl+Z) pour simplifier l'utilisation.
+- Quand l'equipe depasse la taille autorisee, les retraits sont maintenant stables et coherents (plus de comportement aleatoire).
+- Nettoyage interne du code pour retirer une ancienne logique non utilisee et rendre l'application plus fiable.
+- Ajout d'un mode "Contraintes" dans Config pour guider les recommandations avec des regles simples.
+- Tu peux maintenant forcer des champions a garder, des champions a eviter, et des synergies a imposer dans les propositions.
+- Ajout de raccourcis clic droit: sur un champion tu peux activer/desactiver "garder" ou "eviter", et sur un trait actif tu peux activer/desactiver "forcer ce trait".
+- Les contraintes actives sont visibles directement dans l'ecran avec des symboles simples: cadenas pour "garder/forcer" et croix rouge pour "eviter".
+
 ## 2026-03-16
 - Amelioration UI sur l'onglet items: les composants et items sont maintenant affiches dans la colonne de gauche (a la place des champions), pour une navigation plus logique.
 - Optimisation de performance: les suggestions restent rapides meme avec des equipes plus grandes (le calcul des remplacements a ete accelere).

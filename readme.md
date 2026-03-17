@@ -86,7 +86,14 @@ Version is controlled in:
 2. `My team` is always visible at the top-right and is shared by both tabs.
 3. Use the main **search bar** and **sort buttons** to filter/sort champions.
 4. Adjust **team size** with the slider.
-5. Use **Config** to adjust scoring weights or presets.
+5. Use **Config** to adjust scoring weights, presets, and optional **constraints mode**:
+   - `Keep champions`: units that should not be replaced in swap scenarios
+   - `Avoid champions`: units you don't want in suggestions
+   - `Force traits`: synergies that must be active in proposed scenarios
+6. **Right click shortcuts**:
+   - Right click a champion to set/remove `Keep` or `Avoid`
+   - Right click an active trait to set/remove `Force trait`
+   - Visual badges appear directly on names: lock symbol for keep/force, red cross for avoid
 
 ### Tab 1: `Opti unites`
 
@@ -139,7 +146,6 @@ All item logic is local (no dependency on `src/data/web` at runtime):
 
 ### Keyboard shortcuts
 
-- **Ctrl+Z**: undo last action
 - **Escape**: deselect all
 
 ## License

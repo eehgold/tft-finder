@@ -3,11 +3,12 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import json
 import os
+import re
 import sys
 from collections import defaultdict
 from itertools import combinations
 
-APP_VERSION = "1.2.10"
+APP_VERSION = "1.3.0"
 
 
 def _get_base_dir():
@@ -259,6 +260,8 @@ SCENARIO_SORT_MODES = [
     ("eco", "scenario_sort_eco"),
     ("spike", "scenario_sort_spike"),
 ]
+FORCED_TRAIT_BASE_BONUS = 6.0
+FORCED_TRAIT_ACTIVATION_BONUS = 8.0
 
 
 def load_i18n_data():
@@ -739,17 +742,32 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
                                      trait_thresholds, trait_tiers=None, weights=None, top_n=3,
                                      diversity=0.5, sort_mode="score", lang=DEFAULT_LANGUAGE,
                                      planning_extra_slots=0, emblem_potential_by_trait=None,
-                                     max_swap_replacements=DEFAULT_MAX_SWAP_REPLACEMENTS):
+                                     max_swap_replacements=DEFAULT_MAX_SWAP_REPLACEMENTS,
+                                     constraint_keep_units=None, constraint_avoid_units=None,
+                                     constraint_force_traits=None):
     w = weights or DEFAULT_WEIGHTS
     all_units_map = {u["name"]: u for u in units}
     selected_names = _normalize_team_by_dependencies(selected_names)
     level = team_size
     slots = team_size - _team_slots_used(selected_names)
+    keep_units = set(constraint_keep_units or []) & set(selected_names)
+    avoid_units = set(constraint_avoid_units or []) - keep_units
+    forced_traits = set(constraint_force_traits or []) & set(trait_thresholds.keys())
 
     tier_w = w.get("tier", 1.0)
     odds_w = w.get("odds", 1.0)
     score_cache = {}
     seed_scores_cache = {}
+    team_traits_cache = {}
+
+    def _team_traits_for(team_key):
+        key = team_key if isinstance(team_key, frozenset) else frozenset(team_key)
+        cached = team_traits_cache.get(key)
+        if cached is not None:
+            return cached
+        traits = _compute_team_traits(key, all_units_map)
+        team_traits_cache[key] = traits
+        return traits
 
     def _score_unit(u, team):
         team_key = team if isinstance(team, frozenset) else frozenset(team)
@@ -757,6 +775,9 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
         if cache_key in score_cache:
             return score_cache[cache_key]
         if u["name"] in team_key:
+            score_cache[cache_key] = None
+            return None
+        if u["name"] in avoid_units:
             score_cache[cache_key] = None
             return None
         if not _is_unit_unlocked_for_team(u, unlocked_names, team_key):
@@ -785,6 +806,21 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             emblem_potential_by_trait=emblem_potential_by_trait,
         )
         raw_score = tier_score + trait_score
+        if forced_traits:
+            team_traits = _team_traits_for(team_key)
+            forced_bonus = 0.0
+            for trait_name in forced_traits:
+                if trait_name not in u["traits"]:
+                    continue
+                forced_bonus += FORCED_TRAIT_BASE_BONUS
+                current_count = team_traits.get(trait_name, 0)
+                new_count = current_count + 1
+                thresholds = trait_thresholds.get(trait_name, [])
+                current_idx, _, _ = _get_trait_tier_state(current_count, thresholds)
+                new_idx, _, _ = _get_trait_tier_state(new_count, thresholds)
+                if new_idx > current_idx:
+                    forced_bonus += FORCED_TRAIT_ACTIVATION_BONUS
+            raw_score += forced_bonus
         # odds_w controls how much drop rate matters: 0=ignore odds, 1=full weight
         total = raw_score * (odds ** odds_w) if odds_w > 0 else raw_score
         entry = (total, tier_score, trait_score, odds, matching, trait_details, u)
@@ -841,6 +877,8 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
         used = set(base_team)
         picks = []
         swap_out_names = sorted(set(swap_out_names or []))
+        if keep_units and any(name in keep_units for name in swap_out_names):
+            return None
         blocked_names = set(swap_out_names)
 
         if seed_name is not None:
@@ -877,6 +915,12 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
             return None
 
         after_traits = _compute_team_traits(used, all_units_map)
+        if forced_traits:
+            for trait_name in forced_traits:
+                thresholds = trait_thresholds.get(trait_name, [])
+                reached_idx, _, _ = _get_trait_tier_state(after_traits.get(trait_name, 0), thresholds)
+                if reached_idx < 0:
+                    return None
         projected_team_score = _compute_team_power_score(
             used, all_units_map, trait_thresholds, trait_tiers, w
         )
@@ -950,7 +994,7 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
     seed_limit = swap_seed_limit if swap_mode else normal_seed_limit
     swap_scenario_budget = max(12, top_n * SWAP_SCENARIO_BUDGET_PER_TOP_RESULT)
     if swap_mode:
-        selected_sorted = sorted(selected_names)
+        selected_sorted = sorted([name for name in selected_names if name not in keep_units])
         max_swap_count = min(max_swaps, len(selected_sorted))
         budget_reached = False
         for swap_count in range(1, max_swap_count + 1):
@@ -1084,33 +1128,6 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
     return selected[:top_n]
 
 
-def compute_recommendations(selected_names, team_size, unlocked_names, units,
-                            trait_thresholds, trait_tiers=None, weights=None,
-                            planning_extra_slots=0, emblem_potential_by_trait=None,
-                            max_swap_replacements=DEFAULT_MAX_SWAP_REPLACEMENTS):
-    """Backward-compatible wrapper kept for older UI paths."""
-    scenarios = compute_recommendation_scenarios(
-        selected_names, team_size, unlocked_names, units, trait_thresholds, trait_tiers, weights, top_n=1,
-        planning_extra_slots=planning_extra_slots,
-        emblem_potential_by_trait=emblem_potential_by_trait,
-        max_swap_replacements=max_swap_replacements,
-    )
-    if not scenarios:
-        return []
-    recs = []
-    for pick in scenarios[0]["picks"]:
-        u = pick["unit"]
-        recs.append((
-            pick["score"],
-            pick["tier_score"],
-            pick["trait_score"],
-            pick["odds"],
-            set(pick["matching"]),
-            u,
-        ))
-    return recs
-
-
 class TFTFinderApp:
     def __init__(self, root):
         self.root = root
@@ -1138,7 +1155,6 @@ class TFTFinderApp:
         self.team_item_images = {}
         self.item_widgets = {}
         self.recommended_names = set()
-        self.history = []  # undo history: list of previous selected sets
         self.sort_mode = "default"  # default, cost, tier
         self.config_visible = False
 
@@ -1151,6 +1167,14 @@ class TFTFinderApp:
         self.w_bridge = tk.DoubleVar(value=1.0)
         self.scenario_diversity = tk.DoubleVar(value=0.5)
         self.planning_extra_slots = tk.IntVar(value=DEFAULT_PLANNING_EXTRA_SLOTS)
+        self.constraints_enabled = tk.BooleanVar(value=False)
+        self.constraints_keep_var = tk.StringVar(value="")
+        self.constraints_avoid_var = tk.StringVar(value="")
+        self.constraints_force_traits_var = tk.StringVar(value="")
+        self.constraints_status_var = tk.StringVar(value="")
+        self.constraint_keep_units = set()
+        self.constraint_avoid_units = set()
+        self.constraint_force_traits = set()
         # Max number of champions that can be replaced in one scenario.
         self.max_swap_replacements = DEFAULT_MAX_SWAP_REPLACEMENTS
         self.scenario_sort_mode = "score"
@@ -1166,7 +1190,6 @@ class TFTFinderApp:
         self._refresh()
 
         # Keyboard shortcuts
-        self.root.bind("<Control-z>", lambda _: self._undo())
         self.root.bind("<Escape>", lambda _: self._reset_selection())
 
     def _t(self, key, **kwargs):
@@ -1233,6 +1256,196 @@ class TFTFinderApp:
             merged[trait_name] = owned_by_trait.get(trait_name, 0) + craftable_by_trait.get(trait_name, 0)
         return merged
 
+    @staticmethod
+    def _normalize_constraint_token(text):
+        return "".join(ch for ch in str(text).lower() if ch.isalnum())
+
+    def _build_constraint_maps(self):
+        unit_map = {}
+        for unit_name in self.units_map.keys():
+            unit_map[self._normalize_constraint_token(unit_name)] = unit_name
+
+        trait_map = {}
+        for trait_name in self.trait_thresholds.keys():
+            trait_map[self._normalize_constraint_token(trait_name)] = trait_name
+            localized = self._trait_name(trait_name)
+            trait_map[self._normalize_constraint_token(localized)] = trait_name
+        return unit_map, trait_map
+
+    def _parse_constraint_names(self, raw_text, option_map):
+        names = set()
+        unknown = []
+        for token in re.split(r"[,;/|]+", raw_text or ""):
+            token = token.strip()
+            if not token:
+                continue
+            key = self._normalize_constraint_token(token)
+            resolved = option_map.get(key)
+            if resolved:
+                names.add(resolved)
+            else:
+                unknown.append(token)
+        return names, unknown
+
+    def _constraints_are_active(self):
+        if not self.constraints_enabled.get():
+            return False
+        return bool(self.constraint_keep_units or self.constraint_avoid_units or self.constraint_force_traits)
+
+    def _sync_constraint_inputs_from_sets(self):
+        self.constraints_keep_var.set(", ".join(sorted(self.constraint_keep_units)))
+        self.constraints_avoid_var.set(", ".join(sorted(self.constraint_avoid_units)))
+        forced_labels = [self._trait_name(name) for name in sorted(self.constraint_force_traits)]
+        self.constraints_force_traits_var.set(", ".join(forced_labels))
+
+    def _update_constraints_status(self, unknown_tokens=None):
+        if not self.constraints_enabled.get():
+            self.constraints_status_var.set(self._t("msg_constraints_disabled"))
+            return
+        status = self._t(
+            "msg_constraints_applied",
+            keep=len(self.constraint_keep_units),
+            avoid=len(self.constraint_avoid_units),
+            traits=len(self.constraint_force_traits),
+        )
+        unknown = [token for token in (unknown_tokens or []) if token]
+        if unknown:
+            status += " | " + self._t("msg_constraints_unknown", names=", ".join(unknown[:6]))
+        self.constraints_status_var.set(status)
+
+    def _unit_constraint_badge(self, unit_name):
+        if not self.constraints_enabled.get():
+            return ""
+        if unit_name in self.constraint_keep_units:
+            return " 🔒"
+        if unit_name in self.constraint_avoid_units:
+            return " ❌"
+        return ""
+
+    def _trait_constraint_badge(self, trait_name):
+        if self.constraints_enabled.get() and trait_name in self.constraint_force_traits:
+            return " 🔒"
+        return ""
+
+    def _display_unit_name(self, unit_name):
+        return f"{unit_name}{self._unit_constraint_badge(unit_name)}"
+
+    def _display_trait_name(self, trait_name):
+        return f"{self._trait_name(trait_name)}{self._trait_constraint_badge(trait_name)}"
+
+    def _toggle_unit_keep_constraint(self, unit_name):
+        self.constraints_enabled.set(True)
+        if unit_name in self.constraint_keep_units:
+            self.constraint_keep_units.discard(unit_name)
+        else:
+            self.constraint_keep_units.add(unit_name)
+            self.constraint_avoid_units.discard(unit_name)
+        self._sync_constraint_inputs_from_sets()
+        self._update_constraints_status()
+        self._refresh()
+
+    def _toggle_unit_avoid_constraint(self, unit_name):
+        self.constraints_enabled.set(True)
+        if unit_name in self.constraint_avoid_units:
+            self.constraint_avoid_units.discard(unit_name)
+        else:
+            self.constraint_avoid_units.add(unit_name)
+            self.constraint_keep_units.discard(unit_name)
+        self._sync_constraint_inputs_from_sets()
+        self._update_constraints_status()
+        self._refresh()
+
+    def _toggle_trait_force_constraint(self, trait_name):
+        self.constraints_enabled.set(True)
+        if trait_name in self.constraint_force_traits:
+            self.constraint_force_traits.discard(trait_name)
+        else:
+            self.constraint_force_traits.add(trait_name)
+        self._sync_constraint_inputs_from_sets()
+        self._update_constraints_status()
+        self._refresh()
+
+    def _show_unit_constraints_menu(self, event, unit_name):
+        menu = tk.Menu(self.root, tearoff=0)
+        keep_var = tk.BooleanVar(value=self.constraints_enabled.get() and unit_name in self.constraint_keep_units)
+        avoid_var = tk.BooleanVar(value=self.constraints_enabled.get() and unit_name in self.constraint_avoid_units)
+        menu.add_checkbutton(
+            label=self._t("menu_keep_champion"),
+            variable=keep_var,
+            command=lambda n=unit_name: self._toggle_unit_keep_constraint(n),
+        )
+        menu.add_checkbutton(
+            label=self._t("menu_avoid_champion"),
+            variable=avoid_var,
+            command=lambda n=unit_name: self._toggle_unit_avoid_constraint(n),
+        )
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def _show_trait_constraints_menu(self, event, trait_name):
+        menu = tk.Menu(self.root, tearoff=0)
+        force_var = tk.BooleanVar(value=self.constraints_enabled.get() and trait_name in self.constraint_force_traits)
+        menu.add_checkbutton(
+            label=self._t("menu_force_trait"),
+            variable=force_var,
+            command=lambda t=trait_name: self._toggle_trait_force_constraint(t),
+        )
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def _apply_constraints_from_inputs(self, should_refresh=True):
+        unit_map, trait_map = self._build_constraint_maps()
+        keep_units, keep_unknown = self._parse_constraint_names(self.constraints_keep_var.get(), unit_map)
+        avoid_units, avoid_unknown = self._parse_constraint_names(self.constraints_avoid_var.get(), unit_map)
+        force_traits, trait_unknown = self._parse_constraint_names(self.constraints_force_traits_var.get(), trait_map)
+
+        shared = keep_units & avoid_units
+        if shared:
+            avoid_units -= shared
+
+        self.constraint_keep_units = keep_units
+        self.constraint_avoid_units = avoid_units
+        self.constraint_force_traits = force_traits
+
+        unknown = keep_unknown + avoid_unknown + trait_unknown
+        self._update_constraints_status(unknown_tokens=unknown)
+
+        if should_refresh:
+            self._refresh()
+
+    def _clear_constraints(self):
+        self.constraints_enabled.set(False)
+        self.constraints_keep_var.set("")
+        self.constraints_avoid_var.set("")
+        self.constraints_force_traits_var.set("")
+        self.constraint_keep_units.clear()
+        self.constraint_avoid_units.clear()
+        self.constraint_force_traits.clear()
+        self._update_constraints_status()
+        self._refresh()
+
+    def _get_recommendation_constraints(self):
+        if not self._constraints_are_active():
+            return {
+                "keep_units": set(),
+                "avoid_units": set(),
+                "force_traits": set(),
+                "active": False,
+            }
+        keep_units = set(self.constraint_keep_units)
+        avoid_units = set(self.constraint_avoid_units) - keep_units
+        force_traits = set(self.constraint_force_traits)
+        return {
+            "keep_units": keep_units,
+            "avoid_units": avoid_units,
+            "force_traits": force_traits,
+            "active": True,
+        }
+
     def _on_language_change(self, *_):
         self._rebuild_ui_for_language()
 
@@ -1242,6 +1455,10 @@ class TFTFinderApp:
         item_query = self.item_search_var.get() if hasattr(self, "item_search_var") else ""
         item_nature = self.item_nature_var.get() if hasattr(self, "item_nature_var") else "all"
         item_rank = self.item_rank_var.get() if hasattr(self, "item_rank_var") else "all"
+        constraints_enabled = self.constraints_enabled.get()
+        keep_raw = self.constraints_keep_var.get()
+        avoid_raw = self.constraints_avoid_var.get()
+        force_traits_raw = self.constraints_force_traits_var.get()
         was_config_visible = self.config_visible
         self.config_visible = False
 
@@ -1260,6 +1477,11 @@ class TFTFinderApp:
         self.item_search_var.set(item_query)
         self.item_nature_var.set(item_nature)
         self.item_rank_var.set(item_rank)
+        self.constraints_enabled.set(constraints_enabled)
+        self.constraints_keep_var.set(keep_raw)
+        self.constraints_avoid_var.set(avoid_raw)
+        self.constraints_force_traits_var.set(force_traits_raw)
+        self._apply_constraints_from_inputs(should_refresh=False)
         if was_config_visible:
             self._toggle_config()
         self._refresh()
@@ -1434,6 +1656,125 @@ class TFTFinderApp:
             command=lambda _: self._refresh(),
         ).pack(side=tk.LEFT)
 
+        constraints_cfg = tk.LabelFrame(
+            self.config_frame,
+            text=self._t("cfg_constraints"),
+            bg="#333",
+            fg="white",
+            font=("Segoe UI", 9, "bold"),
+            bd=1,
+            relief=tk.GROOVE,
+            padx=8,
+            pady=6,
+        )
+        constraints_cfg.pack(fill=tk.X, pady=(8, 0))
+
+        constraints_toggle = tk.Checkbutton(
+            constraints_cfg,
+            text=self._t("cfg_constraints_enabled"),
+            variable=self.constraints_enabled,
+            bg="#333",
+            fg="#ddd",
+            selectcolor="#444",
+            activebackground="#333",
+            activeforeground="#fff",
+            highlightthickness=0,
+            command=lambda: self._apply_constraints_from_inputs(),
+        )
+        constraints_toggle.pack(anchor="w")
+
+        keep_row = tk.Frame(constraints_cfg, bg="#333")
+        keep_row.pack(fill=tk.X, pady=(4, 0))
+        tk.Label(keep_row, text=self._t("cfg_constraints_keep_units"), bg="#333", fg="#aaa",
+                 font=("Segoe UI", 8), width=16, anchor="w").pack(side=tk.LEFT)
+        keep_entry = tk.Entry(
+            keep_row,
+            textvariable=self.constraints_keep_var,
+            bg="#444",
+            fg="white",
+            insertbackground="white",
+            relief=tk.FLAT,
+        )
+        keep_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        keep_entry.bind("<Return>", lambda _e: self._apply_constraints_from_inputs())
+
+        avoid_row = tk.Frame(constraints_cfg, bg="#333")
+        avoid_row.pack(fill=tk.X, pady=(4, 0))
+        tk.Label(avoid_row, text=self._t("cfg_constraints_avoid_units"), bg="#333", fg="#aaa",
+                 font=("Segoe UI", 8), width=16, anchor="w").pack(side=tk.LEFT)
+        avoid_entry = tk.Entry(
+            avoid_row,
+            textvariable=self.constraints_avoid_var,
+            bg="#444",
+            fg="white",
+            insertbackground="white",
+            relief=tk.FLAT,
+        )
+        avoid_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        avoid_entry.bind("<Return>", lambda _e: self._apply_constraints_from_inputs())
+
+        force_row = tk.Frame(constraints_cfg, bg="#333")
+        force_row.pack(fill=tk.X, pady=(4, 0))
+        tk.Label(force_row, text=self._t("cfg_constraints_force_traits"), bg="#333", fg="#aaa",
+                 font=("Segoe UI", 8), width=16, anchor="w").pack(side=tk.LEFT)
+        force_entry = tk.Entry(
+            force_row,
+            textvariable=self.constraints_force_traits_var,
+            bg="#444",
+            fg="white",
+            insertbackground="white",
+            relief=tk.FLAT,
+        )
+        force_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        force_entry.bind("<Return>", lambda _e: self._apply_constraints_from_inputs())
+
+        constraints_buttons = tk.Frame(constraints_cfg, bg="#333")
+        constraints_buttons.pack(fill=tk.X, pady=(5, 0))
+        tk.Button(
+            constraints_buttons,
+            text=self._t("button_apply_constraints"),
+            bg="#3b6f9e",
+            fg="white",
+            activebackground="#4a83b5",
+            activeforeground="white",
+            relief=tk.FLAT,
+            padx=8,
+            pady=1,
+            command=self._apply_constraints_from_inputs,
+        ).pack(side=tk.LEFT)
+        tk.Button(
+            constraints_buttons,
+            text=self._t("button_clear_constraints"),
+            bg="#555",
+            fg="white",
+            relief=tk.FLAT,
+            padx=8,
+            pady=1,
+            command=self._clear_constraints,
+        ).pack(side=tk.LEFT, padx=(4, 0))
+
+        tk.Label(
+            constraints_cfg,
+            text=self._t("cfg_constraints_hint"),
+            bg="#333",
+            fg="#666",
+            font=("Segoe UI", 7, "italic"),
+            anchor="w",
+            justify=tk.LEFT,
+        ).pack(fill=tk.X, pady=(4, 0))
+        if not self.constraints_status_var.get():
+            self.constraints_status_var.set(self._t("msg_constraints_disabled"))
+        tk.Label(
+            constraints_cfg,
+            textvariable=self.constraints_status_var,
+            bg="#333",
+            fg="#9fc7ff",
+            font=("Segoe UI", 8),
+            anchor="w",
+            justify=tk.LEFT,
+            wraplength=860,
+        ).pack(fill=tk.X, pady=(4, 0))
+
         language_cfg = tk.Frame(self.config_frame, bg="#333")
         language_cfg.pack(fill=tk.X, pady=(8, 0))
         tk.Label(language_cfg, text=self._t("cfg_language"), bg="#333", fg="#aaa",
@@ -1584,7 +1925,7 @@ class TFTFinderApp:
             lbl_img = tk.Label(frame, image=img, bg="#333", bd=0)
             lbl_img.pack()
 
-            lbl_name = tk.Label(frame, text=u["name"], bg="#1d1e20", fg="white",
+            lbl_name = tk.Label(frame, text=self._display_unit_name(u["name"]), bg="#1d1e20", fg="white",
                                 font=("Segoe UI", 7), wraplength=IMG_SIZE + 10)
             lbl_name.pack(fill=tk.X)
 
@@ -1592,6 +1933,7 @@ class TFTFinderApp:
 
             for widget in (frame, lbl_img, lbl_name):
                 widget.bind("<Button-1>", lambda e, name=u["name"]: self._toggle(name))
+                widget.bind("<Button-3>", lambda e, name=u["name"]: self._show_unit_constraints_menu(e, name))
 
     def _build_locked_grid(self):
         for i, u in enumerate(self.locked_units):
@@ -1616,7 +1958,7 @@ class TFTFinderApp:
                                 command=lambda n=u["name"]: self._on_unlock_toggle(n))
             cb.pack(side=tk.LEFT)
 
-            lbl_name = tk.Label(cb_frame, text=u["name"], bg="#1d1e20", fg="#666",
+            lbl_name = tk.Label(cb_frame, text=self._display_unit_name(u["name"]), bg="#1d1e20", fg="#666",
                                 font=("Segoe UI", 7), wraplength=IMG_SIZE + 10, cursor="hand2")
             lbl_name.pack(side=tk.LEFT)
 
@@ -1624,6 +1966,8 @@ class TFTFinderApp:
 
             for widget in (lbl_img, lbl_name):
                 widget.bind("<Button-1>", lambda e, name=u["name"]: self._toggle_locked(name))
+            for widget in (frame, cb_frame, lbl_img, lbl_name):
+                widget.bind("<Button-3>", lambda e, name=u["name"]: self._show_unit_constraints_menu(e, name))
 
     def _build_left_champion_panel(self, parent):
         left_container = tk.Frame(parent, bg="#1d1e20")
@@ -2529,6 +2873,14 @@ class TFTFinderApp:
         self.scenario_diversity.set(0.5)
         self.planning_extra_slots.set(DEFAULT_PLANNING_EXTRA_SLOTS)
         self.max_swap_replacements = DEFAULT_MAX_SWAP_REPLACEMENTS
+        self.constraints_enabled.set(False)
+        self.constraints_keep_var.set("")
+        self.constraints_avoid_var.set("")
+        self.constraints_force_traits_var.set("")
+        self.constraint_keep_units.clear()
+        self.constraint_avoid_units.clear()
+        self.constraint_force_traits.clear()
+        self.constraints_status_var.set(self._t("msg_constraints_disabled"))
         self._set_scenario_sort("score")
 
     def _get_weights(self):
@@ -2607,8 +2959,60 @@ class TFTFinderApp:
     def _normalize_selected_team(self, team_size):
         self.selected = _normalize_team_by_dependencies(self.selected)
         while _team_slots_used(self.selected) > team_size and self.selected:
-            self.selected.pop()
+            to_remove = self._pick_unit_to_remove(self.selected, team_size)
+            if not to_remove:
+                break
+            self.selected.discard(to_remove)
             self.selected = _normalize_team_by_dependencies(self.selected)
+
+    def _pick_unit_to_remove(self, team_names, team_size):
+        team_set = set(team_names)
+        current_slots = _team_slots_used(team_set)
+        if current_slots <= team_size:
+            return None
+
+        protected_units = set()
+        if self._constraints_are_active():
+            protected_units = set(self.constraint_keep_units) & team_set
+        candidate = self._pick_unit_to_remove_candidate(team_set, team_size, protected_units)
+        if candidate is not None:
+            return candidate
+        if protected_units:
+            return self._pick_unit_to_remove_candidate(team_set, team_size, set())
+        return None
+
+    def _pick_unit_to_remove_candidate(self, team_set, team_size, protected_units):
+        current_slots = _team_slots_used(team_set)
+        candidates = []
+        for unit_name in sorted(team_set):
+            if _unit_slot_cost(unit_name) <= 0:
+                continue
+            if unit_name in protected_units:
+                continue
+            trial = set(team_set)
+            trial.discard(unit_name)
+            trial = _normalize_team_by_dependencies(trial)
+            trial_slots = _team_slots_used(trial)
+            if trial_slots >= current_slots:
+                continue
+
+            unit = self.units_map.get(unit_name, {})
+            tier_value = TIER_SCORES.get((unit.get("tier") or "").upper(), 0)
+            cost_value = int(unit.get("cost", 0) or 0)
+            removal_count = len(team_set) - len(trial)
+            overflow_after = max(0, trial_slots - team_size)
+
+            candidates.append((
+                overflow_after,
+                removal_count,
+                tier_value,
+                cost_value,
+                unit_name,
+            ))
+
+        if not candidates:
+            return None
+        return min(candidates)[-1]
 
     def _on_unlock_toggle(self, name):
         if self.unlock_vars[name].get():
@@ -2656,15 +3060,8 @@ class TFTFinderApp:
         return False
 
     def _reset_selection(self):
-        if self.selected:
-            self.history.append(set(self.selected))
         self.selected.clear()
         self._refresh()
-
-    def _undo(self):
-        if self.history:
-            self.selected = self.history.pop()
-            self._refresh()
 
     def _refresh_grid_filter(self):
         query = self.search_var.get().strip()
@@ -2676,7 +3073,6 @@ class TFTFinderApp:
                 frame.grid_remove()
 
     def _toggle(self, name):
-        self.history.append(set(self.selected))
         if name in self.selected:
             self.selected.remove(name)
             self.selected = _normalize_team_by_dependencies(self.selected)
@@ -2686,7 +3082,6 @@ class TFTFinderApp:
         self._refresh()
 
     def _apply_scenario(self, scenario):
-        self.history.append(set(self.selected))
         team_size = self.team_size_var.get()
         for name in scenario.get("swap_out_names", []):
             self.selected.discard(name)
@@ -2786,7 +3181,7 @@ class TFTFinderApp:
             lbl_img = tk.Label(slot, image=img, bg=tier_color, bd=2, relief=tk.RAISED)
             lbl_img.pack()
 
-            lbl_name = tk.Label(slot, text=unit_name, bg="#1d1e20", fg="white",
+            lbl_name = tk.Label(slot, text=self._display_unit_name(unit_name), bg="#1d1e20", fg="white",
                                 font=("Segoe UI", 7), wraplength=TEAM_IMG_SIZE + 10)
             lbl_name.pack()
 
@@ -2806,6 +3201,7 @@ class TFTFinderApp:
 
             for w in (slot, lbl_img, lbl_name):
                 w.bind("<Button-1>", lambda e, n=unit_name: self._toggle(n))
+                w.bind("<Button-3>", lambda e, n=unit_name: self._show_unit_constraints_menu(e, n))
 
         normal_team_units = sorted([name for name in self.selected if _unit_category(name) != "joker"])
         joker_team_units = sorted([name for name in self.selected if _unit_category(name) == "joker"])
@@ -2864,15 +3260,25 @@ class TFTFinderApp:
         row.pack(fill=tk.X, pady=1)
 
         icon = self.trait_images.get(trait_name)
+        icon_lbl = None
         if icon:
-            tk.Label(row, image=icon, bg=row_bg).pack(side=tk.LEFT, padx=(0, 6))
+            icon_lbl = tk.Label(row, image=icon, bg=row_bg)
+            icon_lbl.pack(side=tk.LEFT, padx=(0, 6))
 
-        tk.Label(row, text=self._trait_name(trait_name), bg=row_bg, fg=color,
-                 font=("Segoe UI", 9, "bold"), anchor="w").pack(side=tk.LEFT)
+        trait_lbl = tk.Label(row, text=self._display_trait_name(trait_name), bg=row_bg, fg=color,
+                             font=("Segoe UI", 9, "bold"), anchor="w")
+        trait_lbl.pack(side=tk.LEFT)
 
         progress = progress_text if progress_text is not None else self._format_trait_progress(trait_name, count)
-        tk.Label(row, text=progress, bg=row_bg, fg=color,
-                 font=("Segoe UI", 8)).pack(side=tk.RIGHT)
+        progress_lbl = tk.Label(row, text=progress, bg=row_bg, fg=color,
+                                font=("Segoe UI", 8))
+        progress_lbl.pack(side=tk.RIGHT)
+
+        widgets = [row, trait_lbl, progress_lbl]
+        if icon_lbl is not None:
+            widgets.append(icon_lbl)
+        for widget in widgets:
+            widget.bind("<Button-3>", lambda e, t=trait_name: self._show_trait_constraints_menu(e, t))
 
     def _render_trait_delta_row(self, parent, delta, is_upgrade=False):
         gain = delta["after_count"] - delta["before_count"]
@@ -2899,6 +3305,7 @@ class TFTFinderApp:
         # Compute recommendation scenarios first (needed for grid highlight)
         weights = self._get_weights()
         emblem_potential = self._compute_emblem_potential_by_trait()
+        constraints = self._get_recommendation_constraints()
         scenarios = compute_recommendation_scenarios(
             self.selected, team_size, self.unlocked,
             self.units, self.trait_thresholds, self.trait_tiers, weights, top_n=3,
@@ -2908,6 +3315,9 @@ class TFTFinderApp:
             planning_extra_slots=self.planning_extra_slots.get(),
             emblem_potential_by_trait=emblem_potential,
             max_swap_replacements=self.max_swap_replacements,
+            constraint_keep_units=constraints["keep_units"],
+            constraint_avoid_units=constraints["avoid_units"],
+            constraint_force_traits=constraints["force_traits"],
         )
         self.recommended_names = {
             name for scenario in scenarios for name in scenario["pick_names"]
@@ -2917,6 +3327,7 @@ class TFTFinderApp:
         for u in self.normal_units:
             frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
             cost_color = COST_COLORS.get(u["cost"], "#888")
+            lbl_name.config(text=self._display_unit_name(u["name"]))
             if u["name"] in self.selected:
                 lbl_img.config(bg="#555", relief=tk.SUNKEN, bd=0)
                 lbl_name.config(fg="#666")
@@ -2934,6 +3345,7 @@ class TFTFinderApp:
         for u in self.locked_units:
             frame, lbl_img, lbl_name = self.unit_widgets[u["name"]]
             cost_color = COST_COLORS.get(u["cost"], "#888")
+            lbl_name.config(text=self._display_unit_name(u["name"]))
             can_be_added = self._can_add_unit_to_current_team(u["name"])
             is_unlocked = _is_unit_unlocked_for_team(u, self.unlocked, self.selected) and (
                 u["name"] in self.selected or can_be_added
@@ -2975,8 +3387,11 @@ class TFTFinderApp:
                 fg="#9fc7ff",
                 font=("Segoe UI", 9, "bold"),
             ).pack(pady=(12, 6))
-            msg = self._t("msg_team_full") if self._current_team_slots() >= team_size else \
-                  self._t("msg_select_champions_and_adjust")
+            if constraints["active"]:
+                msg = self._t("msg_no_scenario_with_constraints")
+            else:
+                msg = self._t("msg_team_full") if self._current_team_slots() >= team_size else \
+                      self._t("msg_select_champions_and_adjust")
             tk.Label(self.rec_frame, text=msg,
                      bg="#1d1e20", fg="#888", font=("Segoe UI", 10)).pack(pady=20)
             return
