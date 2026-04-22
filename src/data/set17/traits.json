@@ -1,0 +1,536 @@
+[
+  {
+    "name": "Anima",
+    "count": 3,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_animatech.tft_set17.png"
+  },
+  {
+    "name": "Anima",
+    "count": 6,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_animatech.tft_set17.png"
+  },
+  {
+    "name": "Arbiter",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_arbiter.tft_set17.png"
+  },
+  {
+    "name": "Arbiter",
+    "count": 3,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_arbiter.tft_set17.png"
+  },
+  {
+    "name": "Bastion",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_9_bastion.png"
+  },
+  {
+    "name": "Bastion",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_9_bastion.png"
+  },
+  {
+    "name": "Bastion",
+    "count": 6,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_9_bastion.png"
+  },
+  {
+    "name": "Brawler",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_brawler.png"
+  },
+  {
+    "name": "Brawler",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_brawler.png"
+  },
+  {
+    "name": "Brawler",
+    "count": 6,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_brawler.png"
+  },
+  {
+    "name": "Bulwark",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_bulwark.tft_set17.png"
+  },
+  {
+    "name": "Challenger",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_challenger.tft_set17.png"
+  },
+  {
+    "name": "Challenger",
+    "count": 3,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_challenger.tft_set17.png"
+  },
+  {
+    "name": "Challenger",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_challenger.tft_set17.png"
+  },
+  {
+    "name": "Challenger",
+    "count": 5,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_challenger.tft_set17.png"
+  },
+  {
+    "name": "Commander",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_commander.tft_set17.png"
+  },
+  {
+    "name": "Conduit",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_channeler.tft_set17.png"
+  },
+  {
+    "name": "Conduit",
+    "count": 3,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_channeler.tft_set17.png"
+  },
+  {
+    "name": "Conduit",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_channeler.tft_set17.png"
+  },
+  {
+    "name": "Conduit",
+    "count": 5,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_channeler.tft_set17.png"
+  },
+  {
+    "name": "Dark Lady",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_darklady.tft_set17.png"
+  },
+  {
+    "name": "Dark Star",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_darkstar.tft_set17.png"
+  },
+  {
+    "name": "Dark Star",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_darkstar.tft_set17.png"
+  },
+  {
+    "name": "Dark Star",
+    "count": 6,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_darkstar.tft_set17.png"
+  },
+  {
+    "name": "Dark Star",
+    "count": 9,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_darkstar.tft_set17.png"
+  },
+  {
+    "name": "Divine Duelist",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_divineduelist.tft_set17.png"
+  },
+  {
+    "name": "Doomer",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_doomer.tft_set17.png"
+  },
+  {
+    "name": "Eradicator",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_singularity.tft_set17.png"
+  },
+  {
+    "name": "Factory New",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_factorynew.tft_set17.png"
+  },
+  {
+    "name": "Fateweaver",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_fateweaver.tft_set17.png"
+  },
+  {
+    "name": "Fateweaver",
+    "count": 4,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_fateweaver.tft_set17.png"
+  },
+  {
+    "name": "Galaxy Hunter",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_galaxyhunter.tft_set17.png"
+  },
+  {
+    "name": "Gun Goddess",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_gungoddess.tft_set17.png"
+  },
+  {
+    "name": "Marauder",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_16_slayer.png"
+  },
+  {
+    "name": "Marauder",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_16_slayer.png"
+  },
+  {
+    "name": "Marauder",
+    "count": 6,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_16_slayer.png"
+  },
+  {
+    "name": "Mecha",
+    "count": 3,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_mecha.tft_set17.png"
+  },
+  {
+    "name": "Mecha",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_mecha.tft_set17.png"
+  },
+  {
+    "name": "Mecha",
+    "count": 6,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_mecha.tft_set17.png"
+  },
+  {
+    "name": "Meeple",
+    "count": 3,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_astronaut.tft_set17.png"
+  },
+  {
+    "name": "Meeple",
+    "count": 5,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_astronaut.tft_set17.png"
+  },
+  {
+    "name": "Meeple",
+    "count": 7,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_astronaut.tft_set17.png"
+  },
+  {
+    "name": "Meeple",
+    "count": 10,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_astronaut.tft_set17.png"
+  },
+  {
+    "name": "N.O.V.A.",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_nova.tft_set17.png"
+  },
+  {
+    "name": "N.O.V.A.",
+    "count": 5,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_nova.tft_set17.png"
+  },
+  {
+    "name": "Oracle",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_12_arcana.tft_set12.png"
+  },
+  {
+    "name": "Party Animal",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_partyanimal.tft_set17.png"
+  },
+  {
+    "name": "Primordian",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_primordian.tft_set17.png"
+  },
+  {
+    "name": "Primordian",
+    "count": 3,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_primordian.tft_set17.png"
+  },
+  {
+    "name": "Psionic",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_psyops.tft_set17.png"
+  },
+  {
+    "name": "Psionic",
+    "count": 4,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_psyops.tft_set17.png"
+  },
+  {
+    "name": "Redeemer",
+    "count": 1,
+    "tier": "S",
+    "image": "set17/images/traits/trait_icon_17_redeemer.tft_set17.png"
+  },
+  {
+    "name": "Replicator",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_replicator.tft_set17.png"
+  },
+  {
+    "name": "Replicator",
+    "count": 4,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_replicator.tft_set17.png"
+  },
+  {
+    "name": "Rogue",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_rogue.tft_set17.png"
+  },
+  {
+    "name": "Rogue",
+    "count": 3,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_rogue.tft_set17.png"
+  },
+  {
+    "name": "Rogue",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_rogue.tft_set17.png"
+  },
+  {
+    "name": "Rogue",
+    "count": 5,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_rogue.tft_set17.png"
+  },
+  {
+    "name": "Shepherd",
+    "count": 3,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_shepherd.tft_set17.png"
+  },
+  {
+    "name": "Shepherd",
+    "count": 5,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_shepherd.tft_set17.png"
+  },
+  {
+    "name": "Shepherd",
+    "count": 7,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_shepherd.tft_set17.png"
+  },
+  {
+    "name": "Sniper",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_6_sniper.png"
+  },
+  {
+    "name": "Sniper",
+    "count": 3,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_6_sniper.png"
+  },
+  {
+    "name": "Sniper",
+    "count": 4,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_6_sniper.png"
+  },
+  {
+    "name": "Space Groove",
+    "count": 1,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_spacegroove.tft_set17.png"
+  },
+  {
+    "name": "Space Groove",
+    "count": 3,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_spacegroove.tft_set17.png"
+  },
+  {
+    "name": "Space Groove",
+    "count": 5,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_spacegroove.tft_set17.png"
+  },
+  {
+    "name": "Space Groove",
+    "count": 7,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_spacegroove.tft_set17.png"
+  },
+  {
+    "name": "Space Groove",
+    "count": 10,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_spacegroove.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 3,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 5,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 6,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 7,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 8,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 9,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 10,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Stargazer",
+    "count": 11,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_stargazer.tft_set17.png"
+  },
+  {
+    "name": "Timebreaker",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_timebreaker.tft_set17.png"
+  },
+  {
+    "name": "Timebreaker",
+    "count": 3,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_timebreaker.tft_set17.png"
+  },
+  {
+    "name": "Timebreaker",
+    "count": 4,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_timebreaker.tft_set17.png"
+  },
+  {
+    "name": "Vanguard",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_12_vanguard.tft_set12.png"
+  },
+  {
+    "name": "Vanguard",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_12_vanguard.tft_set12.png"
+  },
+  {
+    "name": "Vanguard",
+    "count": 6,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_12_vanguard.tft_set12.png"
+  },
+  {
+    "name": "Voyager",
+    "count": 2,
+    "tier": "D",
+    "image": "set17/images/traits/trait_icon_17_voyager.tft_set17.png"
+  },
+  {
+    "name": "Voyager",
+    "count": 3,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_voyager.tft_set17.png"
+  },
+  {
+    "name": "Voyager",
+    "count": 4,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_voyager.tft_set17.png"
+  },
+  {
+    "name": "Voyager",
+    "count": 5,
+    "tier": "B",
+    "image": "set17/images/traits/trait_icon_17_voyager.tft_set17.png"
+  },
+  {
+    "name": "Voyager",
+    "count": 6,
+    "tier": "C",
+    "image": "set17/images/traits/trait_icon_17_voyager.tft_set17.png"
+  }
+]

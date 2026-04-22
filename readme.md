@@ -1,6 +1,6 @@
 # TFT Finder
 
-A tool to optimize your team composition in **Teamfight Tactics** (Season 16).
+A tool to optimize your team composition in **Teamfight Tactics** with multi-set support (Set 16 and Set 17).
 The app now includes:
 - **Unit optimization** (best next champions to add)
 - **Item optimization** (components, craft decisions, and best holders)
@@ -46,7 +46,7 @@ In the terminal, type:
 python src/app.py
 ```
 
-The application opens and loads all data from `src/data/`.
+The application opens and loads data from `src/data/` and defaults to the latest available set.
 
 ## Build a Windows `.exe`
 
@@ -139,10 +139,10 @@ Version is controlled in:
 ## Data files (offline/autonomous)
 
 All item logic is local (no dependency on `src/data/web` at runtime):
-- `src/data/items.json`: item catalog (name, icon, nature, rank, bonus, recipe, recommended units)
-- `src/data/components.json`: component matrix and craft results
+- `src/data/set16/items.json` and `src/data/set17/items.json`: item catalog (name, icon, nature, rank, bonus, recipe, recommended units)
+- `src/data/set16/components.json` and `src/data/set17/components.json`: component matrix and craft results
 - `src/data/images/items/`: item/component icons
-- `src/data/units.json` and `src/data/traits.json`: champion/trait data
+- `src/data/set16/units.json`, `src/data/set16/traits.json`, `src/data/set17/units.json` and `src/data/set17/traits.json`: champion/trait data
 
 ### Keyboard shortcuts
 

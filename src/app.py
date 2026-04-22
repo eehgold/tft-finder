@@ -8,7 +8,7 @@ import sys
 from collections import defaultdict
 from itertools import combinations
 
-APP_VERSION = "1.3.1"
+APP_VERSION = "1.4.0"
 
 
 def _get_base_dir():
@@ -92,6 +92,30 @@ UNIT_CATEGORY_OVERRIDES = {
 }
 
 
+def _extract_set_number(set_key):
+    match = re.search(r"(\d+)", str(set_key))
+    if not match:
+        return -1
+    return int(match.group(1))
+
+
+def get_available_sets():
+    discovered = []
+    if not os.path.isdir(DATA_DIR):
+        return discovered
+    for name in os.listdir(DATA_DIR):
+        full = os.path.join(DATA_DIR, name)
+        if not os.path.isdir(full):
+            continue
+        if not re.fullmatch(r"set\d+", name.lower()):
+            continue
+        required = ["units.json", "traits.json", "items.json", "components.json"]
+        if all(os.path.exists(os.path.join(full, fn)) for fn in required):
+            discovered.append(name)
+    discovered.sort(key=_extract_set_number)
+    return discovered
+
+
 def _unit_slot_cost(unit_name):
     return int(UNIT_SLOT_COST_OVERRIDES.get(unit_name, 1))
 
@@ -158,10 +182,11 @@ def _can_add_unit_to_team(unit_name, team_names):
     return _team_dependencies_valid(prospective)
 
 
-def load_data():
-    with open(os.path.join(DATA_DIR, "units.json"), encoding="utf-8") as f:
+def load_data(set_key):
+    set_dir = os.path.join(DATA_DIR, set_key)
+    with open(os.path.join(set_dir, "units.json"), encoding="utf-8") as f:
         units = json.load(f)
-    with open(os.path.join(DATA_DIR, "traits.json"), encoding="utf-8") as f:
+    with open(os.path.join(set_dir, "traits.json"), encoding="utf-8") as f:
         traits_raw = json.load(f)
     trait_thresholds = {}
     trait_icons = {}
@@ -178,10 +203,11 @@ def load_data():
     return units, trait_thresholds, trait_icons, trait_tiers
 
 
-def load_items_data():
-    with open(os.path.join(DATA_DIR, "items.json"), encoding="utf-8") as f:
+def load_items_data(set_key):
+    set_dir = os.path.join(DATA_DIR, set_key)
+    with open(os.path.join(set_dir, "items.json"), encoding="utf-8") as f:
         items = json.load(f)
-    with open(os.path.join(DATA_DIR, "components.json"), encoding="utf-8") as f:
+    with open(os.path.join(set_dir, "components.json"), encoding="utf-8") as f:
         components_payload = json.load(f)
 
     items_map = {item["slug"]: item for item in items}
@@ -1131,11 +1157,15 @@ def compute_recommendation_scenarios(selected_names, team_size, unlocked_names, 
 class TFTFinderApp:
     def __init__(self, root):
         self.root = root
-        self.root.title(f"TFT Finder - Season 16 - v{APP_VERSION}")
         self.root.configure(bg="#1d1e20")
 
-        self.units, self.trait_thresholds, self.trait_icon_paths, self.trait_tiers = load_data()
-        self.items, self.items_map, self.component_slugs, self.component_matrix = load_items_data()
+        self.available_sets = get_available_sets()
+        self.current_set = self.available_sets[-1] if self.available_sets else "set16"
+        self._update_window_title()
+        self.set_var = tk.StringVar(value=self.current_set)
+
+        self.units, self.trait_thresholds, self.trait_icon_paths, self.trait_tiers = load_data(self.current_set)
+        self.items, self.items_map, self.component_slugs, self.component_matrix = load_items_data(self.current_set)
         self.units_map = {u["name"]: u for u in self.units}
         self.normal_units = [u for u in self.units if not u["locked"]]
         self.locked_units = [u for u in self.units if u["locked"]]
@@ -1191,6 +1221,41 @@ class TFTFinderApp:
 
         # Keyboard shortcuts
         self.root.bind("<Escape>", lambda _: self._reset_selection())
+
+    def _update_window_title(self):
+        set_number = _extract_set_number(self.current_set)
+        set_label = f"Set {set_number}" if set_number > 0 else self.current_set
+        self.root.title(f"TFT Finder - {set_label} - v{APP_VERSION}")
+
+    def _on_set_change(self, *_):
+        new_set = self.set_var.get().strip()
+        if not new_set or new_set == self.current_set:
+            return
+        if new_set not in self.available_sets:
+            return
+        self.current_set = new_set
+        self._update_window_title()
+        self._reload_current_set()
+
+    def _reload_current_set(self):
+        self.units, self.trait_thresholds, self.trait_icon_paths, self.trait_tiers = load_data(self.current_set)
+        self.items, self.items_map, self.component_slugs, self.component_matrix = load_items_data(self.current_set)
+        self.units_map = {u["name"]: u for u in self.units}
+        self.normal_units = [u for u in self.units if not u["locked"]]
+        self.locked_units = [u for u in self.units if u["locked"]]
+        self.selected.clear()
+        self.inventory_counts.clear()
+        self.equipped_items.clear()
+        self.unlocked.clear()
+        self.unit_images = {}
+        self.team_images = {}
+        self.rec_pick_images = {}
+        self.trait_images = {}
+        self.item_images = {}
+        self.item_inv_images = {}
+        self.team_item_images = {}
+        self._load_images()
+        self._rebuild_ui_for_language()
 
     def _t(self, key, **kwargs):
         return tr(self.lang_var.get(), key, **kwargs)
@@ -1545,6 +1610,17 @@ class TFTFinderApp:
 
         tk.Label(top, text=self._t("label_team_size"), bg="#2a2b2e", fg="white",
                  font=("Segoe UI", 11)).pack(side=tk.LEFT)
+
+        tk.Label(top, text="Set", bg="#2a2b2e", fg="#bbb", font=("Segoe UI", 10)).pack(side=tk.LEFT, padx=(16, 4))
+        self.set_selector = ttk.Combobox(
+            top,
+            state="readonly",
+            width=8,
+            values=self.available_sets,
+            textvariable=self.set_var,
+        )
+        self.set_selector.pack(side=tk.LEFT, padx=(0, 8))
+        self.set_selector.bind("<<ComboboxSelected>>", self._on_set_change)
 
         self.team_size_var = tk.IntVar(value=6)
         self.team_slider = tk.Scale(top, from_=1, to=10, orient=tk.HORIZONTAL,

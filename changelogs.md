@@ -1,5 +1,11 @@
 # Changelogs
 
+## 2026-04-22
+- Ajout d'un selecteur de set dans l'application pour choisir facilement entre Set 16 et Set 17.
+- Le jeu charge maintenant automatiquement le set le plus recent au demarrage.
+- Reorganisation des donnees pour separer proprement les versions (`set16` et `set17`) et faciliter les futures mises a jour.
+- Ajout des champions et synergies du Set 17 a partir des donnees officielles pour que les recommandations suivent la nouvelle saison.
+
 ## 2026-03-17
 - Dans "Opti items", si un champion a deja le meme item, l'application l'indique clairement (ex: "deja x1/x2") et previent que c'est souvent un moins bon choix.
 - Dans "Mon equipe", chaque champion affiche maintenant une note (S a D) juste sous son nom pour reperer rapidement les plus forts de ta compo.

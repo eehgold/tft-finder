@@ -1,0 +1,927 @@
+[
+  {
+    "name": "Aatrox",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/aatrox.png",
+    "traits": [
+      "N.O.V.A.",
+      "Bastion"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Briar",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/briar.png",
+    "traits": [
+      "Anima",
+      "Primordian",
+      "Rogue"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Caitlyn",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/caitlyn.png",
+    "traits": [
+      "N.O.V.A.",
+      "Fateweaver"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Cho'Gath",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/chogath.png",
+    "traits": [
+      "Dark Star",
+      "Brawler"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Ezreal",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/ezreal.png",
+    "traits": [
+      "Timebreaker",
+      "Sniper"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Golem",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/golem.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Leona",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/leona.png",
+    "traits": [
+      "Arbiter",
+      "Vanguard"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Lissandra",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/lissandra.png",
+    "traits": [
+      "Dark Star",
+      "Shepherd",
+      "Replicator"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Mini Black Hole",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/miniblackhole.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Nasus",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/nasus.png",
+    "traits": [
+      "Space Groove",
+      "Vanguard"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Poppy",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/poppy.png",
+    "traits": [
+      "Meeple",
+      "Bastion"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Rek'Sai",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/reksai.png",
+    "traits": [
+      "Primordian",
+      "Brawler"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Rift Scuttler",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/riftscuttler.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Talon",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/talon.png",
+    "traits": [
+      "Stargazer",
+      "Rogue"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Teemo",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/teemo.png",
+    "traits": [
+      "Space Groove",
+      "Shepherd"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Training Dummy",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/trainingdummy.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Twisted Fate",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/twistedfate.png",
+    "traits": [
+      "Stargazer",
+      "Fateweaver"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Veigar",
+    "cost": 1,
+    "tier": "D",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/veigar.png",
+    "traits": [
+      "Meeple",
+      "Replicator"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Akali",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/akali.png",
+    "traits": [
+      "N.O.V.A.",
+      "Marauder"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Bel'Veth",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/belveth.png",
+    "traits": [
+      "Primordian",
+      "Challenger",
+      "Marauder"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Gnar",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/gnar.png",
+    "traits": [
+      "Meeple",
+      "Sniper"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Gragas",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/gragas.png",
+    "traits": [
+      "Psionic",
+      "Brawler"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Gwen",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/gwen.png",
+    "traits": [
+      "Space Groove",
+      "Rogue"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Jax",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/jax.png",
+    "traits": [
+      "Stargazer",
+      "Bastion"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Jinx",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/jinx.png",
+    "traits": [
+      "Anima",
+      "Challenger"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Meepsie",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/meepsie.png",
+    "traits": [
+      "Meeple",
+      "Shepherd",
+      "Voyager"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Milio",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/milio.png",
+    "traits": [
+      "Timebreaker",
+      "Fateweaver"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Mordekaiser",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/mordekaiser.png",
+    "traits": [
+      "Dark Star",
+      "Conduit",
+      "Vanguard"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Pantheon",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/pantheon.png",
+    "traits": [
+      "Timebreaker",
+      "Brawler",
+      "Replicator"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Pyke",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/pyke.png",
+    "traits": [
+      "Psionic",
+      "Voyager"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Zoe",
+    "cost": 2,
+    "tier": "C",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/zoe.png",
+    "traits": [
+      "Arbiter",
+      "Conduit"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Aurora",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/aurora.png",
+    "traits": [
+      "Anima",
+      "Voyager"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Diana",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/diana.png",
+    "traits": [
+      "Arbiter",
+      "Challenger"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Fizz",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/fizz.png",
+    "traits": [
+      "Meeple",
+      "Rogue"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Illaoi",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/illaoi.png",
+    "traits": [
+      "Anima",
+      "Vanguard",
+      "Shepherd"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Kai'Sa",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/kaisa.png",
+    "traits": [
+      "Dark Star",
+      "Rogue"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Lulu",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/lulu.png",
+    "traits": [
+      "Stargazer",
+      "Replicator"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Maokai",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/maokai.png",
+    "traits": [
+      "N.O.V.A.",
+      "Brawler"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Miss Fortune",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/missfortune.png",
+    "traits": [
+      "Gun Goddess",
+      "Choose Trait"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Ornn",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/ornn.png",
+    "traits": [
+      "Space Groove",
+      "Bastion"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Rhaast",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/rhaast.png",
+    "traits": [
+      "Redeemer"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Samira",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/samira.png",
+    "traits": [
+      "Space Groove",
+      "Sniper"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Urgot",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/urgot.png",
+    "traits": [
+      "Mecha",
+      "Brawler",
+      "Marauder"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Viktor",
+    "cost": 3,
+    "tier": "B",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/viktor.png",
+    "traits": [
+      "Psionic",
+      "Conduit"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Aurelion Sol",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/aurelionsol.png",
+    "traits": [
+      "Mecha",
+      "Conduit"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Corki",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/corki.png",
+    "traits": [
+      "Meeple",
+      "Fateweaver"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Karma",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/karma.png",
+    "traits": [
+      "Dark Star",
+      "Voyager"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Kindred",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/kindred.png",
+    "traits": [
+      "N.O.V.A.",
+      "Challenger"
+    ],
+    "locked": false
+  },
+  {
+    "name": "LeBlanc",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/leblanc.png",
+    "traits": [
+      "Arbiter",
+      "Shepherd"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Master Yi",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/masteryi.png",
+    "traits": [
+      "Psionic",
+      "Marauder"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Nami",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/nami.png",
+    "traits": [
+      "Space Groove",
+      "Replicator"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Nunu & Willump",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/nunuwillump.png",
+    "traits": [
+      "Stargazer",
+      "Vanguard"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Rammus",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/rammus.png",
+    "traits": [
+      "Meeple",
+      "Bastion"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Riven",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/riven.png",
+    "traits": [
+      "Timebreaker",
+      "Rogue"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Tahm Kench",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/tahmkench.png",
+    "traits": [
+      "Oracle",
+      "Brawler"
+    ],
+    "locked": false
+  },
+  {
+    "name": "The Mighty Mech",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/themightymech.png",
+    "traits": [
+      "Mecha",
+      "Voyager"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Xayah",
+    "cost": 4,
+    "tier": "A",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/xayah.png",
+    "traits": [
+      "Stargazer",
+      "Sniper"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Bard",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/bard.png",
+    "traits": [
+      "Meeple",
+      "Conduit"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Blitzcrank",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/blitzcrank.png",
+    "traits": [
+      "Party Animal",
+      "Space Groove",
+      "Vanguard"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Fiora",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/fiora.png",
+    "traits": [
+      "Divine Duelist",
+      "Anima",
+      "Marauder"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Graves",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/graves.png",
+    "traits": [
+      "Factory New"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Jhin",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/jhin.png",
+    "traits": [
+      "Dark Star",
+      "Eradicator",
+      "Sniper"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Morgana",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/morgana.png",
+    "traits": [
+      "Dark Lady"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Shen",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/shen.png",
+    "traits": [
+      "Bulwark",
+      "Bastion"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Sona",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/sona.png",
+    "traits": [
+      "Commander",
+      "Psionic",
+      "Shepherd"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Vex",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/vex.png",
+    "traits": [
+      "Doomer"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Zed",
+    "cost": 5,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/zed.png",
+    "traits": [
+      "Galaxy Hunter"
+    ],
+    "locked": false
+  },
+  {
+    "name": "Artifact Item Anvil",
+    "cost": 8,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Completed Item Anvil",
+    "cost": 8,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Component Anvil",
+    "cost": 8,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Support item anvil",
+    "cost": 8,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Tome of Traits",
+    "cost": 8,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/tomeoftraits.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Bia & Bayin",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/biabayin.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Cosmic Bruiser",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/cosmicbruiser.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Cosmic Elder Dragon",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/cosmicelderdragon.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Cosmic Flutterbye",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/cosmicflutterbye.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Cosmic Gromp",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/cosmicgromp.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Cosmic Scrapper",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/cosmicscrapper.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Cosmic Squid",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/cosmicsquid.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "Mercenary Chest",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "set17/images/champions/mercenarychest.png",
+    "traits": [],
+    "locked": true
+  },
+  {
+    "name": "TimebreakerCore",
+    "cost": 11,
+    "tier": "S",
+    "win_rate": "0.0%",
+    "image": "",
+    "traits": [],
+    "locked": true
+  }
+]
