@@ -8,7 +8,7 @@ import sys
 from collections import defaultdict
 from itertools import combinations
 
-APP_VERSION = "1.4.0"
+APP_VERSION = "1.4.1"
 
 
 def _get_base_dir():
@@ -1553,8 +1553,13 @@ class TFTFinderApp:
 
     def _load_images(self):
         for u in self.units:
-            path = os.path.join(DATA_DIR, u["image"])
-            if os.path.exists(path):
+            image_rel = (u.get("image") or "").strip()
+            if not image_rel:
+                continue
+            path = os.path.join(DATA_DIR, image_rel)
+            if not os.path.isfile(path):
+                continue
+            try:
                 img = Image.open(path)
                 self.unit_images[u["name"]] = ImageTk.PhotoImage(
                     img.resize((IMG_SIZE, IMG_SIZE), Image.LANCZOS))
@@ -1562,18 +1567,25 @@ class TFTFinderApp:
                     img.resize((TEAM_IMG_SIZE, TEAM_IMG_SIZE), Image.LANCZOS))
                 self.rec_pick_images[u["name"]] = ImageTk.PhotoImage(
                     img.resize((REC_PICK_ICON_SIZE, REC_PICK_ICON_SIZE), Image.LANCZOS))
+            except Exception:
+                continue
         for trait_name, img_path in self.trait_icon_paths.items():
-            if img_path:
-                full = os.path.join(DATA_DIR, img_path)
-                if os.path.exists(full):
-                    img = Image.open(full).resize((TRAIT_ICON_SIZE, TRAIT_ICON_SIZE), Image.LANCZOS)
-                    self.trait_images[trait_name] = ImageTk.PhotoImage(img)
+            if not img_path:
+                continue
+            full = os.path.join(DATA_DIR, img_path)
+            if not os.path.isfile(full):
+                continue
+            try:
+                img = Image.open(full).resize((TRAIT_ICON_SIZE, TRAIT_ICON_SIZE), Image.LANCZOS)
+                self.trait_images[trait_name] = ImageTk.PhotoImage(img)
+            except Exception:
+                continue
         for item in self.items:
             icon_path = item.get("icon")
             if not icon_path:
                 continue
             full_icon = os.path.join(DATA_DIR, icon_path)
-            if not os.path.exists(full_icon):
+            if not os.path.isfile(full_icon):
                 continue
             try:
                 src = Image.open(full_icon)

@@ -1,6 +1,7 @@
 # Changelogs
 
 ## 2026-04-22
+- Correction d'un plantage au demarrage: l'app ignore maintenant les images vides ou manquantes au lieu de se fermer.
 - Ajout d'un selecteur de set dans l'application pour choisir facilement entre Set 16 et Set 17.
 - Le jeu charge maintenant automatiquement le set le plus recent au demarrage.
 - Reorganisation des donnees pour separer proprement les versions (`set16` et `set17`) et faciliter les futures mises a jour.
